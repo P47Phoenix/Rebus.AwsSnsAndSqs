@@ -12,7 +12,7 @@ using Rebus.Timeouts;
 
 #pragma warning disable 1998
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     [TestFixture]
     public class AlternativeTimeoutManager : FixtureBase

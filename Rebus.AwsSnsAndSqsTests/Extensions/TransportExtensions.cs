@@ -6,7 +6,7 @@ using Rebus.Bus;
 using Rebus.Messages;
 using Rebus.Transport;
 
-namespace Rebus.AmazonSQS.Tests.Extensions
+namespace Rebus.AwsSnsAndSqsTests.Extensions
 {
     public static class TransportExtensions
     {

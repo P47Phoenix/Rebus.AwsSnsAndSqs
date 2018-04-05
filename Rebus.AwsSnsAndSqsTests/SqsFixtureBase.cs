@@ -6,7 +6,7 @@ using Rebus.Messages;
 using Rebus.Tests.Contracts;
 using Rebus.Transport;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     public abstract class SqsFixtureBase : FixtureBase
     {

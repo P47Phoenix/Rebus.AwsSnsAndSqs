@@ -4,15 +4,8 @@ namespace Rebus.AwsSnsAndSqs.AmazonSQS
 {
     class AmazonSQSTransportMessageSerializer
     {
-        public string Serialize(AmazonSQSTransportMessage message)
-        {
-            return JsonConvert.SerializeObject(message);
-        }
+        public string Serialize(AmazonSQSTransportMessage message) => JsonConvert.SerializeObject(message);
 
-        public AmazonSQSTransportMessage Deserialize(string value)
-        {
-            if (value == null) return null;
-            return JsonConvert.DeserializeObject<AmazonSQSTransportMessage>(value);
-        }
+        public AmazonSQSTransportMessage Deserialize(string value) => value == null ? null : JsonConvert.DeserializeObject<AmazonSQSTransportMessage>(value);
     }
 }

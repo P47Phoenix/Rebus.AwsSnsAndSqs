@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Rebus.AwsSnsAndSqs.AmazonSQS;
 using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Config;
 using Rebus.Exceptions;
 using Rebus.Extensions;
 using Rebus.Logging;
@@ -14,7 +12,7 @@ using Rebus.Tests.Contracts.Transports;
 using Rebus.Threading.TaskParallelLibrary;
 using Rebus.Transport;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     public class AmazonSqsTransportFactory : ITransportFactory
     {

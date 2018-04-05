@@ -3,7 +3,7 @@ using System.Linq;
 using Amazon;
 using Rebus.Extensions;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     public class ConnectionInfo
     {

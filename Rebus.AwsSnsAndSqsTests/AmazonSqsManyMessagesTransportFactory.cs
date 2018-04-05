@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Amazon;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Rebus.Activation;
@@ -13,7 +12,7 @@ using Rebus.Logging;
 using Rebus.Tests.Contracts.Transports;
 using Rebus.Threading.TaskParallelLibrary;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     public class AmazonSqsManyMessagesTransportFactory : IBusFactory
     {

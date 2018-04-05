@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     /// <summary>
     /// Purges the queue when it is disposed

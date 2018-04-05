@@ -6,7 +6,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using NUnit.Framework;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     [TestFixture]
     public class TestQueueGeneration

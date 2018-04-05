@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using Amazon.SQS.Model;
 using NUnit.Framework;
 using Rebus.Activation;
+using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.Tests.Contracts;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.AwsSnsAndSqs.AmazonSQS;
+
 #pragma warning disable 1998
 
-namespace Rebus.AmazonSQS.Tests.Bugs
+namespace Rebus.AwsSnsAndSqsTests.Bugs
 {
     [TestFixture]
     public class CannotSendTooBigMessages : SqsFixtureBase

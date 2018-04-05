@@ -1,4 +1,4 @@
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     public static class Category
     {

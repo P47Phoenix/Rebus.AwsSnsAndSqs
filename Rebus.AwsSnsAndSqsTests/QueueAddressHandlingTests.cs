@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Rebus.Transport;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     [TestFixture, Category(Category.AmazonSqs)]
     public class QueueAddressHandlingTests : SqsFixtureBase

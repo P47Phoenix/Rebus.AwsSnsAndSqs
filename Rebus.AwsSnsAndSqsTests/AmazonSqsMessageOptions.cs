@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Rebus.Messages;
 using Rebus.Tests.Contracts;
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     [TestFixture, Category(Category.AmazonSqs)]
     public class AmazonSqsMessageOptions : SqsFixtureBase

@@ -11,7 +11,7 @@ using Rebus.Tests.Contracts.Extensions;
 
 #pragma warning disable 1998
 
-namespace Rebus.AmazonSQS.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
     [TestFixture, Category(Category.AmazonSqs)]
     public class DeferMessageTest : SqsFixtureBase

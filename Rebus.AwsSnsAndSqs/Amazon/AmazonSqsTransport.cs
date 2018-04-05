@@ -27,19 +27,17 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
     /// </summary>
     public class AmazonSQSTransport : ITransport, IInitializable
     {
-        readonly AmazonTransportMessageSerializer _serializer = new AmazonTransportMessageSerializer();
-        readonly AWSCredentials _credentials;
-        readonly AmazonSQSConfig _amazonSqsConfig;
-        readonly AmazonSQSTransportOptions _options;
+        private readonly AmazonTransportMessageSerializer _serializer = new AmazonTransportMessageSerializer();
+        private readonly AWSCredentials _credentials;
+        private readonly AmazonSQSConfig _amazonSqsConfig;
+        private readonly AmazonSQSTransportOptions _options;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
-        readonly ILog _log;
-
-
+        private readonly ILog _log;        
         private readonly AmazonSendMessage m_amazonSendMessage;
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
         private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
 
-        AmazonPeekLockDuration m_amazonPeekLockDuration = new AmazonPeekLockDuration();
+        private readonly AmazonPeekLockDuration m_amazonPeekLockDuration = new AmazonPeekLockDuration();
         private readonly AmazonSQSRecieve m_amazonSqsRecieve;
 
         /// <summary>
@@ -97,7 +95,10 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
         public void Initialize()
         {
             if (Address == null) return;
-            if (_options.CreateQueues) CreateQueue(Address);
+            if (_options.CreateQueues)
+            {
+                CreateQueue(Address);
+            }
         }
 
 

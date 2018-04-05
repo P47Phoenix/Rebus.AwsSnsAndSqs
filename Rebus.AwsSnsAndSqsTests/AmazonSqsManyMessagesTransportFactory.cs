@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Rebus.Activation;
+using Rebus.AwsSnsAndSqs.Amazon;
 using Rebus.AwsSnsAndSqs.Amazon.SQS;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Bus;

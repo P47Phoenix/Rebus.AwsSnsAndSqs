@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Exceptions;
 using Rebus.Transport;
 
-namespace Rebus.AwsSnsAndSqs.Amazon
+namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
     public class AmazonSQSQueueContext
     {

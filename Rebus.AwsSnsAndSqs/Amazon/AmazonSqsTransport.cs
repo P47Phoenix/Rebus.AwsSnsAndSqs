@@ -1,26 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.SQS;
-using Amazon.SQS.Model;
+using Rebus.AwsSnsAndSqs.Amazon.SQS;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Bus;
-using Rebus.Exceptions;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Threading;
-using Rebus.Time;
 using Rebus.Transport;
-using Message = Amazon.SQS.Model.Message;
+
 #pragma warning disable 1998
 
-namespace Rebus.AwsSnsAndSqs.Amazon.SQS
+namespace Rebus.AwsSnsAndSqs.Amazon
 {
     /// <summary>
     /// Implementation of <see cref="ITransport"/> that uses Amazon Simple Queue Service to move messages around

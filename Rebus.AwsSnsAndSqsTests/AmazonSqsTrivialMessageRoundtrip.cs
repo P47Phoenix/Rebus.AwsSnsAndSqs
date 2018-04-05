@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Rebus.Activation;
-using Rebus.AwsSnsAndSqs.AmazonSQS;
+using Rebus.AwsSnsAndSqs.Amazon.SQS;
 using Rebus.Config;
 using Rebus.Messages;
 using Rebus.Tests.Contracts;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Rebus.AwsSnsAndSqs.AmazonSQS;
+using Rebus.AwsSnsAndSqs.Amazon.SQS;
 using Rebus.AwsSnsAndSqsTests.Extensions;
 using Rebus.Tests.Contracts.Extensions;
 using Rebus.Transport;

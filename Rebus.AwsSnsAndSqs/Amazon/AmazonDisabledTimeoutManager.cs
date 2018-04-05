@@ -5,9 +5,9 @@ using Rebus.Extensions;
 using Rebus.Messages;
 using Rebus.Timeouts;
 
-namespace Rebus.AwsSnsAndSqs.AmazonSQS
+namespace Rebus.AwsSnsAndSqs.Amazon
 {
-    class DisabledTimeoutManager : ITimeoutManager
+    class AmazonDisabledTimeoutManager : ITimeoutManager
     {
         public Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
         {

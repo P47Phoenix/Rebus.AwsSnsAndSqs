@@ -45,5 +45,8 @@
     <PackageReference Include="Rebus" Version="4.2.1" />
     <PackageReference Include="Rebus.Tests.Contracts" Version="4.2.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Amazon\SNS\" />
+  </ItemGroup>
 
 </Project>

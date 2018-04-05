@@ -2,7 +2,8 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.AmazonSQS;
+using Rebus.AwsSnsAndSqs.Amazon;
+using Rebus.AwsSnsAndSqs.Amazon.SQS;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.Pipeline;
@@ -119,7 +120,7 @@ namespace Rebus.AwsSnsAndSqs.Config
                     });
 
                 configurer.OtherService<ITimeoutManager>()
-                    .Register(c => new DisabledTimeoutManager(), description: SqsTimeoutManagerText);
+                    .Register(c => new AmazonDisabledTimeoutManager(), description: SqsTimeoutManagerText);
             }
         }
 
@@ -153,7 +154,7 @@ namespace Rebus.AwsSnsAndSqs.Config
                     });
 
                 configurer.OtherService<ITimeoutManager>()
-                    .Register(c => new DisabledTimeoutManager(), description: SqsTimeoutManagerText);
+                    .Register(c => new AmazonDisabledTimeoutManager(), description: SqsTimeoutManagerText);
             }
         }
     }

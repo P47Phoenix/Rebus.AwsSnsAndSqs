@@ -25,13 +25,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
         public ITransport Create(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSQSTransportOptions options = null)
         {
-            if (inputQueueAddress == null)
-            {
-                // one-way client
-                return CreateTransport(null, peeklockDuration, options);
-            }
-
-            return _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
+            return inputQueueAddress == null ? CreateTransport(null, peeklockDuration, options) : _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
         }
 
         public static AmazonSQSTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSQSTransportOptions options = null)
@@ -52,7 +46,7 @@ namespace Rebus.AwsSnsAndSqsTests
             );
 
             transport.Initialize(peeklockDuration);
-            transport.Purge();
+           
             return transport;
         }
 
@@ -76,14 +70,13 @@ namespace Rebus.AwsSnsAndSqsTests
 
         public void CleanUp(bool deleteQueues)
         {
-            if (deleteQueues)
-            {
-                foreach (var queueAndTransport in _queuesToDelete)
-                {
-                    var transport = queueAndTransport.Value;
+            if (deleteQueues == false) return;
 
-                    transport.DeleteQueue();
-                }
+            foreach (var queueAndTransport in _queuesToDelete)
+            {
+                var transport = queueAndTransport.Value;
+
+                transport.DeleteQueue();
             }
         }
 

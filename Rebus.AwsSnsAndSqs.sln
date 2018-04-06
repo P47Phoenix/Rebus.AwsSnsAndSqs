@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.AwsSnsAndSqs", "Rebus.AwsSnsAndSqs\Rebus.AwsSnsAndSqs.csproj", "{2D767897-0D41-4D7D-BDF1-BFB29F319ECA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.AwsSnsAndSqs", "Rebus.AwsSnsAndSqs\Rebus.AwsSnsAndSqs.csproj", "{2D767897-0D41-4D7D-BDF1-BFB29F319ECA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.AwsSnsAndSqsTests", "Rebus.AwsSnsAndSqsTests\Rebus.AwsSnsAndSqsTests.csproj", "{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.AwsSnsAndSqsTests", "Rebus.AwsSnsAndSqsTests\Rebus.AwsSnsAndSqsTests.csproj", "{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

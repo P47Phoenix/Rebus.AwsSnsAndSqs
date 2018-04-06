@@ -20,18 +20,13 @@ namespace Rebus.AwsSnsAndSqs.Amazon
     /// </summary>
     public class AmazonSQSTransport : ITransport, IInitializable
     {
-        private readonly AmazonTransportMessageSerializer _serializer = new AmazonTransportMessageSerializer();
-        private readonly AWSCredentials _credentials;
-        private readonly AmazonSQSConfig _amazonSqsConfig;
-        private readonly AmazonSQSTransportOptions _options;
+        private readonly ILog m_log;        
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
-        private readonly ILog _log;        
         private readonly AmazonSendMessage m_amazonSendMessage;
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
-        private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
-
-        private readonly AmazonPeekLockDuration m_amazonPeekLockDuration = new AmazonPeekLockDuration();
+        private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;        
         private readonly AmazonSQSRecieve m_amazonSqsRecieve;
+        private readonly AmazonInternalSettings m_AmazonInternalSettings;
 
         /// <summary>
         /// Constructs the transport with the specified settings
@@ -40,7 +35,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon
         {
             if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
 
-            _log = rebusLoggerFactory.GetLogger<AmazonSQSTransport>();
+            m_log = rebusLoggerFactory.GetLogger<AmazonSQSTransport>();
 
             if (inputQueueAddress != null)
             {
@@ -52,17 +47,22 @@ namespace Rebus.AwsSnsAndSqs.Amazon
                 }
             }
 
-            Address = inputQueueAddress;
-
-            _credentials = credentials ?? throw new ArgumentNullException(nameof(credentials));
-            _amazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig));
-            _options = options ?? new AmazonSQSTransportOptions();
-
-            m_amazonSQSQueueContext = new AmazonSQSQueueContext(_options, _credentials, _amazonSqsConfig);
-            m_amazonSendMessage = new AmazonSendMessage(_options, _serializer, m_amazonSQSQueueContext);
-            m_amazonCreateSqsQueue = new AmazonCreateSQSQueue(_options, _credentials, m_amazonPeekLockDuration, _log, _amazonSqsConfig);
-            m_amazonSqsQueuePurgeUtility = new AmazonSQSQueuePurgeUtility(_credentials, _amazonSqsConfig, _log);
-            m_amazonSqsRecieve = new AmazonSQSRecieve(m_amazonSQSQueueContext, _log, _options, asyncTaskFactory, m_amazonPeekLockDuration, _serializer);
+            m_AmazonInternalSettings = new AmazonInternalSettings
+            {
+                Credentials = credentials ?? throw new ArgumentNullException(nameof(credentials)),
+                InputQueueAddress = inputQueueAddress,
+                AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
+                AmazonSQSTransportOptions = options ?? new AmazonSQSTransportOptions(),
+                RebusLoggerFactory = rebusLoggerFactory,
+                AmazonPeekLockDuration = new AmazonPeekLockDuration(),
+                MessageSerializer = new AmazonTransportMessageSerializer(),
+                AsyncTaskFactory = asyncTaskFactory
+            };
+            m_amazonSQSQueueContext = new AmazonSQSQueueContext(m_AmazonInternalSettings);
+            m_amazonSendMessage = new AmazonSendMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext);
+            m_amazonCreateSqsQueue = new AmazonCreateSQSQueue(m_AmazonInternalSettings);
+            m_amazonSqsQueuePurgeUtility = new AmazonSQSQueuePurgeUtility(m_AmazonInternalSettings);
+            m_amazonSqsRecieve = new AmazonSQSRecieve(m_AmazonInternalSettings, m_amazonSQSQueueContext);
         }
 
         public void Purge()
@@ -77,7 +77,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon
         /// </summary>
         public void Initialize(TimeSpan peeklockDuration)
         {
-            m_amazonPeekLockDuration.PeekLockDuration = peeklockDuration;
+            m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration = peeklockDuration;
 
             Initialize();
         }
@@ -88,14 +88,13 @@ namespace Rebus.AwsSnsAndSqs.Amazon
         public void Initialize()
         {
             if (Address == null) return;
-            if (_options.CreateQueues)
+
+            if (m_AmazonInternalSettings.AmazonSQSTransportOptions.CreateQueues)
             {
                 CreateQueue(Address);
             }
         }
-
-
-
+        
         /// <summary>
         /// Creates the queue with the given name
         /// </summary>
@@ -116,18 +115,17 @@ namespace Rebus.AwsSnsAndSqs.Amazon
             return await m_amazonSqsRecieve.Receive(context, Address, cancellationToken);
         }
 
-
         /// <summary>
         /// Gets the input queue name
         /// </summary>
-        public string Address { get; }
+        public string Address => m_AmazonInternalSettings.InputQueueAddress;
 
         /// <summary>
         /// Deletes the transport's input queue
         /// </summary>
         public void DeleteQueue()
         {
-            using (var client = new AmazonSQSClient(_credentials, _amazonSqsConfig))
+            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig))
             {
                 var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
                 AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));

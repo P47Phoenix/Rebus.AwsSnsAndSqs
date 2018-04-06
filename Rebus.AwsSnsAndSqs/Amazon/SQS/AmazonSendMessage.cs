@@ -20,18 +20,13 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
     internal class AmazonSendMessage
     {
-        private readonly AmazonSQSTransportOptions _options;
-        private readonly AmazonTransportMessageSerializer _serializer;
-        private readonly AmazonSQSQueueContext _amazonSqsQueueContext;
-
-        public AmazonSendMessage(
-            AmazonSQSTransportOptions options,
-            AmazonTransportMessageSerializer serializer,
-            AmazonSQSQueueContext amazonSqsQueueContext)
+        private readonly AmazonInternalSettings m_AmazonInternalSettings;
+        private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
+       
+        public AmazonSendMessage(AmazonInternalSettings m_AmazonInternalSettings, AmazonSQSQueueContext m_amazonSQSQueueContext)
         {
-            _options = options;
-            _serializer = serializer;
-            _amazonSqsQueueContext = amazonSqsQueueContext;
+            this.m_AmazonInternalSettings = m_AmazonInternalSettings;
+            this.m_amazonSQSQueueContext = m_amazonSQSQueueContext;
         }
 
 
@@ -58,7 +53,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
         {
             if (!outgoingMessages.Any()) return;
 
-            var client = _amazonSqsQueueContext.GetClientFromTransactionContext(context);
+            var client = m_amazonSQSQueueContext.GetClientFromTransactionContext(context);
 
             var messagesByDestination = outgoingMessages
                 .GroupBy(m => m.DestinationAddress)
@@ -77,7 +72,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
                                 var sqsMessage = new AmazonTransportMessage(transportMessage.Headers, GetBody(transportMessage.Body));
 
-                                var entry = new SendMessageBatchRequestEntry(messageId, _serializer.Serialize(sqsMessage));
+                                var entry = new SendMessageBatchRequestEntry(messageId, m_AmazonInternalSettings.MessageSerializer.Serialize(sqsMessage));
 
                                 var delaySeconds = GetDelaySeconds(headers);
 
@@ -90,7 +85,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                             })
                             .ToList();
 
-                        var destinationUrl = _amazonSqsQueueContext.GetDestinationQueueUrlByName(batch.Key, context);
+                        var destinationUrl = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(batch.Key, context);
 
                         foreach (var batchToSend in entries.Batch(10))
                         {
@@ -110,7 +105,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
         private int? GetDelaySeconds(IReadOnlyDictionary<string, string> headers)
         {
-            if (!_options.UseNativeDeferredMessages) return null;
+            if (!m_AmazonInternalSettings.AmazonSQSTransportOptions.UseNativeDeferredMessages) return null;
 
             if (!headers.TryGetValue(Headers.DeferredUntil, out var deferUntilTime)) return null;
 

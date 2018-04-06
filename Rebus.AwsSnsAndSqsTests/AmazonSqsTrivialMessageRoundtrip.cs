@@ -24,7 +24,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
         protected override void SetUp()
         {
-            _brilliantQueueName = TestConfig.GetName("roundtrippin");
+            _brilliantQueueName = TestConfig.GetName("trivialroundtrippin");
             _transport = AmazonSqsTransportFactory.CreateTransport(_brilliantQueueName, TimeSpan.FromSeconds(30));
             _transport.Purge();
         }

@@ -18,27 +18,15 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
     internal class AmazonSQSRecieve
     {
-        private AmazonSQSQueueContext m_amazonSqsQueueContext;
-        private ILog _log;
-        private AmazonSQSTransportOptions _options;
-        private IAsyncTaskFactory _asyncTaskFactory;
-        private AmazonPeekLockDuration m_amazonPeekLockDuration;
-        private AmazonTransportMessageSerializer _serializer;
+        private readonly AmazonInternalSettings m_amazonInternalSettings;
+        private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
+        private ILog m_log;
 
-        public AmazonSQSRecieve(
-            AmazonSQSQueueContext amazonSqsQueueContext,
-            ILog log,
-            AmazonSQSTransportOptions options,
-            IAsyncTaskFactory asyncTaskFactory,
-            AmazonPeekLockDuration amazonPeekLockDuration,
-            AmazonTransportMessageSerializer serializer)
+        public AmazonSQSRecieve(AmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext)
         {
-            this.m_amazonSqsQueueContext = amazonSqsQueueContext;
-            _log = log;
-            _options = options;
-            _asyncTaskFactory = asyncTaskFactory;
-            m_amazonPeekLockDuration = amazonPeekLockDuration;
-            _serializer = serializer;
+            m_amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
+            m_amazonSqsQueueContext = amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(amazonSQSQueueContext));
+            m_log = m_amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSQSRecieve>();
         }
 
         /// <inheritdoc />
@@ -63,7 +51,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
             var request = new ReceiveMessageRequest(queueUrl)
             {
                 MaxNumberOfMessages = 1,
-                WaitTimeSeconds = _options.ReceiveWaitTimeSeconds,
+                WaitTimeSeconds = m_amazonInternalSettings.AmazonSQSTransportOptions.ReceiveWaitTimeSeconds,
                 AttributeNames = new List<string>(new[] { "All" }),
                 MessageAttributeNames = new List<string>(new[] { "All" })
             };
@@ -105,22 +93,22 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
         private IAsyncTask CreateRenewalTaskForMessage(Message message, string queueUrl, IAmazonSQS client)
         {
-            return _asyncTaskFactory.Create($"RenewPeekLock-{message.MessageId}",
+            return m_amazonInternalSettings.AsyncTaskFactory.Create($"RenewPeekLock-{message.MessageId}",
                 async () =>
                 {
-                    _log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
+                    m_log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
 
-                    var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int)m_amazonPeekLockDuration.PeekLockDuration.TotalSeconds);
+                    var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
 
                     await client.ChangeMessageVisibilityAsync(request);
                 },
-                intervalSeconds: (int)m_amazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds,
+                intervalSeconds: (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds,
                 prettyInsignificant: true);
         }
 
         private TransportMessage ExtractTransportMessageFrom(Message message)
         {
-            var sqsMessage = _serializer.Deserialize(message.Body);
+            var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(message.Body);
             return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
         }
 

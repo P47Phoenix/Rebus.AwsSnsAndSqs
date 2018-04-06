@@ -10,17 +10,15 @@ using Rebus.Logging;
 
 namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
-    public class AmazonSQSQueuePurgeUtility
+    internal class AmazonSQSQueuePurgeUtility
     {
-        private AWSCredentials m_credentials;
-        private AmazonSQSConfig m_amazonSqsConfig;
-        private ILog m_log;
+        private readonly ILog m_log;
+        private readonly AmazonInternalSettings m_AmazonInternalSettings;
 
-        public AmazonSQSQueuePurgeUtility(AWSCredentials credentials, AmazonSQSConfig amazonSqsConfig, ILog log)
+        public AmazonSQSQueuePurgeUtility(AmazonInternalSettings amazonInternalSettings)
         {
-            m_credentials = credentials;
-            m_amazonSqsConfig = amazonSqsConfig;
-            m_log = log;
+            m_AmazonInternalSettings = amazonInternalSettings;
+            m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSQSQueuePurgeUtility>();
         }
 
         /// <summary>
@@ -36,7 +34,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                 // we purge the queue by receiving all messages as fast as we can...
                 //the native purge function is not used because it is only allowed to use it
                 // once every 60 s
-                using (var client = new AmazonSQSClient(m_credentials, m_amazonSqsConfig))
+                using (var client = new AmazonSQSClient(m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig))
                 {
                     var stopwatch = Stopwatch.StartNew();
 

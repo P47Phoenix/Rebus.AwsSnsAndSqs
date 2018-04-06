@@ -9,23 +9,15 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
-    public class AmazonSQSQueueContext
+    internal class AmazonSQSQueueContext
     {
 
-        private readonly AmazonSQSTransportOptions _options;
-        private readonly AWSCredentials _credentials;
-        private readonly AmazonSQSConfig _amazonSqsConfig;
-
         private readonly ConcurrentDictionary<string, string> _queueUrls = new ConcurrentDictionary<string, string>();
-
-        public AmazonSQSQueueContext(
-            AmazonSQSTransportOptions options,
-            AWSCredentials credentials,
-            AmazonSQSConfig amazonSqsConfig)
+        private readonly AmazonInternalSettings m_AmazonInternalSettings;
+        
+        public AmazonSQSQueueContext(AmazonInternalSettings m_AmazonInternalSettings)
         {
-            _options = options;
-            _credentials = credentials;
-            _amazonSqsConfig = amazonSqsConfig;
+            this.m_AmazonInternalSettings = m_AmazonInternalSettings;
         }
 
         public string GetDestinationQueueUrlByName(string address, ITransactionContext transactionContext)
@@ -59,7 +51,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
         public IAmazonSQS GetClientFromTransactionContext(ITransactionContext context)
         {
-            return _options.GetOrCreateClient(context, _credentials, _amazonSqsConfig);
+            return m_AmazonInternalSettings.AmazonSQSTransportOptions.GetOrCreateClient(context, m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig);
         }
 
         public string GetInputQueueUrl(string Address)

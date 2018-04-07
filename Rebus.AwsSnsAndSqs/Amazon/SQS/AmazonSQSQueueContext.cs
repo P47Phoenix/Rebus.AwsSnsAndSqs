@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Amazon.Runtime;
 using Amazon.SQS;
+using Rebus.AwsSnsAndSqs.Amazon.Extensions;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Exceptions;
 using Rebus.Transport;
@@ -14,7 +15,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
         private readonly ConcurrentDictionary<string, string> _queueUrls = new ConcurrentDictionary<string, string>();
         private readonly AmazonInternalSettings m_AmazonInternalSettings;
-        
+
         public AmazonSQSQueueContext(AmazonInternalSettings m_AmazonInternalSettings)
         {
             this.m_AmazonInternalSettings = m_AmazonInternalSettings;
@@ -29,7 +30,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                     return address;
                 }
 
-                var client = GetClientFromTransactionContext(transactionContext);
+                var client = m_AmazonInternalSettings.CreateSqsClient(transactionContext);
                 var task = client.GetQueueUrlAsync(address);
 
                 AmazonAsyncHelpers.RunSync(() => task);
@@ -46,12 +47,6 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
             return url;
 
-        }
-
-
-        public IAmazonSQS GetClientFromTransactionContext(ITransactionContext context)
-        {
-            return m_AmazonInternalSettings.AmazonSQSTransportOptions.GetOrCreateClient(context, m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig);
         }
 
         public string GetInputQueueUrl(string Address)

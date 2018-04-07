@@ -46,7 +46,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                 throw new InvalidOperationException("The queue URL is empty - has the transport not been initialized?");
             }
 
-            var client = m_amazonSqsQueueContext.GetClientFromTransactionContext(context);
+            var client = m_amazonInternalSettings.CreateSqsClient(context);
 
             var request = new ReceiveMessageRequest(queueUrl)
             {

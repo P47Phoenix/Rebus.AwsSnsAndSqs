@@ -40,7 +40,7 @@ namespace Rebus.AwsSnsAndSqs.Config
         /// </summary>
         public AmazonSQSTransportOptions()
         {
-            ReceiveWaitTimeSeconds = 1;
+            ReceiveWaitTimeSeconds = 20;
             UseNativeDeferredMessages = true;
             CreateQueues = true;
 

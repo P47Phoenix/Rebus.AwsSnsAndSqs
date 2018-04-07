@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Rebus.AwsSnsAndSqs.Amazon.Extensions;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.AwsSnsAndSqs.Internals;
 using Rebus.Exceptions;
@@ -18,7 +19,7 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
-    internal class AmazonSendMessage
+    internal class AmazonSendMessage : ISendMessage
     {
         private readonly AmazonInternalSettings m_AmazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
@@ -53,7 +54,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
         {
             if (!outgoingMessages.Any()) return;
 
-            var client = m_amazonSQSQueueContext.GetClientFromTransactionContext(context);
+            var client = m_AmazonInternalSettings.CreateSqsClient(context);
 
             var messagesByDestination = outgoingMessages
                 .GroupBy(m => m.DestinationAddress)
@@ -92,12 +93,14 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                             var request = new SendMessageBatchRequest(destinationUrl, batchToSend);
                             var response = await client.SendMessageBatchAsync(request);
 
-                            if (response.Failed.Any())
+                            if (response.Failed.Count == 0)
                             {
-                                var failed = response.Failed.Select(f => new AmazonSQSException($"Failed {f.Message} with Id={f.Id}, Code={f.Code}, SenderFault={f.SenderFault}"));
-
-                                throw new AggregateException(failed);
+                                continue;
                             }
+
+                            var failed = response.Failed.Select(f => new AmazonSQSException($"Failed {f.Message} with Id={f.Id}, Code={f.Code}, SenderFault={f.SenderFault}"));
+
+                            throw new AggregateException(failed);
                         }
                     })
             );

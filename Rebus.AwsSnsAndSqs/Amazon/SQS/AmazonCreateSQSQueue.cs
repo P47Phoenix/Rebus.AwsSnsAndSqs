@@ -20,7 +20,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
             m_AmazonInternalSettings = amazonInternalSettings;
             m_log = m_AmazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonCreateSQSQueue>();
         }
-
+        
         /// <summary>
         /// Creates the queue with the given name
         /// </summary>

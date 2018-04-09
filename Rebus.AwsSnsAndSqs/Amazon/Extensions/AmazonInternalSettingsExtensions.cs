@@ -13,14 +13,18 @@ namespace Rebus.AwsSnsAndSqs.Amazon.Extensions
     {
         public static IAmazonSimpleNotificationService CreateSnsClient(this IAmazonSnsSettings amazonSnsSettings)
         {
-            return new AmazonSimpleNotificationServiceClient(amazonSnsSettings.Credentials,
+            return new AmazonSimpleNotificationServiceClient(amazonSnsSettings.AmazonCredentialsFactory.Create(),
                 amazonSnsSettings.AmazonSimpleNotificationServiceConfig);
         }
 
         public static IAmazonSQS CreateSqsClient(this IAmazonSqsSettings amazonSqsSettings, ITransactionContext transactionContext)
         {
-            return amazonSqsSettings.AmazonSQSTransportOptions.GetOrCreateClient(transactionContext,
-                amazonSqsSettings.Credentials, amazonSqsSettings.AmazonSqsConfig);
+            return transactionContext.GetOrAdd(AmazonConstaints.ClientContextKey, () =>
+            {
+                var amazonSqsClient = new AmazonSQSClient(amazonSqsSettings.AmazonCredentialsFactory.Create(), amazonSqsSettings.AmazonSqsConfig);
+                transactionContext.OnDisposed(amazonSqsClient.Dispose);
+                return amazonSqsClient;
+            });
         }
     }
 }

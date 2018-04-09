@@ -39,7 +39,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon
         /// <summary>
         /// Constructs the transport with the specified settings
         /// </summary>
-        public AmazonSQSTransport(string inputQueueAddress, AWSCredentials credentials, AmazonSQSConfig amazonSqsConfig, IRebusLoggerFactory rebusLoggerFactory, IAsyncTaskFactory asyncTaskFactory, AmazonSQSTransportOptions options = null)
+        public AmazonSQSTransport(string inputQueueAddress, IAmazonCredentialsFactory amazonCredentialsFactory, AmazonSQSConfig amazonSqsConfig, IRebusLoggerFactory rebusLoggerFactory, IAsyncTaskFactory asyncTaskFactory, AmazonSQSTransportOptions options = null)
         {
             if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
 
@@ -57,7 +57,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon
 
             m_AmazonInternalSettings = new AmazonInternalSettings
             {
-                Credentials = credentials ?? throw new ArgumentNullException(nameof(credentials)),
+                AmazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory(),
                 InputQueueAddress = inputQueueAddress,
                 AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
                 AmazonSQSTransportOptions = options ?? new AmazonSQSTransportOptions(),
@@ -136,7 +136,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon
         /// </summary>
         public void DeleteQueue()
         {
-            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig))
+            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
             {
                 var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
                 AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));
@@ -149,14 +149,13 @@ namespace Rebus.AwsSnsAndSqs.Amazon
 
             var findTopicResult = await snsClient.FindTopicAsync(topic);
 
+
             if (findTopicResult == null)
             {
                 throw new ArgumentOutOfRangeException($"The topic {topic} does not exist");
             }
 
-            var listSubscriptionsByTopicResponse = await snsClient.ListSubscriptionsByTopicAsync(findTopicResult.TopicArn);
-
-            return listSubscriptionsByTopicResponse.Subscriptions.Select(s => s.Endpoint).ToArray();
+            return new[] { findTopicResult.TopicArn };
         }
 
         public async Task RegisterSubscriber(string topic, string subscriberAddress)

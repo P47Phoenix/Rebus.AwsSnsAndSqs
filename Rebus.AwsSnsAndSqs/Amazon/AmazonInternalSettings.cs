@@ -9,7 +9,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon
 {
     internal class AmazonInternalSettings : IAmazonSnsSettings, IAmazonSqsSettings
     {
-        public AWSCredentials Credentials { get; internal set; }
+        public IAmazonCredentialsFactory AmazonCredentialsFactory { get; internal set; }
         public string InputQueueAddress { get; internal set; }
         public AmazonSQSConfig AmazonSqsConfig { get; internal set; }
         public AmazonSQSTransportOptions AmazonSQSTransportOptions { get; internal set; }
@@ -22,14 +22,14 @@ namespace Rebus.AwsSnsAndSqs.Amazon
 
     internal interface IAmazonSqsSettings
     {
-        AWSCredentials Credentials { get; }
+        IAmazonCredentialsFactory AmazonCredentialsFactory { get; }
         AmazonSQSConfig AmazonSqsConfig { get; }
         AmazonSQSTransportOptions AmazonSQSTransportOptions { get; }
     }
 
     internal interface IAmazonSnsSettings
     {
-        AWSCredentials Credentials { get; }
+        IAmazonCredentialsFactory AmazonCredentialsFactory { get; }
         AmazonSimpleNotificationServiceConfig AmazonSimpleNotificationServiceConfig { get; }
     }
 }

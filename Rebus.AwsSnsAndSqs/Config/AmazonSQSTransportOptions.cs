@@ -6,13 +6,13 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.Config
 {
+    using Amazon;
+
     /// <summary>
     /// Holds all of the exposed options which can be applied when using the SQS transport.
     /// </summary>
     public class AmazonSQSTransportOptions
     {
-        const string ClientContextKey = "SQS_Client";
-
         /// <summary>
         /// Sets the WaitTimeSeconds on the ReceiveMessage. The default setting is 1, which enables long
         /// polling for a single second. The number of seconds can be set up to 20 seconds. 
@@ -42,23 +42,7 @@ namespace Rebus.AwsSnsAndSqs.Config
         {
             ReceiveWaitTimeSeconds = 20;
             UseNativeDeferredMessages = true;
-            CreateQueues = true;
-
-            GetOrCreateClient = (context, credentials, config) =>
-            {
-                return context.GetOrAdd(ClientContextKey, () =>
-                {
-                    var amazonSqsClient = new AmazonSQSClient(credentials, config);
-                    context.OnDisposed(amazonSqsClient.Dispose);
-                    return amazonSqsClient;
-                });
-            };
+            CreateQueues = true;            
         }
-
-        /// <summary>
-        /// Function that is getting or creating the <cref type="IAmazonSQS"/> object that will be used for SQS.
-        /// </summary>
-        /// <returns>The <cref type="IAmazonSQS"/> object to be used for SQS.</returns>
-        public Func<ITransactionContext, AWSCredentials, AmazonSQSConfig, IAmazonSQS> GetOrCreateClient;
     }
 }

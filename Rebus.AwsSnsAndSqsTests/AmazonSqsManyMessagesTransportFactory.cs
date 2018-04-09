@@ -15,6 +15,8 @@ using Rebus.Threading.TaskParallelLibrary;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using AwsSnsAndSqs;
+
     public class AmazonSqsManyMessagesTransportFactory : IBusFactory
     {
         readonly List<IDisposable> _stuffToDispose = new List<IDisposable>();
@@ -54,12 +56,10 @@ namespace Rebus.AwsSnsAndSqsTests
 
             var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
             var amazonSqsConfig = new AmazonSQSConfig { RegionEndpoint = connectionInfo.RegionEndpoint };
-
-            var credentials = new BasicAWSCredentials(connectionInfo.AccessKeyId, connectionInfo.SecretAccessKey);
-
+            
             var transport = new AmazonSQSTransport(
                 queueName,
-                credentials,
+                new FailbackAmazonCredentialsFactory(), 
                 amazonSqsConfig, consoleLoggerFactory,
                 new TplAsyncTaskFactory(consoleLoggerFactory)
             );

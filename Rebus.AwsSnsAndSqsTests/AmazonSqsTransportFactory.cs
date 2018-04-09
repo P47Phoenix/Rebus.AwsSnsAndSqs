@@ -15,6 +15,8 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using AwsSnsAndSqs;
+
     public class AmazonSqsTransportFactory : ITransportFactory
     {
         static ConnectionInfo _connectionInfo;
@@ -34,11 +36,10 @@ namespace Rebus.AwsSnsAndSqsTests
             var amazonSqsConfig = new AmazonSQSConfig { RegionEndpoint = connectionInfo.RegionEndpoint };
 
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
-            var credentials = new BasicAWSCredentials(connectionInfo.AccessKeyId, connectionInfo.SecretAccessKey);
 
             var transport = new AmazonSQSTransport(
                 inputQueueAddress,
-                credentials,
+                new FailbackAmazonCredentialsFactory(), 
                 amazonSqsConfig,
                 consoleLoggerFactory,
                 new TplAsyncTaskFactory(consoleLoggerFactory),

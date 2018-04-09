@@ -33,7 +33,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
             m_log.Info("Creating queue {queueName} on region {regionEndpoint}", address, m_AmazonInternalSettings.AmazonSqsConfig.RegionEndpoint);
 
-            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig))
+            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
             {
                 var queueName = GetQueueNameFromAddress(address);
 

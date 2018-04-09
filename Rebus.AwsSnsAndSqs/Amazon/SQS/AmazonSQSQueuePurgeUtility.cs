@@ -34,7 +34,7 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                 // we purge the queue by receiving all messages as fast as we can...
                 //the native purge function is not used because it is only allowed to use it
                 // once every 60 s
-                using (var client = new AmazonSQSClient(m_AmazonInternalSettings.Credentials, m_AmazonInternalSettings.AmazonSqsConfig))
+                using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
                 {
                     var stopwatch = Stopwatch.StartNew();
 

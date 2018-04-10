@@ -16,13 +16,16 @@ using Message = Amazon.SQS.Model.Message;
 
 namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Serialization;
+
     internal class AmazonSQSRecieve
     {
-        private readonly AmazonInternalSettings m_amazonInternalSettings;
+        private readonly IAmazonInternalSettings m_amazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
         private ILog m_log;
 
-        public AmazonSQSRecieve(AmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext)
+        public AmazonSQSRecieve(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext)
         {
             m_amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
             m_amazonSqsQueueContext = amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(amazonSQSQueueContext));
@@ -51,14 +54,17 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
             var request = new ReceiveMessageRequest(queueUrl)
             {
                 MaxNumberOfMessages = 1,
-                WaitTimeSeconds = m_amazonInternalSettings.AmazonSQSTransportOptions.ReceiveWaitTimeSeconds,
+                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds,
                 AttributeNames = new List<string>(new[] { "All" }),
                 MessageAttributeNames = new List<string>(new[] { "All" })
             };
 
             var response = await client.ReceiveMessageAsync(request, cancellationToken);
 
-            if (!response.Messages.Any()) return null;
+            if (response.Messages.Any() == false)
+            {
+                return null;
+            }
 
             var sqsMessage = response.Messages.First();
 
@@ -108,8 +114,21 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
         private TransportMessage ExtractTransportMessageFrom(Message message)
         {
-            var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(message.Body);
-            return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
+            var messageJObject = JObject.Parse(message.Body);
+
+            var isFromSnsTopic = messageJObject["Type"]?.Value<string>() == "Notification";
+
+            if (isFromSnsTopic)
+            {
+                var snsMessage = messageJObject["Message"].Value<string>();
+                var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(snsMessage);
+                return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
+            }
+            else
+            {
+                var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(message.Body);
+                return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
+            }
         }
 
         private byte[] GetBodyBytes(string bodyText) => Convert.FromBase64String(bodyText);

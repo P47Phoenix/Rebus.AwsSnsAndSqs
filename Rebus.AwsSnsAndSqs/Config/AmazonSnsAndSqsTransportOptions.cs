@@ -11,7 +11,7 @@ namespace Rebus.AwsSnsAndSqs.Config
     /// <summary>
     /// Holds all of the exposed options which can be applied when using the SQS transport.
     /// </summary>
-    public class AmazonSQSTransportOptions
+    public class AmazonSnsAndSqsTransportOptions
     {
         /// <summary>
         /// Sets the WaitTimeSeconds on the ReceiveMessage. The default setting is 1, which enables long
@@ -28,21 +28,16 @@ namespace Rebus.AwsSnsAndSqs.Config
         /// one that uses SQL Server to store timeouts.
         /// </summary>
         public bool UseNativeDeferredMessages { get; set; }
+        
 
-        /// <summary>
-        /// Configures whether Rebus is in control to create queues or not. If set to false, Rebus expects that the queue's are already created. 
-        /// Defaults to <code>true</code>.
-        /// </summary>
-        public bool CreateQueues { get; set; }
 
         /// <summary>
         /// Default constructor of the exposed SQS transport options.
         /// </summary>
-        public AmazonSQSTransportOptions()
+        public AmazonSnsAndSqsTransportOptions()
         {
             ReceiveWaitTimeSeconds = 20;
             UseNativeDeferredMessages = true;
-            CreateQueues = true;            
         }
     }
 }

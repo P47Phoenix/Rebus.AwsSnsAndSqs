@@ -37,7 +37,7 @@ namespace Rebus.AwsSnsAndSqsTests
             _activator = Using(new BuiltinHandlerActivator());
 
             _configurer = Configure.With(_activator)
-                .Transport(t => t.UseAmazonSQS(accessKeyId, secretAccessKey, amazonSqsConfig, queueName))
+                .Transport(t => t.UseAmazonSnsAndSqs(amazonSqsConfig: amazonSqsConfig, workerQueueAddress: queueName))
                 .Options(o => o.LogPipeline());
         }
 

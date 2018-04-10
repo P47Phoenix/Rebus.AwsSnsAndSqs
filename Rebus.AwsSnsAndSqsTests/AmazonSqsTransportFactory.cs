@@ -15,9 +15,10 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using Amazon.SimpleNotificationService;
     using AwsSnsAndSqs;
 
-    public class AmazonSqsTransportFactory : ITransportFactory
+    internal class AmazonSqsTransportFactory : ITransportFactory
     {
         static ConnectionInfo _connectionInfo;
 
@@ -25,29 +26,31 @@ namespace Rebus.AwsSnsAndSqsTests
                                                                                                ?? ConnectionInfoFromEnvironmentVariable("rebus2_asqs_connection_string")
                                                                                                ?? Throw("Could not find Amazon Sqs connetion Info!"));
 
-        public ITransport Create(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSQSTransportOptions options = null)
+        public ITransport Create(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
         {
             return inputQueueAddress == null ? CreateTransport(null, peeklockDuration, options) : _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
         }
 
-        public static AmazonSQSTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSQSTransportOptions options = null)
+        public static AmazonSQSTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
         {
             var connectionInfo = ConnectionInfo;
             var amazonSqsConfig = new AmazonSQSConfig { RegionEndpoint = connectionInfo.RegionEndpoint };
 
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
 
-            var transport = new AmazonSQSTransport(
-                inputQueueAddress,
-                new FailbackAmazonCredentialsFactory(), 
-                amazonSqsConfig,
-                consoleLoggerFactory,
-                new TplAsyncTaskFactory(consoleLoggerFactory),
-                options
+            var transport = new AmazonSQSTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory())
+            {
+                InputQueueAddress = inputQueueAddress,
+                AmazonSqsConfig = amazonSqsConfig,
+                AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(),
+                AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(),
+                MessageSerializer = new AmazonTransportMessageSerializer()
+            }
+
             );
 
             transport.Initialize(peeklockDuration);
-           
+
             return transport;
         }
 

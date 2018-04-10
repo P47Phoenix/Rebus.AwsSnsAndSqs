@@ -13,9 +13,9 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
     internal class AmazonSQSQueuePurgeUtility
     {
         private readonly ILog m_log;
-        private readonly AmazonInternalSettings m_AmazonInternalSettings;
+        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
 
-        public AmazonSQSQueuePurgeUtility(AmazonInternalSettings amazonInternalSettings)
+        public AmazonSQSQueuePurgeUtility(IAmazonInternalSettings amazonInternalSettings)
         {
             m_AmazonInternalSettings = amazonInternalSettings;
             m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSQSQueuePurgeUtility>();

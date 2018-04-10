@@ -19,15 +19,19 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
+    using global::Amazon.SimpleNotificationService.Model;
+
     internal class AmazonSendMessage : ISendMessage
     {
-        private readonly AmazonInternalSettings m_AmazonInternalSettings;
+        private const string c_SnsArn = "arn:aws:sns:";
+
+        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
-       
-        public AmazonSendMessage(AmazonInternalSettings m_AmazonInternalSettings, AmazonSQSQueueContext m_amazonSQSQueueContext)
+
+        public AmazonSendMessage(IAmazonInternalSettings m_AmazonInternalSettings, AmazonSQSQueueContext m_amazonSQSQueueContext)
         {
-            this.m_AmazonInternalSettings = m_AmazonInternalSettings;
-            this.m_amazonSQSQueueContext = m_amazonSQSQueueContext;
+            this.m_AmazonInternalSettings = m_AmazonInternalSettings ?? throw new ArgumentNullException(nameof(m_AmazonInternalSettings));
+            this.m_amazonSQSQueueContext = m_amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(m_amazonSQSQueueContext));
         }
 
 
@@ -37,17 +41,36 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
             if (destinationAddress == null) throw new ArgumentNullException(nameof(destinationAddress));
             if (message == null) throw new ArgumentNullException(nameof(message));
             if (context == null) throw new ArgumentNullException(nameof(context));
-
-            var outgoingMessages = context.GetOrAdd(AmazonConstaints.OutgoingMessagesItemsKey, () =>
+            
+            if (destinationAddress.StartsWith(c_SnsArn))
             {
-                var sendMessageBatchRequestEntries = new ConcurrentQueue<AmazonOutgoingMessage>();
+                var snsClient = m_AmazonInternalSettings.CreateSnsClient();
+                
+                var sqsMessage = new AmazonTransportMessage(message.Headers, GetBody(message.Body));
 
-                context.OnCommitted(() => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
+                var msg = m_AmazonInternalSettings.MessageSerializer.Serialize(sqsMessage);
 
-                return sendMessageBatchRequestEntries;
-            });
+                var publishResponse = await snsClient.PublishAsync(new PublishRequest(destinationAddress, msg));
 
-            outgoingMessages.Enqueue(new AmazonOutgoingMessage(destinationAddress, message));
+                if (publishResponse.HttpStatusCode != HttpStatusCode.OK)
+                {
+                    throw new SnsRebusExption($"Error publishing message to topic {destinationAddress}.", publishResponse.CreateAmazonExceptionFromResponse());
+                }
+            }
+            else
+            {
+                var outgoingMessages = context.GetOrAdd(AmazonConstaints.OutgoingMessagesItemsKey, () =>
+                    {
+
+                        var sendMessageBatchRequestEntries = new ConcurrentQueue<AmazonOutgoingMessage>();
+
+                        context.OnCommitted(() => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
+
+                        return sendMessageBatchRequestEntries;
+                    });
+
+                outgoingMessages.Enqueue(new AmazonOutgoingMessage(destinationAddress, message));
+            }
         }
 
         private async Task SendOutgoingMessages(ConcurrentQueue<AmazonOutgoingMessage> outgoingMessages, ITransactionContext context)
@@ -108,9 +131,15 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 
         private int? GetDelaySeconds(IReadOnlyDictionary<string, string> headers)
         {
-            if (!m_AmazonInternalSettings.AmazonSQSTransportOptions.UseNativeDeferredMessages) return null;
+            if (m_AmazonInternalSettings.AmazonSnsAndSqsTransportOptions.UseNativeDeferredMessages == false)
+            {
+                return null;
+            }
 
-            if (!headers.TryGetValue(Headers.DeferredUntil, out var deferUntilTime)) return null;
+            if (headers.TryGetValue(Headers.DeferredUntil, out var deferUntilTime) == false)
+            {
+                return null;
+            }
 
             var deferUntilDateTimeOffset = deferUntilTime.ToDateTimeOffset();
 
@@ -126,6 +155,6 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
         {
             return Convert.ToBase64String(bodyBytes);
         }
-        
+
     }
 }

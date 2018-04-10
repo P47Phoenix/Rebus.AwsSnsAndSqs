@@ -4,11 +4,13 @@
     using Amazon;
     using global::Amazon;
     using global::Amazon.Runtime;
+    using global::Amazon.SimpleNotificationService;
     using global::Amazon.SQS;
     using Logging;
     using Pipeline;
     using Pipeline.Receive;
     using Rebus.Config;
+    using Subscriptions;
     using Threading;
     using Timeouts;
     using Transport;
@@ -18,62 +20,54 @@
         /// <summary>
         /// Configures Rebus to use Amazon Simple Queue Service as the message transport
         /// </summary>
-        public static void UseAmazonSQSAsOneWayClient(this StandardConfigurer<ITransport> configurer, string accessKeyId, string secretAccessKey, RegionEndpoint regionEndpoint, AmazonSQSTransportOptions options = null)
+        public static void UseAmazonSnsAndSqsAsOneWayClient(
+            this StandardConfigurer<ITransport> configurer,
+            IAmazonCredentialsFactory amazonCredentialsFactory = null,
+            AmazonSQSConfig amazonSqsConfig = null,
+            AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null,
+            AmazonSnsAndSqsTransportOptions options = null)
         {
-            var credentials = new BasicAWSCredentials(accessKeyId, secretAccessKey);
-            var config = new AmazonSQSConfig { RegionEndpoint = regionEndpoint };
-
-            ConfigureOneWayClient(configurer, new StaticAmazonCredentialsFactory(credentials), config, options ?? new AmazonSQSTransportOptions());
+            amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
+            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig();
+            options = options ?? new AmazonSnsAndSqsTransportOptions();
+            ConfigureOneWayClient(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, options);
         }
 
-        /// <summary>
-        /// Configures Rebus to use Amazon Simple Queue Service as the message transport
-        /// </summary>
-        public static void UseAmazonSQSAsOneWayClient(this StandardConfigurer<ITransport> configurer, string accessKeyId, string secretAccessKey, AmazonSQSConfig amazonSqsConfig, AmazonSQSTransportOptions options = null)
+        private static void ConfigureOneWayClient(
+            StandardConfigurer<ITransport> standardConfigurer,
+            IAmazonCredentialsFactory amazonCredentialsFactory,
+            AmazonSQSConfig amazonSqsConfig,
+            AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig,
+            AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions)
         {
-            var credentials = new BasicAWSCredentials(accessKeyId, secretAccessKey);
+            amazonCredentialsFactory = amazonCredentialsFactory ??
+                                       throw new ArgumentNullException(nameof(amazonCredentialsFactory));
+            standardConfigurer
+                .OtherService<IAmazonCredentialsFactory>()
+                .Register(c => amazonCredentialsFactory);
 
-            ConfigureOneWayClient(configurer, new StaticAmazonCredentialsFactory(credentials), amazonSqsConfig, options ?? new AmazonSQSTransportOptions());
-        }
+            standardConfigurer.OtherService<IAmazonInternalSettings>()
+                .Register(c => new AmazonInternalSettings
+                {
+                    ResolutionContext = c,
+                    InputQueueAddress = null,
+                    AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
+                    AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
+                    MessageSerializer = new AmazonTransportMessageSerializer(),
+                    AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
+                });
+            
+ 
+            standardConfigurer.Register(c => new AmazonSQSTransport(c.Get<IAmazonInternalSettings>()));
 
-        /// <summary>
-        /// Configures Rebus to use Amazon Simple Queue Service as the message transport
-        /// </summary>
-        public static void UseAmazonSQSAsOneWayClient(this StandardConfigurer<ITransport> configurer, AWSCredentials credentials, AmazonSQSConfig config, AmazonSQSTransportOptions options = null)
-        {
-            ConfigureOneWayClient(configurer, new StaticAmazonCredentialsFactory(credentials), config, options ?? new AmazonSQSTransportOptions());
-        }
+            standardConfigurer
+                .OtherService<ISubscriptionStorage>();
+            
+            OneWayClientBackdoor.ConfigureOneWayClient(standardConfigurer);
 
-        /// <summary>
-        /// Configures Rebus to use Amazon Simple Queue Service as the message transport
-        /// </summary>
-        public static void UseAmazonSQSAsOneWayClient(this StandardConfigurer<ITransport> configurer, AWSCredentials credentials, RegionEndpoint regionEndpoint, AmazonSQSTransportOptions options = null)
-        {
-            var config = new AmazonSQSConfig { RegionEndpoint = regionEndpoint };
-
-            ConfigureOneWayClient(configurer, new StaticAmazonCredentialsFactory(credentials), config, options ?? new AmazonSQSTransportOptions());
-        }
-
-        private static void ConfigureOneWayClient(StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory, AmazonSQSConfig amazonSqsConfig, AmazonSQSTransportOptions options)
-        {
-            if (configurer == null) throw new ArgumentNullException(nameof(configurer));
-            if (amazonCredentialsFactory == null) throw new ArgumentNullException(nameof(amazonCredentialsFactory));
-            if (amazonSqsConfig == null) throw new ArgumentNullException(nameof(amazonSqsConfig));
-            if (options == null) throw new ArgumentNullException(nameof(options));
-
-            configurer.Register(c =>
+            if (amazonSnsAndSqsTransportOptions.UseNativeDeferredMessages)
             {
-                var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
-                var asyncTaskFactory = c.Get<IAsyncTaskFactory>();
-
-                return new AmazonSQSTransport(null, amazonCredentialsFactory, amazonSqsConfig, rebusLoggerFactory, asyncTaskFactory, options);
-            });
-
-            OneWayClientBackdoor.ConfigureOneWayClient(configurer);
-
-            if (options.UseNativeDeferredMessages)
-            {
-                configurer
+                standardConfigurer
                     .OtherService<IPipeline>()
                     .Decorate(p =>
                     {
@@ -83,7 +77,7 @@
                             .RemoveIncomingStep(s => s.GetType() == typeof(HandleDeferredMessagesStep));
                     });
 
-                configurer.OtherService<ITimeoutManager>()
+                standardConfigurer.OtherService<ITimeoutManager>()
                     .Register(c => new AmazonDisabledTimeoutManager(), description: AmazonConstaints.SqsTimeoutManagerText);
             }
         }

@@ -36,7 +36,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
                     var amazonSqsConfig = new AmazonSQSConfig { RegionEndpoint = info.RegionEndpoint };
 
-                    t.UseAmazonSQS(info.AccessKeyId, info.SecretAccessKey, amazonSqsConfig, inputQueueAddress);
+                    t.UseAmazonSnsAndSqs(amazonSqsConfig: amazonSqsConfig, workerQueueAddress: inputQueueAddress);
                 })
                 .Options(o =>
                 {
@@ -56,12 +56,13 @@ namespace Rebus.AwsSnsAndSqsTests
 
             var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
             var amazonSqsConfig = new AmazonSQSConfig { RegionEndpoint = connectionInfo.RegionEndpoint };
-            
+
             var transport = new AmazonSQSTransport(
-                queueName,
-                new FailbackAmazonCredentialsFactory(), 
-                amazonSqsConfig, consoleLoggerFactory,
-                new TplAsyncTaskFactory(consoleLoggerFactory)
+                new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory))
+                {                    
+                    InputQueueAddress = queueName,
+                    AmazonSqsConfig = amazonSqsConfig
+                }
             );
             transport.Initialize();
             transport.Purge();

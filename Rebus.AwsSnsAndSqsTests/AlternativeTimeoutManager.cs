@@ -34,21 +34,21 @@ namespace Rebus.AwsSnsAndSqsTests
         [Test]
         public async Task CanUseAlternativeTimeoutManager()
         {
-            var info = AmazonSqsTransportFactory.ConnectionInfo;
             var gotTheString = new ManualResetEvent(false);
 
             _activator.Handle<string>(async str =>
             {
                 Console.WriteLine($"Received string: '{str}'");
-
                 gotTheString.Set();
             });
 
             var bus = Configure.With(_activator)
-                .Transport(t => t.UseAmazonSQS(info.AccessKeyId, info.SecretAccessKey, info.RegionEndpoint, QueueName, new AmazonSQSTransportOptions
-                {
-                    UseNativeDeferredMessages = false
-                }))
+                .Transport(t => t.UseAmazonSnsAndSqs(
+                    workerQueueAddress: QueueName, 
+                    amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions
+                    {
+                        UseNativeDeferredMessages = false
+                    }))
                 .Timeouts(t => t.Register(c => new InMemoryTimeoutManager()))
                 .Start();
 
@@ -60,11 +60,10 @@ namespace Rebus.AwsSnsAndSqsTests
         [Test]
         public async Task CanUseDedicatedAlternativeTimeoutManager()
         {
-            var info = AmazonSqsTransportFactory.ConnectionInfo;
-
+ 
             // start the timeout manager
             Configure.With(Using(new BuiltinHandlerActivator()))
-                .Transport(t => t.UseAmazonSQS(info.AccessKeyId, info.SecretAccessKey, info.RegionEndpoint, TimeoutManagerQueueName, new AmazonSQSTransportOptions
+                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: TimeoutManagerQueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions
                 {
                     UseNativeDeferredMessages = false
                 }))
@@ -81,7 +80,7 @@ namespace Rebus.AwsSnsAndSqsTests
             });
 
             var bus = Configure.With(_activator)
-                .Transport(t => t.UseAmazonSQS(info.AccessKeyId, info.SecretAccessKey, info.RegionEndpoint, QueueName, new AmazonSQSTransportOptions
+                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: QueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions
                 {
                     UseNativeDeferredMessages = false
                 }))

@@ -12,36 +12,36 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
 {
     internal class AmazonCreateSQSQueue
     {
-        private readonly AmazonInternalSettings m_AmazonInternalSettings;
+        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
         private readonly ILog m_log;
 
-        public AmazonCreateSQSQueue(AmazonInternalSettings amazonInternalSettings)
+        public AmazonCreateSQSQueue(IAmazonInternalSettings amazonInternalSettings)
         {
-            m_AmazonInternalSettings = amazonInternalSettings;
-            m_log = m_AmazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonCreateSQSQueue>();
+            m_AmazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
+            m_log = m_AmazonInternalSettings
+                .RebusLoggerFactory
+                .GetLogger<AmazonCreateSQSQueue>();
         }
-        
+
         /// <summary>
         /// Creates the queue with the given name
         /// </summary>
         public void CreateQueue(string address)
         {
-            if (m_AmazonInternalSettings.AmazonSQSTransportOptions.CreateQueues == false)
-            {
-                return;
-            }
-
             m_log.Info("Creating queue {queueName} on region {regionEndpoint}", address, m_AmazonInternalSettings.AmazonSqsConfig.RegionEndpoint);
 
-            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
+            var amazonSqsConfig = m_AmazonInternalSettings.AmazonSqsConfig;
+            var awsCredentials = m_AmazonInternalSettings.AmazonCredentialsFactory.Create();
+            using (var client = new AmazonSQSClient(awsCredentials, amazonSqsConfig))
             {
                 var queueName = GetQueueNameFromAddress(address);
 
                 // Check if queue exists
                 try
                 {
+                    var request = new GetQueueUrlRequest(queueName);
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSGetQueueUrlRequest.html for options
-                    var getQueueUrlTask = client.GetQueueUrlAsync(new GetQueueUrlRequest(queueName));
+                    var getQueueUrlTask = client.GetQueueUrlAsync(request);
                     AmazonAsyncHelpers.RunSync(() => getQueueUrlTask);
                     var getQueueUrlResponse = getQueueUrlTask.Result;
                     if (getQueueUrlResponse.HttpStatusCode != HttpStatusCode.OK)
@@ -49,10 +49,12 @@ namespace Rebus.AwsSnsAndSqs.Amazon.SQS
                         throw new Exception($"Could not check for existing queue '{queueName}' - got HTTP {getQueueUrlResponse.HttpStatusCode}");
                     }
 
+                    var visibilityTimeout = ((int)m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSSetQueueAttributesRequest.html for options
                     var setAttributesTask = client.SetQueueAttributesAsync(getQueueUrlResponse.QueueUrl, new Dictionary<string, string>
                     {
-                        ["VisibilityTimeout"] = ((int)m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture)
+                        ["VisibilityTimeout"] = visibilityTimeout
                     });
                     AmazonAsyncHelpers.RunSync(() => setAttributesTask);
                     var setAttributesResponse = setAttributesTask.Result;

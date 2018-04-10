@@ -2,7 +2,7 @@
 
 namespace Rebus.AwsSnsAndSqs.Amazon
 {
-    class AmazonTransportMessageSerializer
+    public class AmazonTransportMessageSerializer
     {
         public string Serialize(AmazonTransportMessage message) => JsonConvert.SerializeObject(message);
 

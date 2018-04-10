@@ -4,5 +4,5 @@ using Rebus.Tests.Contracts.Transports;
 namespace Rebus.AwsSnsAndSqsTests
 {
     [TestFixture, Category(Category.AmazonSqs)]
-    public class AmazonSqsSimpleSend : BasicSendReceive<AmazonSqsTransportFactory> { }
+    internal class AmazonSqsSimpleSend : BasicSendReceive<AmazonSqsTransportFactory> { }
 }

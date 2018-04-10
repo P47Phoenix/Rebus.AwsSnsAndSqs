@@ -39,7 +39,7 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
 
             var bus = Configure.With(activator)
                 .Logging(l => l.Console(LogLevel.Info))
-                .Transport(t => t.UseAmazonSQS(connectionInfo.AccessKeyId, connectionInfo.SecretAccessKey, connectionInfo.RegionEndpoint, _queueName))
+                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName))
                 .Start();
 
             var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () =>
@@ -58,12 +58,11 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
             activator.Handle<SomeKindOfRequest>(async _ => { });
 
             Using(activator);
-
-            var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
+            
 
             var bus = Configure.With(activator)
                 .Logging(l => l.Console(LogLevel.Info))
-                .Transport(t => t.UseAmazonSQS(connectionInfo.AccessKeyId, connectionInfo.SecretAccessKey, connectionInfo.RegionEndpoint, _queueName))
+                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName))
                 .Start();
 
             var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () =>

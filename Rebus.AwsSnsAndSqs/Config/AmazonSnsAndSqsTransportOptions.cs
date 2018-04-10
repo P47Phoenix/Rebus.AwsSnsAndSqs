@@ -6,8 +6,6 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.Config
 {
-    using Amazon;
-
     /// <summary>
     /// Holds all of the exposed options which can be applied when using the SQS transport.
     /// </summary>

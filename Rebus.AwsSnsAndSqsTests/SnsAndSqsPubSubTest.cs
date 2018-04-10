@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Rebus.Activation;
+using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Config;
+using Rebus.Routing.TypeBased;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Extensions;
 
 #pragma warning disable 1998
 
-namespace Rebus.RabbitMq.Tests
+namespace Rebus.AwsSnsAndSqsTests
 {
-    using AwsSnsAndSqs.Config;
-    using Routing.TypeBased;
-
     [TestFixture, Category("snsAndSqsPubSub")]
     public class SnsAndSqsPubSubTest : FixtureBase
     {

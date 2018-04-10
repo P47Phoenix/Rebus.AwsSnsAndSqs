@@ -2,8 +2,7 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.Amazon;
-using Rebus.AwsSnsAndSqs.Amazon.SQS;
+using Rebus.AwsSnsAndSqs.RebusAmazon;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.Pipeline;

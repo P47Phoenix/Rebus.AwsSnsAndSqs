@@ -1,7 +1,8 @@
-﻿namespace Rebus.AwsSnsAndSqs.Config
+﻿using Rebus.AwsSnsAndSqs.RebusAmazon;
+
+namespace Rebus.AwsSnsAndSqs.Config
 {
     using System;
-    using Amazon;
     using global::Amazon;
     using global::Amazon.Runtime;
     using global::Amazon.SimpleNotificationService;

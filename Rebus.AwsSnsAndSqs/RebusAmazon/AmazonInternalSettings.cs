@@ -45,7 +45,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         public AmazonPeekLockDuration AmazonPeekLockDuration { get; }
         public AmazonTransportMessageSerializer MessageSerializer { get; internal set; }
         public AmazonSimpleNotificationServiceConfig AmazonSimpleNotificationServiceConfig { get; internal set; }
-        public string TopicAddress { get; internal set; }
 
         public IResolutionContext ResolutionContext { get; set; }
 

@@ -33,7 +33,6 @@ namespace Rebus.AwsSnsAndSqs.Config
             AmazonSQSConfig amazonSqsConfig = null,
             AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null,
             string workerQueueAddress = "input_queue_address",
-            string topicAddress = "topic_address",
             AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions = null)
         {
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
@@ -46,7 +45,7 @@ namespace Rebus.AwsSnsAndSqs.Config
             {
                 RegionEndpoint = RegionEndpoint.USWest2
             };
-            Configure(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, workerQueueAddress, topicAddress, amazonSnsAndSqsTransportOptions);
+            Configure(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, workerQueueAddress, amazonSnsAndSqsTransportOptions);
         }
 
         static void Configure(
@@ -55,7 +54,6 @@ namespace Rebus.AwsSnsAndSqs.Config
             AmazonSQSConfig amazonSqsConfig,
             AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig,
             string inputQueueAddress,
-            string topicAddress,
             AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions)
         {
             amazonCredentialsFactory = amazonCredentialsFactory ?? throw new ArgumentNullException(nameof(amazonCredentialsFactory));
@@ -73,7 +71,6 @@ namespace Rebus.AwsSnsAndSqs.Config
                     ResolutionContext = c,
                     AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
                     InputQueueAddress = inputQueueAddress ?? throw new ArgumentNullException(nameof(inputQueueAddress)),
-                    TopicAddress = topicAddress ?? throw new ArgumentNullException(nameof(topicAddress)),
                     AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
                     AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
                     MessageSerializer = new AmazonTransportMessageSerializer()

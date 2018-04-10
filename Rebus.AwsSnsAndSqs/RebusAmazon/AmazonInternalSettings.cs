@@ -53,5 +53,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         public IRebusLoggerFactory RebusLoggerFactory => m_RebusLoggerFactory = m_RebusLoggerFactory ?? (ResolutionContext?.Get<IRebusLoggerFactory>() ?? new ConsoleLoggerFactory(true));
 
         public IAsyncTaskFactory AsyncTaskFactory => m_AsyncTaskFactory = m_AsyncTaskFactory ?? (ResolutionContext.Get<IAsyncTaskFactory>() ?? new TplAsyncTaskFactory(RebusLoggerFactory));
+
+        public ITopicFormatter TopicFormatter { get; internal set; }
     }
 }

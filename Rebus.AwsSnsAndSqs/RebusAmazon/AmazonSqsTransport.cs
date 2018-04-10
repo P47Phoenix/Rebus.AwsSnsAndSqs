@@ -26,7 +26,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     /// </summary>
     internal class AmazonSQSTransport : IAmazonSQSTransport
     {
-        private readonly static ConcurrentDictionary<string, string> m_topicNameCache = new ConcurrentDictionary<string, string>();
         private readonly ILog m_log;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
         private readonly ISendMessage m_sendMessage;
@@ -134,7 +133,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             var snsClient = m_AmazonInternalSettings.CreateSnsClient();
 
 
-            var formatedTopicName = FormatedTopicName(topic);
+            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
 
             var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
 
@@ -195,9 +194,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         }
 
-        private static async Task<string> GetTopicArn(IAmazonSimpleNotificationService snsClient, string topic)
+        private async Task<string> GetTopicArn(IAmazonSimpleNotificationService snsClient, string topic)
         {
-            var formatedTopicName = FormatedTopicName(topic);
+            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
 
             var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
 
@@ -217,61 +216,15 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
             return topicArn;
         }
-
-
-        private static string FormatedTopicName(string topic)
-        {
-            return m_topicNameCache.GetOrAdd(topic, topicKey =>
-            {
-
-                var newWord = new List<char>(topicKey.Length);
-                var lastLetter = new char();
-                foreach (var c in topicKey)
-                {
-                    if (char.IsDigit(c) || char.IsLetter(c) || c == '_' || c == '-')
-                    {
-                        newWord.Add(c);
-                    }
-                    else if (c == '.')
-                    {
-                        if (lastLetter == '_')
-                        {
-                            continue;
-                        }
-                        newWord.Add('_');
-                    }
-                    else
-                    {
-                        if (lastLetter == '-')
-                        {
-                            continue;
-                        }
-
-                        newWord.Add('-');
-                    }
-
-                    lastLetter = c;
-                }
-
-
-                var topicNameFinal = new string(newWord.ToArray());
-
-                if (topicNameFinal.Length > 256)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(topic),
-                        $"The topic {topicNameFinal} is to long. If you want to keep the namespace as the topic make it shorter.");
-                }
-
-                return topicNameFinal;
-            });
-
-        }
+        
 
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {
             var snsClient = m_AmazonInternalSettings.CreateSnsClient();
+            
+            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
 
-            var topicArn = await GetTopicArn(snsClient, topic);
+            var topicArn = await GetTopicArn(snsClient, formatedTopicName);
 
             using (var scope = new RebusTransactionScope())
             {
@@ -292,11 +245,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     if (unsubscribeResponse.HttpStatusCode != HttpStatusCode.OK)
                     {
                         throw new SnsRebusExption($"Error deleting subscription {subscriberAddress} on topic {topic}.", unsubscribeResponse.CreateAmazonExceptionFromResponse());
-                    }
-
-                    using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
-                    {
-                        AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(destinationQueueUrlByName));
                     }
                 }
             }

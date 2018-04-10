@@ -17,5 +17,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         AmazonSQSConfig AmazonSqsConfig { get; }
         string InputQueueAddress { get; }
         AmazonTransportMessageSerializer MessageSerializer { get; }
+        ITopicFormatter TopicFormatter { get; }
     }
 }

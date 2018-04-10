@@ -26,12 +26,14 @@ namespace Rebus.AwsSnsAndSqs.Config
             IAmazonCredentialsFactory amazonCredentialsFactory = null,
             AmazonSQSConfig amazonSqsConfig = null,
             AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null,
-            AmazonSnsAndSqsTransportOptions options = null)
+            AmazonSnsAndSqsTransportOptions options = null,
+            ITopicFormatter topicFormatter = null)
         {
+            topicFormatter = topicFormatter ?? new DefualtTopicFormatter();
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
             amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig();
             options = options ?? new AmazonSnsAndSqsTransportOptions();
-            ConfigureOneWayClient(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, options);
+            ConfigureOneWayClient(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, options, topicFormatter);
         }
 
         private static void ConfigureOneWayClient(
@@ -39,7 +41,8 @@ namespace Rebus.AwsSnsAndSqs.Config
             IAmazonCredentialsFactory amazonCredentialsFactory,
             AmazonSQSConfig amazonSqsConfig,
             AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig,
-            AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions)
+            AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions,
+            ITopicFormatter topicFormatter)
         {
             amazonCredentialsFactory = amazonCredentialsFactory ??
                                        throw new ArgumentNullException(nameof(amazonCredentialsFactory));
@@ -56,6 +59,7 @@ namespace Rebus.AwsSnsAndSqs.Config
                     AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
                     MessageSerializer = new AmazonTransportMessageSerializer(),
                     AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
+                    TopicFormatter = topicFormatter
                 });
             
  

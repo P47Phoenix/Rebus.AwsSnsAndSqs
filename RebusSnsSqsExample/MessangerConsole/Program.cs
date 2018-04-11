@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Rebus.Activation;
 using Rebus.AwsSnsAndSqs.Config;
@@ -15,12 +16,19 @@ namespace MessangerConsole
         static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.RollingFile("log-{date}.txt")
+                .WriteTo.RollingFile("log-.txt")
                 .CreateLogger();
             var queueName = $"{Environment.MachineName}_{Process.GetCurrentProcess().Id}".ToLowerInvariant();
-            using (var builtinHandlerActivator = new BuiltinHandlerActivator())
+
+            var workHandlerActivator = new BuiltinHandlerActivator();
+
+            var clientActivator = new BuiltinHandlerActivator();
+
+            using (var builtinHandlerActivator = new DisposeChain(clientActivator, workHandlerActivator))
             {
-                builtinHandlerActivator.Handle<MessengerMessage>(message =>
+
+                // Setup worker bus
+                workHandlerActivator.Handle<MessengerMessage>(message =>
                 {
                     // igonore message we sent
                     if (message.Sender == queueName)
@@ -33,8 +41,8 @@ namespace MessangerConsole
                     return Task.CompletedTask;
                 });
 
-                var bus = Configure
-                    .With(builtinHandlerActivator)
+                var worker = Configure
+                    .With(workHandlerActivator)
                     .Logging(configurer => configurer.Serilog(Log.Logger))
                     .Transport(t =>
                     {
@@ -49,7 +57,18 @@ namespace MessangerConsole
                     .Start();
 
                 // add the current queue to the MessengerMessage topic
-                await bus.Subscribe<MessengerMessage>();
+                await worker.Subscribe<MessengerMessage>();
+
+                // setup a client
+                var client = Configure
+                    .With(clientActivator)
+                    .Logging(configurer => configurer.Serilog(Log.Logger))
+                    .Transport(t =>
+                    {
+                        // set the worker queue name
+                        t.UseAmazonSnsAndSqsAsOneWayClient();
+                    })
+                    .Start();
 
                 var line = String.Empty;
                 do
@@ -58,7 +77,7 @@ namespace MessangerConsole
                     line = Console.ReadLine();
 
                     // publish a message to the MessengerMessage topic
-                    await bus.Publish(new MessengerMessage
+                    await client.Publish(new MessengerMessage
                     {
                         CreateDateTime = DateTime.Now,
                         Message = line,
@@ -67,9 +86,11 @@ namespace MessangerConsole
                 }
                 while (string.IsNullOrWhiteSpace(line) == false);
 
-                // remove the queue from the topic
-                await bus.Unsubscribe<MessengerMessage>();
+                // remove the worker queue from the topic
+                await worker.Unsubscribe<MessengerMessage>();
             }
         }
     }
 }
+
+

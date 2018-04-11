@@ -31,8 +31,15 @@ namespace Rebus.AwsSnsAndSqs.Config
         {
             topicFormatter = topicFormatter ?? new DefualtTopicFormatter();
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
-            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig();
+            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig()
+            {
+                RegionEndpoint = RegionEndpoint.USWest2
+            };
             options = options ?? new AmazonSnsAndSqsTransportOptions();
+            amazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? new AmazonSimpleNotificationServiceConfig()
+            {
+                RegionEndpoint = RegionEndpoint.USWest2
+            };
             ConfigureOneWayClient(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, options, topicFormatter);
         }
 
@@ -44,30 +51,33 @@ namespace Rebus.AwsSnsAndSqs.Config
             AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions,
             ITopicFormatter topicFormatter)
         {
-            amazonCredentialsFactory = amazonCredentialsFactory ??
-                                       throw new ArgumentNullException(nameof(amazonCredentialsFactory));
+            amazonCredentialsFactory = amazonCredentialsFactory ?? throw new ArgumentNullException(nameof(amazonCredentialsFactory));
             standardConfigurer
                 .OtherService<IAmazonCredentialsFactory>()
                 .Register(c => amazonCredentialsFactory);
 
-            standardConfigurer.OtherService<IAmazonInternalSettings>()
+            standardConfigurer
+                .OtherService<IAmazonSQSTransportFactory>()
+                .Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>()));
+            standardConfigurer
+                .OtherService<IAmazonInternalSettings>()
                 .Register(c => new AmazonInternalSettings
                 {
                     ResolutionContext = c,
+                    AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
                     InputQueueAddress = null,
                     AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
                     AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
                     MessageSerializer = new AmazonTransportMessageSerializer(),
-                    AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
-                    TopicFormatter = topicFormatter
+                    TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter))
                 });
-            
- 
-            standardConfigurer.Register(c => new AmazonSQSTransport(c.Get<IAmazonInternalSettings>()));
+
+            standardConfigurer.Register(c => c.Get<IAmazonSQSTransportFactory>().Create());
 
             standardConfigurer
-                .OtherService<ISubscriptionStorage>();
-            
+                .OtherService<ISubscriptionStorage>()
+                .Register(c => c.Get<IAmazonSQSTransportFactory>().Create());
+
             OneWayClientBackdoor.ConfigureOneWayClient(standardConfigurer);
 
             if (amazonSnsAndSqsTransportOptions.UseNativeDeferredMessages)

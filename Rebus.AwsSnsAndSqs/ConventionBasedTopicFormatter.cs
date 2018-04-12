@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Rebus.AwsSnsAndSqs
 {
-    public class DefualtTopicFormatter : ITopicFormatter
+    public class ConventionBasedTopicFormatter : ITopicFormatter
     {
         private static readonly ConcurrentDictionary<string, string> m_topicNameCache = new ConcurrentDictionary<string, string>();
 

@@ -29,7 +29,7 @@ namespace Rebus.AwsSnsAndSqs.Config
             AmazonSnsAndSqsTransportOptions options = null,
             ITopicFormatter topicFormatter = null)
         {
-            topicFormatter = topicFormatter ?? new DefualtTopicFormatter();
+            topicFormatter = topicFormatter ?? new ConventionBasedTopicFormatter();
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
             amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig()
             {

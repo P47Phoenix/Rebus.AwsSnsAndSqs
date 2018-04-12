@@ -1,10 +1,14 @@
 # Rebus.AwsSnsAndSqs
-Implement aws sns and sqs provider for rebus
+Implement aws sns and sqs provider for [Rebus](https://github.com/rebus-org/Rebus)
+
+Aditional information documentation can be found (here)[]
 
 ## Contract based pubsub
 
+The following example is in the repo and is is located [here](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/tree/master/RebusSnsSqsExample)
+
 For example this following contract
-```
+```csharp
 using System;
 
 namespace Topic.Contracts
@@ -26,15 +30,15 @@ Topic_Contracts_MessengerMessage--Topic_Contracts
 
 In this example of pub sub the client and the worker is the same.
 Each instance will create queue using the machine name and pid of the process.
-```
+```csharp
 var queueName = $"{Environment.MachineName}_{Process.GetCurrentProcess().Id}".ToLowerInvariant();
 ```
 Next we should subscribe to the topic.
-```
+```csharp
 await bus.Subscribe<MessengerMessage>();
 ```
 Finally we just publish new messages we get onto the topic
-```
+```csharp
 var line = String.Empty;
 do
 {
@@ -52,7 +56,8 @@ while (string.IsNullOrWhiteSpace(line) == false);
 ```
 
 Full example
-```
+[Source](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample/MessangerConsole/Program.cs)
+```csharp
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -70,12 +75,19 @@ namespace MessangerConsole
         static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.RollingFile("log-{date}.txt")
+                .WriteTo.RollingFile("log-.txt")
                 .CreateLogger();
             var queueName = $"{Environment.MachineName}_{Process.GetCurrentProcess().Id}".ToLowerInvariant();
-            using (var builtinHandlerActivator = new BuiltinHandlerActivator())
+
+            var workHandlerActivator = new BuiltinHandlerActivator();
+
+            var clientActivator = new BuiltinHandlerActivator();
+
+            using (var builtinHandlerActivator = new DisposeChain(clientActivator, workHandlerActivator))
             {
-                builtinHandlerActivator.Handle<MessengerMessage>(message =>
+
+                // Setup worker bus
+                workHandlerActivator.Handle<MessengerMessage>(message =>
                 {
                     // igonore message we sent
                     if (message.Sender == queueName)
@@ -88,8 +100,8 @@ namespace MessangerConsole
                     return Task.CompletedTask;
                 });
 
-                var bus = Configure
-                    .With(builtinHandlerActivator)
+                var worker = Configure
+                    .With(workHandlerActivator)
                     .Logging(configurer => configurer.Serilog(Log.Logger))
                     .Transport(t =>
                     {
@@ -104,7 +116,18 @@ namespace MessangerConsole
                     .Start();
 
                 // add the current queue to the MessengerMessage topic
-                await bus.Subscribe<MessengerMessage>();
+                await worker.Subscribe<MessengerMessage>();
+
+                // setup a client
+                var client = Configure
+                    .With(clientActivator)
+                    .Logging(configurer => configurer.Serilog(Log.Logger))
+                    .Transport(t =>
+                    {
+                        // set the worker queue name
+                        t.UseAmazonSnsAndSqsAsOneWayClient();
+                    })
+                    .Start();
 
                 var line = String.Empty;
                 do
@@ -113,7 +136,7 @@ namespace MessangerConsole
                     line = Console.ReadLine();
 
                     // publish a message to the MessengerMessage topic
-                    await bus.Publish(new MessengerMessage
+                    await client.Publish(new MessengerMessage
                     {
                         CreateDateTime = DateTime.Now,
                         Message = line,
@@ -122,10 +145,15 @@ namespace MessangerConsole
                 }
                 while (string.IsNullOrWhiteSpace(line) == false);
 
-                // remove the queue from the topic
-                await bus.Unsubscribe<MessengerMessage>();
+                // remove the worker queue from the topic
+                await worker.Unsubscribe<MessengerMessage>();
             }
         }
     }
 }
 ```
+## Contribute
+
+Rebus sns and sqs is an [inner source](https://en.wikipedia.org/wiki/Inner_source) project.+
+Pull requests are welcomed from anyone in Cox Automotive.
+[Here's how to contribute](CONTRIBUTE.md).

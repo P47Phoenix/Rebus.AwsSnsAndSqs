@@ -50,7 +50,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
             if (destinationAddress.StartsWith(c_SnsArn))
             {
-                var snsClient = m_AmazonInternalSettings.CreateSnsClient();
+                var snsClient = m_AmazonInternalSettings.CreateSnsClient(context);
 
                 var sqsMessage = new AmazonTransportMessage(message.Headers, GetBody(message.Body));
 

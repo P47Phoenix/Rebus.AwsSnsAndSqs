@@ -62,6 +62,9 @@ namespace Rebus.AwsSnsAndSqsTests
                     sub2GotEvent.Set();
                 }
             });
+            
+            await sub1.Bus.Unsubscribe<string>();
+            await sub2.Bus.Unsubscribe<string>();
 
             await sub1.Bus.Subscribe<string>();
             await sub2.Bus.Subscribe<string>();

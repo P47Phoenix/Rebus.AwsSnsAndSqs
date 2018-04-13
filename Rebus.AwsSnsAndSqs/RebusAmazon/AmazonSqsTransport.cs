@@ -99,31 +99,24 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public async Task<string[]> GetSubscriberAddresses(string topic)
         {
-            var snsClient = m_AmazonInternalSettings.CreateSnsClient();
-
-            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
-
-            var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
-
-            if (findTopicResult == null)
+            using (var rebusTransactionScope = new RebusTransactionScope())
             {
-                throw new ArgumentOutOfRangeException($"The topic {formatedTopicName} does not exist");
+                var topicArn = await m_AmazonInternalSettings.GetTopicArn(rebusTransactionScope.TransactionContext, topic);
+                return new[] { topicArn };
             }
-
-            return new[] {findTopicResult.TopicArn};
         }
 
         public async Task RegisterSubscriber(string topic, string subscriberAddress)
         {
-            var snsClient = m_AmazonInternalSettings.CreateSnsClient();
-
-            var topicArn = await GetTopicArn(snsClient, topic);
-
-            using (var scope = new RebusTransactionScope())
+            using (var rebusTransactionScope = new RebusTransactionScope())
             {
-                var destinationQueueUrlByName = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(subscriberAddress, scope.TransactionContext);
+                var topicArn = await m_AmazonInternalSettings.GetTopicArn(rebusTransactionScope.TransactionContext, topic);
+
+                var destinationQueueUrlByName = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(subscriberAddress, rebusTransactionScope.TransactionContext);
 
                 var sqsInformation = m_amazonSQSQueueContext.GetSqsInformationFromUri(destinationQueueUrlByName);
+
+                var snsClient = m_AmazonInternalSettings.CreateSnsClient(rebusTransactionScope.TransactionContext);
 
                 var listSubscriptionsByTopicResponse = await snsClient.ListSubscriptionsByTopicAsync(topicArn);
 
@@ -138,45 +131,42 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                         throw new SnsRebusExption($"Error creating subscription {subscriberAddress} on topic {topic}.", subscribeResponse.CreateAmazonExceptionFromResponse());
                     }
 
-                    var sqsClient = m_AmazonInternalSettings.CreateSqsClient(scope.TransactionContext);
-
-                    var sqsPolicy = new Policy().WithStatements(new Statement(Statement.StatementEffect.Allow).WithPrincipals(Principal.AllUsers).WithResources(new Resource(sqsInformation.Arn)).WithConditions(ConditionFactory.NewSourceArnCondition(topicArn)).WithActionIdentifiers(SQSActionIdentifiers.SendMessage));
-
-                    var attributes = new Dictionary<string, string> {{"Policy", sqsPolicy.ToJson()}};
-
-                    await sqsClient.SetAttributesAsync(sqsInformation.Url, attributes);
+                    await m_AmazonInternalSettings.CheckSqsPolicy(rebusTransactionScope.TransactionContext, destinationQueueUrlByName, sqsInformation, topicArn);
                 }
             }
         }
 
 
+
+
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {
-            var snsClient = m_AmazonInternalSettings.CreateSnsClient();
-
-            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
-
-            var topicArn = await GetTopicArn(snsClient, formatedTopicName);
-
-            using (var scope = new RebusTransactionScope())
+            using (var rebusTransactionScope = new RebusTransactionScope())
             {
-                var destinationQueueUrlByName = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(subscriberAddress, scope.TransactionContext);
+                var topicArn = await m_AmazonInternalSettings.GetTopicArn(rebusTransactionScope.TransactionContext, topic);
 
-                var sqsInfo = m_amazonSQSQueueContext.GetSqsInformationFromUri(destinationQueueUrlByName);
-
-                var listSubscriptionsByTopicResponse = await snsClient.ListSubscriptionsByTopicAsync(topicArn);
-
-                var subscriptions = listSubscriptionsByTopicResponse?.Subscriptions;
-
-                var subscription = subscriptions.FirstOrDefault(s => s.SubscriptionArn == sqsInfo.Arn);
-
-                if (subscription != null)
+                using (var scope = new RebusTransactionScope())
                 {
-                    var unsubscribeResponse = await snsClient.UnsubscribeAsync(subscription.SubscriptionArn);
+                    var destinationQueueUrlByName = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(subscriberAddress, scope.TransactionContext);
 
-                    if (unsubscribeResponse.HttpStatusCode != HttpStatusCode.OK)
+                    var sqsInfo = m_amazonSQSQueueContext.GetSqsInformationFromUri(destinationQueueUrlByName);
+                    
+                    var snsClient = m_AmazonInternalSettings.CreateSnsClient(rebusTransactionScope.TransactionContext);
+
+                    var listSubscriptionsByTopicResponse = await snsClient.ListSubscriptionsByTopicAsync(topicArn);
+
+                    var subscriptions = listSubscriptionsByTopicResponse?.Subscriptions;
+
+                    var subscription = subscriptions.FirstOrDefault(s => s.SubscriptionArn == sqsInfo.Arn);
+
+                    if (subscription != null)
                     {
-                        throw new SnsRebusExption($"Error deleting subscription {subscriberAddress} on topic {topic}.", unsubscribeResponse.CreateAmazonExceptionFromResponse());
+                        var unsubscribeResponse = await snsClient.UnsubscribeAsync(subscription.SubscriptionArn);
+
+                        if (unsubscribeResponse.HttpStatusCode != HttpStatusCode.OK)
+                        {
+                            throw new SnsRebusExption($"Error deleting subscription {subscriberAddress} on topic {topic}.", unsubscribeResponse.CreateAmazonExceptionFromResponse());
+                        }
                     }
                 }
             }
@@ -213,29 +203,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
                 AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));
             }
-        }
-
-        private async Task<string> GetTopicArn(IAmazonSimpleNotificationService snsClient, string topic)
-        {
-            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
-
-            var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
-
-            var topicArn = findTopicResult?.TopicArn;
-
-            if (topicArn == null)
-            {
-                var createTopicResponse = await snsClient.CreateTopicAsync(formatedTopicName);
-
-                if (createTopicResponse.HttpStatusCode != HttpStatusCode.OK)
-                {
-                    throw new SnsRebusExption($"Error creating topic {formatedTopicName}.", createTopicResponse.CreateAmazonExceptionFromResponse());
-                }
-
-                topicArn = createTopicResponse.TopicArn;
-            }
-
-            return topicArn;
         }
     }
 }

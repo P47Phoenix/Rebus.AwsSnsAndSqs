@@ -9,14 +9,14 @@ namespace Rebus.AwsSnsAndSqs
 #if NET45
     public class AttributeBasedTopicFormatter : ITopicFormatter
     {
-        private ConcurrentDictionary<string, string> _TopicCache = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _topicCache = new ConcurrentDictionary<string, string>();
 
         public string FormatTopic(string topic)
         {
 
             try
             {
-                return _TopicCache.GetOrAdd(topic, s =>
+                return _topicCache.GetOrAdd(topic, s =>
                 {
                     var typeStringArray = topic
                         .Split(", ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
@@ -25,8 +25,7 @@ namespace Rebus.AwsSnsAndSqs
 
                     if (typeStringArray.Length != 2)
                     {
-                        throw new ArgumentOutOfRangeException(
-                            $"The topic received from rebus was {topic} which pasrsed to {JObject.FromObject(new { TypeDetail = typeStringArray })}");
+                        throw new ArgumentOutOfRangeException($"The topic received from rebus was {topic} which pasrsed to {JObject.FromObject(new { TypeDetail = typeStringArray })}");
                     }
                     var assembly = Assembly.Load(typeStringArray[1]);
 
@@ -38,12 +37,12 @@ namespace Rebus.AwsSnsAndSqs
                         $"Unable to find type {typeStringArray[0]} in assembly {assembly.FullName}.");
                     }
 
-                    var attribute = type.GetCustomAttribute<TopicContractAttribute>();
+                    var attribute = type.GetCustomAttribute<TopicNameAttribute>();
 
                     if (attribute == null)
                     {
                         throw new InvalidOperationException(
-                        $"You must set a {nameof(TopicContractAttribute)} when using {nameof(AttributeBasedTopicFormatter)}");
+                        $"You must set a {nameof(TopicNameAttribute)} when using {nameof(AttributeBasedTopicFormatter)}");
                     }
                     return attribute.Topic;
                 });

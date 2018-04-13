@@ -5,9 +5,8 @@
 namespace Rebus.AwsSnsAndSqsTests
 {
 #if NET45
-
-    [TopicName(nameof(SomeMessageTopic))]
-    public class SomeMessageTopic
+    [TopicName(null)]
+    public class NullTopic
     {
         public string Message { get; set; }
     }

@@ -65,8 +65,10 @@ namespace Rebus.AwsSnsAndSqsTests
         [Test]
         public async Task PubSubTest_AtributeBasedRouting_BadTopicName()
         {
-            Assert.Throws<ArgumentException>(() => { _publisher.Bus.Publish(new ToLongTopic()); });
-            Assert.Throws<ArgumentException>(() => { _publisher.Bus.Publish(new BadTopic()); });
+            Assert.ThrowsAsync<ArgumentException>(async () => { await _publisher.Bus.Publish(new ToLongTopic()); });
+            Assert.ThrowsAsync<ArgumentException>(async () => { await _publisher.Bus.Publish(new NullTopic()); });
+            Assert.ThrowsAsync<ArgumentException>(async () => { await _publisher.Bus.Publish(new ToShortTopic()); });
+            Assert.ThrowsAsync<ArgumentException>(async () => { await _publisher.Bus.Publish(new BadTopic()); });
         }
 
         BuiltinHandlerActivator GetBus(string queueName, Func<SomeMessageTopic, Task> handlerMethod = null)

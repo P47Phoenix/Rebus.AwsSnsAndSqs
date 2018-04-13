@@ -5,9 +5,8 @@
 namespace Rebus.AwsSnsAndSqsTests
 {
 #if NET45
-
-    [TopicName(nameof(SomeMessageTopic))]
-    public class SomeMessageTopic
+    [TopicName("&^76")]
+    public class BadTopic
     {
         public string Message { get; set; }
     }

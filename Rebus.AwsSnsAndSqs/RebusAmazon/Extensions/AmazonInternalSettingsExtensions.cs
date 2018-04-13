@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Auth.AccessControlPolicy;
 using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
@@ -13,6 +15,8 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
     internal static class AmazonInternalSettingsExtensions
     {
+        private static ConcurrentDictionary<string, string> s_topicArnCache = new ConcurrentDictionary<string, string>();
+
         public static IAmazonSimpleNotificationService CreateSnsClient(this IAmazonSnsSettings amazonSnsSettings, ITransactionContext transactionContext)
         {
             return transactionContext.GetOrAdd(AmazonConstaints.SnsClientContextKey, () =>
@@ -37,18 +41,25 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
         public static async Task<string> GetTopicArn(this IAmazonInternalSettings m_AmazonInternalSettings, ITransactionContext transactionContext, string topic)
         {
-            var snsClient = m_AmazonInternalSettings.CreateSnsClient(transactionContext);
-
-            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
-
-            var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
-
-            if (findTopicResult == null)
+            return s_topicArnCache.GetOrAdd(topic, s =>
             {
-                throw new ArgumentOutOfRangeException($"The topic {formatedTopicName} does not exist");
-            }
+                var snsClient = m_AmazonInternalSettings.CreateSnsClient(transactionContext);
 
-            return findTopicResult.TopicArn;
+                var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
+
+                var findTopicAsync = snsClient.FindTopicAsync(formatedTopicName);
+
+                AmazonAsyncHelpers.RunSync(() => findTopicAsync);
+
+                var findTopicResult = findTopicAsync.Result;
+
+                if (findTopicResult == null)
+                {
+                    throw new ArgumentOutOfRangeException($"The topic {formatedTopicName} does not exist");
+                }
+
+                return findTopicResult.TopicArn;
+            });
         }
 
         public static async Task CheckSqsPolicy(this IAmazonInternalSettings amazonInternalSettings, ITransactionContext transactionContext, string destinationQueueUrlByName, SqsInfo sqsInformation, string topicArn)

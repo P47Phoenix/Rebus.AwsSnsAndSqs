@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace Rebus.AwsSnsAndSqs
 {
@@ -14,9 +12,9 @@ namespace Rebus.AwsSnsAndSqs
         {
             return m_topicNameCache.GetOrAdd(topic, topicKey =>
             {
-
                 var newWord = new List<char>(topicKey.Length);
                 var lastLetter = new char();
+
                 foreach (var c in topicKey)
                 {
                     if (char.IsDigit(c) || char.IsLetter(c) || c == '_' || c == '-')
@@ -29,6 +27,7 @@ namespace Rebus.AwsSnsAndSqs
                         {
                             continue;
                         }
+
                         newWord.Add('_');
                     }
                     else
@@ -44,13 +43,11 @@ namespace Rebus.AwsSnsAndSqs
                     lastLetter = c;
                 }
 
-
                 var topicNameFinal = new string(newWord.ToArray());
 
                 if (topicNameFinal.Length > 256)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(topic),
-                        $"The topic {topicNameFinal} is to long. If you want to keep the namespace as the topic make it shorter.");
+                    throw new ArgumentOutOfRangeException(nameof(topic), $"The topic {topicNameFinal} is to long. If you want to keep the namespace as the topic make it shorter.");
                 }
 
                 return topicNameFinal;

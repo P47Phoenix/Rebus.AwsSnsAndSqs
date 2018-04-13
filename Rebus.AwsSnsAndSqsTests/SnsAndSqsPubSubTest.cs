@@ -13,7 +13,8 @@ using Rebus.Tests.Contracts.Extensions;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture][Category("snsAndSqsPubSub")]
+    [TestFixture]
+    [Category("snsAndSqsPubSub")]
     public class SnsAndSqsPubSubTest : FixtureBase
     {
         private readonly string _publisherQueueName = TestConfig.GetName("publisher");
@@ -24,6 +25,20 @@ namespace Rebus.AwsSnsAndSqsTests
         protected override void SetUp()
         {
             _publisher = GetBus(_publisherQueueName);
+        }
+
+        private BuiltinHandlerActivator GetBus(string queueName, Func<string, Task> handlerMethod = null)
+        {
+            var activator = Using(new BuiltinHandlerActivator());
+
+            if (handlerMethod != null)
+            {
+                activator.Handle(handlerMethod);
+            }
+
+            Configure.With(activator).Transport(t => { t.UseAmazonSnsAndSqs(workerQueueAddress: queueName); }).Routing(r => r.TypeBased().Map<string>(queueName)).Start();
+
+            return activator;
         }
 
         [Test]
@@ -55,26 +70,6 @@ namespace Rebus.AwsSnsAndSqsTests
 
             sub1GotEvent.WaitOrDie(TimeSpan.FromSeconds(30));
             sub2GotEvent.WaitOrDie(TimeSpan.FromSeconds(30));
-        }
-
-        private BuiltinHandlerActivator GetBus(string queueName, Func<string, Task> handlerMethod = null)
-        {
-            var activator = Using(new BuiltinHandlerActivator());
-
-            if (handlerMethod != null)
-            {
-                activator.Handle(handlerMethod);
-            }
-
-            Configure.With(activator)
-                .Transport(t =>
-                {
-                    t.UseAmazonSnsAndSqs(workerQueueAddress: queueName);
-                })
-                .Routing(r => r.TypeBased().Map<string>(queueName))
-                .Start();
-
-            return activator;
         }
     }
 }

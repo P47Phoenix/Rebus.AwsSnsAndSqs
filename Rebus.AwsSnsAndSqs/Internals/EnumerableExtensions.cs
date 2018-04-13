@@ -16,6 +16,7 @@ namespace Rebus.AwsSnsAndSqs.Internals
                 if (list.Count >= maxItemsPerBatch)
                 {
                     yield return list;
+
                     list = new List<T>();
                 }
             }

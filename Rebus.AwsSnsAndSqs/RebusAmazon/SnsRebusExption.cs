@@ -6,7 +6,12 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     public class SnsRebusExption : Exception
     {
-        public SnsRebusExption(string message) : base(message) { }
-        public SnsRebusExption(string message, Exception innerException) : base(message, innerException) { }
+        public SnsRebusExption(string message) : base(message)
+        {
+        }
+
+        public SnsRebusExption(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

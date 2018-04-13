@@ -1,12 +1,13 @@
 ﻿using System;
 using Rebus.Messages;
 using Rebus.Time;
+using Message = Amazon.SQS.Model.Message;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
     internal static class TransportMessageExtensions
     {
-        public static bool MessageIsExpired(this TransportMessage message, Amazon.SQS.Model.Message sqsMessage)
+        public static bool MessageIsExpired(this TransportMessage message, Message sqsMessage)
         {
             if (message.Headers.TryGetValue(Headers.TimeToBeReceived, out var value) == false)
             {
@@ -24,17 +25,19 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             {
                 return false;
             }
+
             var rebusUtcTimeSent = DateTimeOffset.ParseExact(rebusUtcTimeSentAttributeValue, "O", null);
 
             return RebusTime.Now.UtcDateTime - rebusUtcTimeSent > timeToBeReceived;
         }
 
-        private static bool MessageIsExpiredUsingNativeSqsSentTimestamp(Amazon.SQS.Model.Message message, TimeSpan timeToBeReceived)
+        private static bool MessageIsExpiredUsingNativeSqsSentTimestamp(Message message, TimeSpan timeToBeReceived)
         {
             if (message.Attributes.TryGetValue("SentTimestamp", out var sentTimeStampString) == false)
             {
                 return false;
             }
+
             var sentTime = GetTimeFromUnixTimestamp(sentTimeStampString);
             return RebusTime.Now.UtcDateTime - sentTime > timeToBeReceived;
         }

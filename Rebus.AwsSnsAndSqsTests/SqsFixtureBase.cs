@@ -10,7 +10,7 @@ namespace Rebus.AwsSnsAndSqsTests
 {
     public abstract class SqsFixtureBase : FixtureBase
     {
-        readonly Encoding _defaultEncoding = Encoding.UTF8;
+        private readonly Encoding _defaultEncoding = Encoding.UTF8;
 
         protected async Task WithContext(Func<ITransactionContext, Task> contextAction, bool completeTransaction = true)
         {
@@ -37,11 +37,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
         protected TransportMessage MessageWith(string stringBody)
         {
-            var headers = new Dictionary<string, string>
-                          {
-                              {Headers.MessageId, Guid.NewGuid().ToString()},
-                              {Headers.CorrelationId, Guid.NewGuid().ToString()}
-                          };
+            var headers = new Dictionary<string, string> {{Headers.MessageId, Guid.NewGuid().ToString()}, {Headers.CorrelationId, Guid.NewGuid().ToString()}};
             var body = _defaultEncoding.GetBytes(stringBody);
             return new TransportMessage(headers, body);
         }

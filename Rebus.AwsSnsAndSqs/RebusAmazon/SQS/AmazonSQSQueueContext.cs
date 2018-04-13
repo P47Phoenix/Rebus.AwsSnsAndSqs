@@ -13,49 +13,40 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
         //  using System.Text.RegularExpressions;
 
         /// <summary>
-        ///  Regular expression built for C# on: Mon, Apr 9, 2018, 09:09:51 PM
-        ///  Using Expresso Version: 3.1.6224, http://www.ultrapico.com
-        ///  
-        ///  A description of the regular expression:
-        ///  
-        ///  Match expression but don't capture it. [http|https]
-        ///      Select from 2 alternatives
-        ///          http
-        ///              http
-        ///          https
-        ///              https
-        ///  \://sqs\.
-        ///      Literal :
-        ///      //sqs
-        ///      Literal .
-        ///  [region]: A named capture group. [.*]
-        ///      Any character, any number of repetitions
-        ///  \.amazonaws\.com/
-        ///      Literal .
-        ///      amazonaws
-        ///      Literal .
-        ///      com/
-        ///  [accountId]: A named capture group. [\d+]
-        ///      Any digit, one or more repetitions
-        ///  /
-        ///  [queuename]: A named capture group. [\w+]
-        ///      Alphanumeric, one or more repetitions
-        ///  
-        ///
+        ///     Regular expression built for C# on: Mon, Apr 9, 2018, 09:09:51 PM
+        ///     Using Expresso Version: 3.1.6224, http://www.ultrapico.com
+        ///     A description of the regular expression:
+        ///     Match expression but don't capture it. [http|https]
+        ///     Select from 2 alternatives
+        ///     http
+        ///     http
+        ///     https
+        ///     https
+        ///     \://sqs\.
+        ///     Literal :
+        ///     //sqs
+        ///     Literal .
+        ///     [region]: A named capture group. [.*]
+        ///     Any character, any number of repetitions
+        ///     \.amazonaws\.com/
+        ///     Literal .
+        ///     amazonaws
+        ///     Literal .
+        ///     com/
+        ///     [accountId]: A named capture group. [\d+]
+        ///     Any digit, one or more repetitions
+        ///     /
+        ///     [queuename]: A named capture group. [\w+]
+        ///     Alphanumeric, one or more repetitions
         /// </summary>
-        public static Regex m_regex_SqsUri = new Regex(@"(?:http|https)\://sqs\.(?<region>.*)\.amazonaws\.com/(?<accountId>\d+)/(?<queuename>\w+)",
-            RegexOptions.Multiline
-            | RegexOptions.CultureInvariant
-            | RegexOptions.Compiled
-        );
-        
+        public static Regex m_regex_SqsUri = new Regex(@"(?:http|https)\://sqs\.(?<region>.*)\.amazonaws\.com/(?<accountId>\d+)/(?<queuename>\w+)", RegexOptions.Multiline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
 
 
         private readonly ConcurrentDictionary<string, string> m_concurrentDictionarySqsUris = new ConcurrentDictionary<string, string>();
 
         private readonly ConcurrentDictionary<string, SqsInfo> m_sqsArnFormUriCache = new ConcurrentDictionary<string, SqsInfo>();
-
-        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
 
         public AmazonSQSQueueContext(IAmazonInternalSettings m_AmazonInternalSettings)
         {
@@ -77,6 +68,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                 AmazonAsyncHelpers.RunSync(() => task);
 
                 var urlResponse = task.Result;
+
                 if (urlResponse.HttpStatusCode == HttpStatusCode.OK)
                 {
                     return urlResponse.QueueUrl;
@@ -86,7 +78,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             });
 
             return url;
-
         }
 
         public SqsInfo GetSqsInformationFromUri(string sqsUri)
@@ -100,14 +91,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                 var queuename = match.Groups["queuename"].Value;
                 var region = match.Groups["region"].Value;
 
-                return new SqsInfo
-                {
-                    Url = sqsUri,
-                    Arn = $"arn:aws:sqs:{region}:{accountId}:{queuename}",
-                    AccountId = accountId,
-                    Name = queuename,
-                    Region = region
-                };
+                return new SqsInfo {Url = sqsUri, Arn = $"arn:aws:sqs:{region}:{accountId}:{queuename}", AccountId = accountId, Name = queuename, Region = region};
             });
         }
 
@@ -128,5 +112,4 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             }
         }
     }
-
 }

@@ -13,11 +13,12 @@ using Rebus.Tests.Contracts.Extensions;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture, Category(Category.AmazonSqs)]
+    [TestFixture]
+    [Category(Category.AmazonSqs)]
     public class DeferMessageTest : SqsFixtureBase
     {
-        BuiltinHandlerActivator _activator;
-        RebusConfigurer _configurer;
+        private BuiltinHandlerActivator _activator;
+        private RebusConfigurer _configurer;
 
         protected override void SetUp()
         {
@@ -25,10 +26,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
             var accessKeyId = connectionInfo.AccessKeyId;
             var secretAccessKey = connectionInfo.SecretAccessKey;
-            var amazonSqsConfig = new AmazonSQSConfig
-            {
-                RegionEndpoint = connectionInfo.RegionEndpoint
-            };
+            var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
 
             var queueName = TestConfig.GetName("defertest");
 
@@ -36,9 +34,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
             _activator = Using(new BuiltinHandlerActivator());
 
-            _configurer = Configure.With(_activator)
-                .Transport(t => t.UseAmazonSnsAndSqs(amazonSqsConfig: amazonSqsConfig, workerQueueAddress: queueName))
-                .Options(o => o.LogPipeline());
+            _configurer = Configure.With(_activator).Transport(t => t.UseAmazonSnsAndSqs(amazonSqsConfig: amazonSqsConfig, workerQueueAddress: queueName)).Options(o => o.LogPipeline());
         }
 
         [Test]

@@ -9,7 +9,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     public interface IAmazonInternalSettings : IAmazonSnsSettings, IAmazonSqsSettings
     {
         IAsyncTaskFactory AsyncTaskFactory { get; }
-        IRebusLoggerFactory RebusLoggerFactory { get;}
+        IRebusLoggerFactory RebusLoggerFactory { get; }
         IAmazonCredentialsFactory AmazonCredentialsFactory { get; }
         AmazonPeekLockDuration AmazonPeekLockDuration { get; }
         AmazonSimpleNotificationServiceConfig AmazonSimpleNotificationServiceConfig { get; }

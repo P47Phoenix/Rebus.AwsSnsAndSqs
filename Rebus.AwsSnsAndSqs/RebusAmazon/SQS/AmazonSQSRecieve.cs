@@ -19,7 +19,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
     {
         private readonly IAmazonInternalSettings m_amazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
-        private ILog m_log;
+        private readonly ILog m_log;
 
         public AmazonSQSRecieve(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext)
         {
@@ -50,13 +50,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
             var client = m_amazonInternalSettings.CreateSqsClient(context);
 
-            var request = new ReceiveMessageRequest(queueUrl)
-            {
-                MaxNumberOfMessages = 1,
-                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds,
-                AttributeNames = new List<string>(new[] { "All" }),
-                MessageAttributeNames = new List<string>(new[] { "All" })
-            };
+            var request = new ReceiveMessageRequest(queueUrl) {MaxNumberOfMessages = 1, WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds, AttributeNames = new List<string>(new[] {"All"}), MessageAttributeNames = new List<string>(new[] {"All"})};
 
             var response = await client.ReceiveMessageAsync(request, cancellationToken);
 
@@ -85,6 +79,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             });
 
             var transportMessage = ExtractTransportMessageFrom(sqsMessage);
+
             if (transportMessage.MessageIsExpired(sqsMessage))
             {
                 // if the message is expired , we don't want to pass on the cancellation token
@@ -92,23 +87,21 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                 await client.DeleteMessageAsync(new DeleteMessageRequest(queueUrl, sqsMessage.ReceiptHandle));
                 return null;
             }
+
             renewalTask.Start();
             return transportMessage;
         }
 
         private IAsyncTask CreateRenewalTaskForMessage(Message message, string queueUrl, IAmazonSQS client)
         {
-            return m_amazonInternalSettings.AsyncTaskFactory.Create($"RenewPeekLock-{message.MessageId}",
-                async () =>
-                {
-                    m_log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
+            return m_amazonInternalSettings.AsyncTaskFactory.Create($"RenewPeekLock-{message.MessageId}", async () =>
+            {
+                m_log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
 
-                    var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
+                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
 
-                    await client.ChangeMessageVisibilityAsync(request);
-                },
-                intervalSeconds: (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds,
-                prettyInsignificant: true);
+                await client.ChangeMessageVisibilityAsync(request);
+            }, intervalSeconds: (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
         }
 
         private TransportMessage ExtractTransportMessageFrom(Message message)

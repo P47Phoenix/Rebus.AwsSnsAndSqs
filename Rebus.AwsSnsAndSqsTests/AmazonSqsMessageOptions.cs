@@ -7,7 +7,8 @@ using Rebus.Tests.Contracts;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture, Category(Category.AmazonSqs)]
+    [TestFixture]
+    [Category(Category.AmazonSqs)]
     public class AmazonSqsMessageOptions : SqsFixtureBase
     {
         private AmazonSqsTransportFactory _transportFactory;
@@ -16,6 +17,12 @@ namespace Rebus.AwsSnsAndSqsTests
         {
             base.SetUp();
             _transportFactory = new AmazonSqsTransportFactory();
+        }
+
+        protected override void TearDown()
+        {
+            base.TearDown();
+            _transportFactory.CleanUp(true);
         }
 
         [Test]
@@ -51,12 +58,6 @@ namespace Rebus.AwsSnsAndSqsTests
                 Assert.That(transportMessage.Headers.ContainsKey(Headers.MessageId));
                 Assert.That(transportMessage.Headers.ContainsKey(Headers.CorrelationId));
             });
-        }
-
-        protected override void TearDown()
-        {
-            base.TearDown();
-            _transportFactory.CleanUp(true);
         }
     }
 }

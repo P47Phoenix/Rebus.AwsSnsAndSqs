@@ -6,7 +6,8 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture, Category(Category.AmazonSqs)]
+    [TestFixture]
+    [Category(Category.AmazonSqs)]
     public class QueueAddressHandlingTests : SqsFixtureBase
     {
         private AmazonSqsTransportFactory _transportFactory;
@@ -15,14 +16,31 @@ namespace Rebus.AwsSnsAndSqsTests
         {
             base.SetUp();
             _transportFactory = new AmazonSqsTransportFactory();
+        }
 
+        private async Task TestSendReceive(ITransport outputTransport, string destinationQueueUrlOrName, ITransport destinationTransport)
+        {
+            await WithContext(async context => { await outputTransport.Send(destinationQueueUrlOrName, MessageWith("hallo"), context); });
+
+            await WithContext(async context =>
+            {
+                var received = await destinationTransport.Receive(context, new CancellationTokenSource().Token);
+
+                Assert.AreEqual("hallo", GetStringBody(received));
+            });
+        }
+
+
+        protected override void TearDown()
+        {
+            base.TearDown();
+            _transportFactory.CleanUp(true);
         }
 
         //[Test]
         //public async Task WhenTheInputAddressIsAFullUrlAndDestinationIsQueueName_ThenItsStillWorks()
         //{
         //    //arrange
-
 
 
         //    var queueName = "test" + Guid.NewGuid().ToString();
@@ -38,14 +56,12 @@ namespace Rebus.AwsSnsAndSqsTests
         //    //assert
 
 
-
         //}
 
         //[Test]
         //public async Task WhenTheInputIsAQueueNameAndDestinationIsFullUrl_ThenItsStillWorks()
         //{
         //    //arrange
-
 
 
         //    var queueName = "test" + Guid.NewGuid().ToString();
@@ -60,7 +76,6 @@ namespace Rebus.AwsSnsAndSqsTests
 
 
         //    //assert
-
 
 
         //}
@@ -80,7 +95,6 @@ namespace Rebus.AwsSnsAndSqsTests
         //    await TestSendReceive(outputTransport, destinationFullUrl, receivingTransport);
 
 
-
         //    //assert
 
         //}
@@ -96,29 +110,6 @@ namespace Rebus.AwsSnsAndSqsTests
             //act
 
             //assert
-
-        }
-
-        private async Task TestSendReceive(ITransport outputTransport, string destinationQueueUrlOrName, ITransport destinationTransport)
-        {
-            await WithContext(async (context) => { await outputTransport.Send(destinationQueueUrlOrName, MessageWith("hallo"), context); });
-
-            await WithContext(async context =>
-            {
-                var received = await destinationTransport.Receive(context, new CancellationTokenSource().Token);
-
-                Assert.AreEqual("hallo", GetStringBody(received));
-            });
-        }
-
-
-        protected override void TearDown()
-        {
-            base.TearDown();
-            _transportFactory.CleanUp(true);
-
-
-
         }
     }
 }

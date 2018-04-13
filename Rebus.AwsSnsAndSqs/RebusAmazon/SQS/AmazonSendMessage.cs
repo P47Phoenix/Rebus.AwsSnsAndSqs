@@ -51,7 +51,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             if (destinationAddress.StartsWith(c_SnsArn))
             {
                 var snsClient = m_AmazonInternalSettings.CreateSnsClient();
-                
+
                 var sqsMessage = new AmazonTransportMessage(message.Headers, GetBody(message.Body));
 
                 var msg = m_AmazonInternalSettings.MessageSerializer.Serialize(sqsMessage);
@@ -66,14 +66,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             else
             {
                 var outgoingMessages = context.GetOrAdd(AmazonConstaints.OutgoingMessagesItemsKey, () =>
-                    {
+                {
+                    var sendMessageBatchRequestEntries = new ConcurrentQueue<AmazonOutgoingMessage>();
 
-                        var sendMessageBatchRequestEntries = new ConcurrentQueue<AmazonOutgoingMessage>();
+                    context.OnCommitted(() => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
 
-                        context.OnCommitted(() => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
-
-                        return sendMessageBatchRequestEntries;
-                    });
+                    return sendMessageBatchRequestEntries;
+                });
 
                 outgoingMessages.Enqueue(new AmazonOutgoingMessage(destinationAddress, message));
             }
@@ -88,54 +87,47 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
             var client = m_AmazonInternalSettings.CreateSqsClient(context);
 
-            var messagesByDestination = outgoingMessages
-                .GroupBy(m => m.DestinationAddress)
-                .ToList();
+            var messagesByDestination = outgoingMessages.GroupBy(m => m.DestinationAddress).ToList();
 
-            await Task.WhenAll(
-                messagesByDestination
-                    .Select(async batch =>
+            await Task.WhenAll(messagesByDestination.Select(async batch =>
+            {
+                var entries = batch.Select(message =>
+                {
+                    var transportMessage = message.TransportMessage;
+                    var headers = transportMessage.Headers;
+                    var messageId = headers[Headers.MessageId];
+
+                    var sqsMessage = new AmazonTransportMessage(transportMessage.Headers, GetBody(transportMessage.Body));
+
+                    var entry = new SendMessageBatchRequestEntry(messageId, m_AmazonInternalSettings.MessageSerializer.Serialize(sqsMessage));
+
+                    var delaySeconds = GetDelaySeconds(headers);
+
+                    if (delaySeconds != null)
                     {
-                        var entries = batch
-                            .Select(message =>
-                            {
-                                var transportMessage = message.TransportMessage;
-                                var headers = transportMessage.Headers;
-                                var messageId = headers[Headers.MessageId];
+                        entry.DelaySeconds = delaySeconds.Value;
+                    }
 
-                                var sqsMessage = new AmazonTransportMessage(transportMessage.Headers, GetBody(transportMessage.Body));
+                    return entry;
+                }).ToList();
 
-                                var entry = new SendMessageBatchRequestEntry(messageId, m_AmazonInternalSettings.MessageSerializer.Serialize(sqsMessage));
+                var destinationUrl = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(batch.Key, context);
 
-                                var delaySeconds = GetDelaySeconds(headers);
+                foreach (var batchToSend in entries.Batch(10))
+                {
+                    var request = new SendMessageBatchRequest(destinationUrl, batchToSend);
+                    var response = await client.SendMessageBatchAsync(request);
 
-                                if (delaySeconds != null)
-                                {
-                                    entry.DelaySeconds = delaySeconds.Value;
-                                }
+                    if (response.Failed.Count == 0)
+                    {
+                        continue;
+                    }
 
-                                return entry;
-                            })
-                            .ToList();
+                    var failed = response.Failed.Select(f => new AmazonSQSException($"Failed {f.Message} with Id={f.Id}, Code={f.Code}, SenderFault={f.SenderFault}"));
 
-                        var destinationUrl = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(batch.Key, context);
-
-                        foreach (var batchToSend in entries.Batch(10))
-                        {
-                            var request = new SendMessageBatchRequest(destinationUrl, batchToSend);
-                            var response = await client.SendMessageBatchAsync(request);
-
-                            if (response.Failed.Count == 0)
-                            {
-                                continue;
-                            }
-
-                            var failed = response.Failed.Select(f => new AmazonSQSException($"Failed {f.Message} with Id={f.Id}, Code={f.Code}, SenderFault={f.SenderFault}"));
-
-                            throw new AggregateException(failed);
-                        }
-                    })
-            );
+                    throw new AggregateException(failed);
+                }
+            }));
         }
 
         private int? GetDelaySeconds(IReadOnlyDictionary<string, string> headers)
@@ -152,7 +144,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
             var deferUntilDateTimeOffset = deferUntilTime.ToDateTimeOffset();
 
-            var delay = (int)Math.Ceiling((deferUntilDateTimeOffset - RebusTime.Now).TotalSeconds);
+            var delay = (int) Math.Ceiling((deferUntilDateTimeOffset - RebusTime.Now).TotalSeconds);
 
             // SQS will only accept delays between 0 and 900 seconds.
             // In the event that the value for deferreduntil is before the current date, the message should be processed immediately. i.e. with a delay of 0 seconds.
@@ -164,6 +156,5 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
         {
             return Convert.ToBase64String(bodyBytes);
         }
-
     }
 }

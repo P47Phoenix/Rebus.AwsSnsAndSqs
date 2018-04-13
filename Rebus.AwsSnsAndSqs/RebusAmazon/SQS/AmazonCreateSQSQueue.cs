@@ -16,13 +16,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
         public AmazonCreateSQSQueue(IAmazonInternalSettings amazonInternalSettings)
         {
             m_AmazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
-            m_log = m_AmazonInternalSettings
-                .RebusLoggerFactory
-                .GetLogger<AmazonCreateSQSQueue>();
+            m_log = m_AmazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonCreateSQSQueue>();
         }
 
         /// <summary>
-        /// Creates the queue with the given name
+        ///     Creates the queue with the given name
         /// </summary>
         public void CreateQueue(string address)
         {
@@ -30,6 +28,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
             var amazonSqsConfig = m_AmazonInternalSettings.AmazonSqsConfig;
             var awsCredentials = m_AmazonInternalSettings.AmazonCredentialsFactory.Create();
+
             using (var client = new AmazonSQSClient(awsCredentials, amazonSqsConfig))
             {
                 var queueName = GetQueueNameFromAddress(address);
@@ -42,20 +41,19 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                     var getQueueUrlTask = client.GetQueueUrlAsync(request);
                     AmazonAsyncHelpers.RunSync(() => getQueueUrlTask);
                     var getQueueUrlResponse = getQueueUrlTask.Result;
+
                     if (getQueueUrlResponse.HttpStatusCode != HttpStatusCode.OK)
                     {
                         throw new Exception($"Could not check for existing queue '{queueName}' - got HTTP {getQueueUrlResponse.HttpStatusCode}");
                     }
 
-                    var visibilityTimeout = ((int)m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                    var visibilityTimeout = ((int) m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture);
 
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSSetQueueAttributesRequest.html for options
-                    var setAttributesTask = client.SetQueueAttributesAsync(getQueueUrlResponse.QueueUrl, new Dictionary<string, string>
-                    {
-                        ["VisibilityTimeout"] = visibilityTimeout
-                    });
+                    var setAttributesTask = client.SetQueueAttributesAsync(getQueueUrlResponse.QueueUrl, new Dictionary<string, string> {["VisibilityTimeout"] = visibilityTimeout});
                     AmazonAsyncHelpers.RunSync(() => setAttributesTask);
                     var setAttributesResponse = setAttributesTask.Result;
+
                     if (setAttributesResponse.HttpStatusCode != HttpStatusCode.OK)
                     {
                         throw new Exception($"Could not set attributes for queue '{queueName}' - got HTTP {setAttributesResponse.HttpStatusCode}");
@@ -64,13 +62,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                 catch (QueueDoesNotExistException)
                 {
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSCreateQueueRequest.html for options
-                    var createQueueRequest = new CreateQueueRequest(queueName)
-                    {
-                        Attributes =
-                        {
-                            ["VisibilityTimeout"] = ((int) m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture)
-                        }
-                    };
+                    var createQueueRequest = new CreateQueueRequest(queueName) {Attributes = {["VisibilityTimeout"] = ((int) m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture)}};
                     var task = client.CreateQueueAsync(createQueueRequest);
                     AmazonAsyncHelpers.RunSync(() => task);
                     var response = task.Result;

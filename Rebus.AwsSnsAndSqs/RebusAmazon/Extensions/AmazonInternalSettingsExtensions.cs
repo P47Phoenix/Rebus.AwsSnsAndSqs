@@ -8,8 +8,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
     {
         public static IAmazonSimpleNotificationService CreateSnsClient(this IAmazonSnsSettings amazonSnsSettings)
         {
-            return new AmazonSimpleNotificationServiceClient(amazonSnsSettings.AmazonCredentialsFactory.Create(),
-                amazonSnsSettings.AmazonSimpleNotificationServiceConfig);
+            return new AmazonSimpleNotificationServiceClient(amazonSnsSettings.AmazonCredentialsFactory.Create(), amazonSnsSettings.AmazonSimpleNotificationServiceConfig);
         }
 
         public static IAmazonSQS CreateSqsClient(this IAmazonSqsSettings amazonSqsSettings, ITransactionContext transactionContext)

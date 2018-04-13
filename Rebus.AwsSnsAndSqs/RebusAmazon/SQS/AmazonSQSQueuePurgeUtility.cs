@@ -11,8 +11,8 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 {
     internal class AmazonSQSQueuePurgeUtility
     {
-        private readonly ILog m_log;
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
+        private readonly ILog m_log;
 
         public AmazonSQSQueuePurgeUtility(IAmazonInternalSettings amazonInternalSettings)
         {
@@ -21,11 +21,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
         }
 
         /// <summary>
-        /// Deletes all messages from the input queue (which is done by receiving them in batches and deleting them, as long as it takes)
+        ///     Deletes all messages from the input queue (which is done by receiving them in batches and deleting them, as long as
+        ///     it takes)
         /// </summary>
         public void Purge(string queueUrl)
         {
-
             m_log.Info("Purging queue {queueUrl}", queueUrl);
 
             try
@@ -39,7 +39,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
                     while (true)
                     {
-                        var request = new ReceiveMessageRequest(queueUrl) { MaxNumberOfMessages = 10 };
+                        var request = new ReceiveMessageRequest(queueUrl) {MaxNumberOfMessages = 10};
                         var receiveTask = client.ReceiveMessageAsync(request);
                         AmazonAsyncHelpers.RunSync(() => receiveTask);
                         var response = receiveTask.Result;
@@ -49,9 +49,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                             break;
                         }
 
-                        var deleteTask = client.DeleteMessageBatchAsync(queueUrl, response.Messages
-                            .Select(m => new DeleteMessageBatchRequestEntry(m.MessageId, m.ReceiptHandle))
-                            .ToList());
+                        var deleteTask = client.DeleteMessageBatchAsync(queueUrl, response.Messages.Select(m => new DeleteMessageBatchRequestEntry(m.MessageId, m.ReceiptHandle)).ToList());
 
                         AmazonAsyncHelpers.RunSync(() => deleteTask);
 
@@ -59,8 +57,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
                         if (deleteResponse.Failed.Any())
                         {
-                            var errors = string.Join(Environment.NewLine,
-                                deleteResponse.Failed.Select(f => $"{f.Message} ({f.Id})"));
+                            var errors = string.Join(Environment.NewLine, deleteResponse.Failed.Select(f => $"{f.Message} ({f.Id})"));
 
                             throw new RebusApplicationException($@"Error {deleteResponse.HttpStatusCode} while purging: {errors}");
                         }

@@ -7,16 +7,16 @@ namespace Rebus.AwsSnsAndSqsTests
 {
     public class ConnectionInfo
     {
-        public string AccessKeyId { get; }
-        public string SecretAccessKey { get; }
-        public RegionEndpoint RegionEndpoint { get; }
-
         internal ConnectionInfo(string accessKeyId, string secretAccessKey, string regionEndpointName)
         {
             AccessKeyId = accessKeyId;
             SecretAccessKey = secretAccessKey;
             RegionEndpoint = GetRegionEndpoint(regionEndpointName);
         }
+
+        public string AccessKeyId { get; }
+        public string SecretAccessKey { get; }
+        public RegionEndpoint RegionEndpoint { get; }
 
         public static ConnectionInfo CreateFromString(string textString)
         {
@@ -26,16 +26,9 @@ namespace Rebus.AwsSnsAndSqsTests
 
             try
             {
-                var keysAndValues = keyValuePairs
-                    .Select(kvp => kvp.Split('='))
-                    .ToDictionary(kv => kv.First(), kv => kv.Last());
+                var keysAndValues = keyValuePairs.Select(kvp => kvp.Split('=')).ToDictionary(kv => kv.First(), kv => kv.Last());
 
-                return new ConnectionInfo(
-                    keysAndValues.GetValue("AccessKeyId"),
-                    keysAndValues.GetValue("SecretAccessKey"),
-                    keysAndValues.GetValue("RegionEndpoint")
-                );
-
+                return new ConnectionInfo(keysAndValues.GetValue("AccessKeyId"), keysAndValues.GetValue("SecretAccessKey"), keysAndValues.GetValue("RegionEndpoint"));
             }
             catch (Exception exception)
             {
@@ -43,7 +36,7 @@ namespace Rebus.AwsSnsAndSqsTests
             }
         }
 
-        static RegionEndpoint GetRegionEndpoint(string regionEndpointName)
+        private static RegionEndpoint GetRegionEndpoint(string regionEndpointName)
         {
             try
             {

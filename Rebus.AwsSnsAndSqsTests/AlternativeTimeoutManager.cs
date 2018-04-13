@@ -17,10 +17,10 @@ namespace Rebus.AwsSnsAndSqsTests
     [TestFixture]
     public class AlternativeTimeoutManager : FixtureBase
     {
-        const string QueueName = "alt-timeout-man-1";
-        const string TimeoutManagerQueueName = "alt-timeout-man-2";
+        private const string QueueName = "alt-timeout-man-1";
+        private const string TimeoutManagerQueueName = "alt-timeout-man-2";
 
-        BuiltinHandlerActivator _activator;
+        private BuiltinHandlerActivator _activator;
 
         protected override void SetUp()
         {
@@ -42,15 +42,7 @@ namespace Rebus.AwsSnsAndSqsTests
                 gotTheString.Set();
             });
 
-            var bus = Configure.With(_activator)
-                .Transport(t => t.UseAmazonSnsAndSqs(
-                    workerQueueAddress: QueueName, 
-                    amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions
-                    {
-                        UseNativeDeferredMessages = false
-                    }))
-                .Timeouts(t => t.Register(c => new InMemoryTimeoutManager()))
-                .Start();
+            var bus = Configure.With(_activator).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: QueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false})).Timeouts(t => t.Register(c => new InMemoryTimeoutManager())).Start();
 
             await bus.DeferLocal(TimeSpan.FromSeconds(5), "hej med dig min ven!!!!!");
 
@@ -60,15 +52,8 @@ namespace Rebus.AwsSnsAndSqsTests
         [Test]
         public async Task CanUseDedicatedAlternativeTimeoutManager()
         {
- 
             // start the timeout manager
-            Configure.With(Using(new BuiltinHandlerActivator()))
-                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: TimeoutManagerQueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions
-                {
-                    UseNativeDeferredMessages = false
-                }))
-                .Timeouts(t => t.Register(c => new InMemoryTimeoutManager()))
-                .Start();
+            Configure.With(Using(new BuiltinHandlerActivator())).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: TimeoutManagerQueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false})).Timeouts(t => t.Register(c => new InMemoryTimeoutManager())).Start();
 
             var gotTheString = new ManualResetEvent(false);
 
@@ -79,13 +64,7 @@ namespace Rebus.AwsSnsAndSqsTests
                 gotTheString.Set();
             });
 
-            var bus = Configure.With(_activator)
-                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: QueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions
-                {
-                    UseNativeDeferredMessages = false
-                }))
-                .Timeouts(t => t.UseExternalTimeoutManager(TimeoutManagerQueueName))
-                .Start();
+            var bus = Configure.With(_activator).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: QueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false})).Timeouts(t => t.UseExternalTimeoutManager(TimeoutManagerQueueName)).Start();
 
             await bus.DeferLocal(TimeSpan.FromSeconds(5), "hej med dig min ven!!!!!");
 

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     /// <summary>
-    /// Synchronization context that can be "pumped" in order to have it execute continuations posted back to it
+    ///     Synchronization context that can be "pumped" in order to have it execute continuations posted back to it
     /// </summary>
     internal class AmazonSynchronizationContext : SynchronizationContext
     {
         private readonly ConcurrentQueue<Tuple<SendOrPostCallback, object>> _items = new ConcurrentQueue<Tuple<SendOrPostCallback, object>>();
-        private readonly AutoResetEvent _workItemsWaiting = new AutoResetEvent(false);
         private readonly Func<Task> _task;
+        private readonly AutoResetEvent _workItemsWaiting = new AutoResetEvent(false);
 
         private ExceptionDispatchInfo _caughtException;
 
@@ -31,7 +31,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         }
 
         /// <summary>
-        /// Enqueues the function to be executed and executes all resulting continuations until it is completely done
+        ///     Enqueues the function to be executed and executes all resulting continuations until it is completely done
         /// </summary>
         public void Run()
         {

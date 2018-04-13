@@ -16,7 +16,7 @@ namespace Rebus.AwsSnsAndSqsTests
         {
             var info = AmazonSqsTransportFactory.ConnectionInfo;
             var credentials = new BasicAWSCredentials(info.AccessKeyId, info.SecretAccessKey);
-            var config = new AmazonSQSConfig{RegionEndpoint = info.RegionEndpoint};
+            var config = new AmazonSQSConfig {RegionEndpoint = info.RegionEndpoint};
 
             using (var client = new AmazonSQSClient(credentials, config))
             {
@@ -28,7 +28,6 @@ namespace Rebus.AwsSnsAndSqsTests
                     throw new Exception($"Could not create queue '{queueName}' - got HTTP {response.HttpStatusCode}");
                 }
             }
-
         }
     }
 }

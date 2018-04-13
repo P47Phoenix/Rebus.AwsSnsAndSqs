@@ -11,23 +11,17 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonInternalSettings : IAmazonInternalSettings
     {
-        private IAmazonCredentialsFactory m_AmazonCredentialsFactory = null;
-        private IRebusLoggerFactory m_RebusLoggerFactory = null;
-        private IAsyncTaskFactory m_AsyncTaskFactory = null;
+        private IAmazonCredentialsFactory m_AmazonCredentialsFactory;
+        private IAsyncTaskFactory m_AsyncTaskFactory;
+        private IRebusLoggerFactory m_RebusLoggerFactory;
 
         public AmazonInternalSettings()
         {
             ResolutionContext = null;
             AmazonPeekLockDuration = new AmazonPeekLockDuration();
-            AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig()
-            {
-                RegionEndpoint = RegionEndpoint.USWest2
-            };
+            AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig {RegionEndpoint = RegionEndpoint.USWest2};
             AmazonSnsAndSqsTransportOptions = new AmazonSnsAndSqsTransportOptions();
-            AmazonSqsConfig = new AmazonSQSConfig()
-            {
-                RegionEndpoint = RegionEndpoint.USWest2
-            };
+            AmazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = RegionEndpoint.USWest2};
             InputQueueAddress = null;
             MessageSerializer = new AmazonTransportMessageSerializer();
         }
@@ -39,14 +33,14 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             m_AmazonCredentialsFactory = amazonCredentialsFactory;
         }
 
+        public IResolutionContext ResolutionContext { get; set; }
+
         public string InputQueueAddress { get; internal set; }
         public AmazonSQSConfig AmazonSqsConfig { get; internal set; }
         public AmazonSnsAndSqsTransportOptions AmazonSnsAndSqsTransportOptions { get; internal set; }
         public AmazonPeekLockDuration AmazonPeekLockDuration { get; }
         public AmazonTransportMessageSerializer MessageSerializer { get; internal set; }
         public AmazonSimpleNotificationServiceConfig AmazonSimpleNotificationServiceConfig { get; internal set; }
-
-        public IResolutionContext ResolutionContext { get; set; }
 
         public IAmazonCredentialsFactory AmazonCredentialsFactory => m_AmazonCredentialsFactory = m_AmazonCredentialsFactory ?? (ResolutionContext?.Get<IAmazonCredentialsFactory>() ?? new FailbackAmazonCredentialsFactory());
 

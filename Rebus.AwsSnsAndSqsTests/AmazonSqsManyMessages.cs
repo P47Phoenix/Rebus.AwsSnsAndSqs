@@ -3,7 +3,8 @@ using Rebus.Tests.Contracts.Transports;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture, Category(Category.AmazonSqs)]
+    [TestFixture]
+    [Category(Category.AmazonSqs)]
     public class AmazonSqsManyMessages : TestManyMessages<AmazonSqsManyMessagesTransportFactory>
     {
     }

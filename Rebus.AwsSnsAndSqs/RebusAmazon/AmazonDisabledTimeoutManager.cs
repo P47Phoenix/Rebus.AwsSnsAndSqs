@@ -13,11 +13,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         {
             var messageIdToPrint = headers.GetValueOrNull(Headers.MessageId) ?? "<no message ID>";
 
-            var message =
-                $"Received message with ID {messageIdToPrint} which is supposed to be deferred until {approximateDueTime} -" +
-                " this is a problem, because the internal handling of deferred messages is" +
-                " disabled when using SQS as the transport layer in, which" +
-                " case the native support for a specific future enqueueing time is used...";
+            var message = $"Received message with ID {messageIdToPrint} which is supposed to be deferred until {approximateDueTime} -" + " this is a problem, because the internal handling of deferred messages is" + " disabled when using SQS as the transport layer in, which" + " case the native support for a specific future enqueueing time is used...";
 
             throw new InvalidOperationException(message);
         }

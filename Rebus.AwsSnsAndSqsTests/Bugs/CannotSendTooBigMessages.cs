@@ -17,89 +17,13 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
     [TestFixture]
     public class CannotSendTooBigMessages : SqsFixtureBase
     {
-        string _queueName;
+        private string _queueName;
 
         protected override void SetUp()
         {
             _queueName = TestConfig.GetName("queue");
 
             Using(new QueuePurger(_queueName));
-        }
-
-        [Test]
-        public async Task ThrowsLikeItShould()
-        {
-            var activator = new BuiltinHandlerActivator();
-
-            activator.Handle<string>(async _ => { });
-
-            Using(activator);
-
-            var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
-
-            var bus = Configure.With(activator)
-                .Logging(l => l.Console(LogLevel.Info))
-                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName))
-                .Start();
-
-            var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () =>
-            {
-                await bus.SendLocal(string.Concat(Enumerable.Repeat("DET HER ER BARE EN NORMAL STRENG", 10000)));
-            });
-
-            Console.WriteLine(exception);
-        }
-
-        [Test]
-        public async Task ThrowsLikeItShould_ConcreteYetAnonymousModel()
-        {
-            var activator = new BuiltinHandlerActivator();
-
-            activator.Handle<SomeKindOfRequest>(async _ => { });
-
-            Using(activator);
-            
-
-            var bus = Configure.With(activator)
-                .Logging(l => l.Console(LogLevel.Info))
-                .Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName))
-                .Start();
-
-            var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () =>
-            {
-                await bus.SendLocal(new SomeKindOfRequest
-                {
-                    SomeKindOfRequestModel = new SomeKindOfRequestModel
-                    {
-                        HereWeHaveItems = Enumerable.Range(0, 100)
-                            .Select(n => new SomeKindOfRequestModelBase.SomeKindOfItemModel
-                            {
-                                SubItems = Enumerable.Range(0, 3)
-                                    .Select(i => new SomeKindOfRequestModelBase.SubItemModel
-                                    {
-                                        SubSubItems = Enumerable.Range(0, 5)
-                                            .Select(l => new SomeKindOfRequestModelBase.SubSubItemModel
-                                            {
-                                                Number = l,
-                                                Name = $"bucket-{n}-{i}-{l}",
-                                            })
-                                            .ToList(),
-
-                                        Name = $"buckerino-{n}-{i}",
-                                        Text = $"THIS IS TITLE {i}"
-                                    })
-                                    .ToList(),
-                            })
-                            .ToList()
-                    },
-
-                    SomeKindOfListOfStrings = Enumerable.Range(0, 20)
-                        .Select(n => $"THIS NO {n}")
-                        .ToList()
-                });
-            });
-
-            Console.WriteLine(exception);
         }
 
         public class SomeKindOfRequest
@@ -114,7 +38,10 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
             public DateTimeOffset? AnotherTimeUtc { get; set; }
         }
 
-        public enum SomeKindOfEnumerationOfSomething { Whatever }
+        public enum SomeKindOfEnumerationOfSomething
+        {
+            Whatever
+        }
 
         public class SomeKindOfRequestModelBase
         {
@@ -148,6 +75,40 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
 
                 public string Name { get; set; }
             }
+        }
+
+        [Test]
+        public async Task ThrowsLikeItShould()
+        {
+            var activator = new BuiltinHandlerActivator();
+
+            activator.Handle<string>(async _ => { });
+
+            Using(activator);
+
+            var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
+
+            var bus = Configure.With(activator).Logging(l => l.Console(LogLevel.Info)).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName)).Start();
+
+            var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () => { await bus.SendLocal(string.Concat(Enumerable.Repeat("DET HER ER BARE EN NORMAL STRENG", 10000))); });
+
+            Console.WriteLine(exception);
+        }
+
+        [Test]
+        public async Task ThrowsLikeItShould_ConcreteYetAnonymousModel()
+        {
+            var activator = new BuiltinHandlerActivator();
+
+            activator.Handle<SomeKindOfRequest>(async _ => { });
+
+            Using(activator);
+
+            var bus = Configure.With(activator).Logging(l => l.Console(LogLevel.Info)).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName)).Start();
+
+            var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () => { await bus.SendLocal(new SomeKindOfRequest {SomeKindOfRequestModel = new SomeKindOfRequestModel {HereWeHaveItems = Enumerable.Range(0, 100).Select(n => new SomeKindOfRequestModelBase.SomeKindOfItemModel {SubItems = Enumerable.Range(0, 3).Select(i => new SomeKindOfRequestModelBase.SubItemModel {SubSubItems = Enumerable.Range(0, 5).Select(l => new SomeKindOfRequestModelBase.SubSubItemModel {Number = l, Name = $"bucket-{n}-{i}-{l}"}).ToList(), Name = $"buckerino-{n}-{i}", Text = $"THIS IS TITLE {i}"}).ToList()}).ToList()}, SomeKindOfListOfStrings = Enumerable.Range(0, 20).Select(n => $"THIS NO {n}").ToList()}); });
+
+            Console.WriteLine(exception);
         }
     }
 }

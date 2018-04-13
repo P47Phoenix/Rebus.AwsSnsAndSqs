@@ -6,7 +6,8 @@ using Rebus.Tests.Contracts;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture, Category(Category.AmazonSqs)]
+    [TestFixture]
+    [Category(Category.AmazonSqs)]
     public class AmazonSqsVisibiltyTimeout : SqsFixtureBase
     {
         [Test]
@@ -22,10 +23,7 @@ namespace Rebus.AwsSnsAndSqsTests
             var inputqueueName2 = TestConfig.GetName("outputQueue");
             var outputQueue = transportFactory.Create(inputqueueName2);
 
-            await WithContext(async context =>
-            {
-                await outputQueue.Send(inputqueueName, MessageWith("hej"), context);
-            });
+            await WithContext(async context => { await outputQueue.Send(inputqueueName, MessageWith("hej"), context); });
 
             var cancellationToken = new CancellationTokenSource().Token;
 

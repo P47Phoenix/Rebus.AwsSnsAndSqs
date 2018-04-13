@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using Amazon;
 using Amazon.Runtime;
+using Amazon.SimpleNotificationService;
 using Amazon.SQS;
+using Rebus.AwsSnsAndSqs;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.AwsSnsAndSqs.RebusAmazon;
 using Rebus.Exceptions;
@@ -14,44 +16,13 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    using Amazon.SimpleNotificationService;
-    using AwsSnsAndSqs;
-
     internal class AmazonSqsTransportFactory : ITransportFactory
     {
-        static ConnectionInfo _connectionInfo;
+        private static ConnectionInfo _connectionInfo;
 
-        internal static ConnectionInfo ConnectionInfo => _connectionInfo ?? (_connectionInfo = ConnectionInfoFromFileOrNull()
-                                                                                               ?? ConnectionInfoFromEnvironmentVariable("rebus2_asqs_connection_string")
-                                                                                               ?? Throw("Could not find Amazon Sqs connetion Info!"));
+        private readonly Dictionary<string, AmazonSQSTransport> _queuesToDelete = new Dictionary<string, AmazonSQSTransport>();
 
-        public ITransport Create(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
-        {
-            return inputQueueAddress == null ? CreateTransport(null, peeklockDuration, options) : _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
-        }
-
-        public static AmazonSQSTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
-        {
-            var connectionInfo = ConnectionInfo;
-            var amazonSqsConfig = new AmazonSQSConfig { RegionEndpoint = connectionInfo.RegionEndpoint };
-
-            var consoleLoggerFactory = new ConsoleLoggerFactory(false);
-
-            var transport = new AmazonSQSTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory())
-            {
-                InputQueueAddress = inputQueueAddress,
-                AmazonSqsConfig = amazonSqsConfig,
-                AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(),
-                AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(),
-                MessageSerializer = new AmazonTransportMessageSerializer()
-            }
-
-            );
-
-            transport.Initialize(peeklockDuration);
-
-            return transport;
-        }
+        internal static ConnectionInfo ConnectionInfo => _connectionInfo ?? (_connectionInfo = ConnectionInfoFromFileOrNull() ?? ConnectionInfoFromEnvironmentVariable("rebus2_asqs_connection_string") ?? Throw("Could not find Amazon Sqs connetion Info!"));
 
         public ITransport CreateOneWayClient()
         {
@@ -63,17 +34,37 @@ namespace Rebus.AwsSnsAndSqsTests
             return Create(inputQueueAddress, TimeSpan.FromSeconds(30));
         }
 
-        readonly Dictionary<string, AmazonSQSTransport> _queuesToDelete = new Dictionary<string, AmazonSQSTransport>();
-
 
         public void CleanUp()
         {
             CleanUp(false);
         }
 
+        public ITransport Create(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
+        {
+            return inputQueueAddress == null ? CreateTransport(null, peeklockDuration, options) : _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
+        }
+
+        public static AmazonSQSTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
+        {
+            var connectionInfo = ConnectionInfo;
+            var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
+
+            var consoleLoggerFactory = new ConsoleLoggerFactory(false);
+
+            var transport = new AmazonSQSTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory()) {InputQueueAddress = inputQueueAddress, AmazonSqsConfig = amazonSqsConfig, AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(), AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(), MessageSerializer = new AmazonTransportMessageSerializer()});
+
+            transport.Initialize(peeklockDuration);
+
+            return transport;
+        }
+
         public void CleanUp(bool deleteQueues)
         {
-            if (deleteQueues == false) return;
+            if (deleteQueues == false)
+            {
+                return;
+            }
 
             foreach (var queueAndTransport in _queuesToDelete)
             {
@@ -84,7 +75,7 @@ namespace Rebus.AwsSnsAndSqsTests
         }
 
 
-        static ConnectionInfo ConnectionInfoFromEnvironmentVariable(string environmentVariableName)
+        private static ConnectionInfo ConnectionInfoFromEnvironmentVariable(string environmentVariableName)
         {
             var value = Environment.GetEnvironmentVariable(environmentVariableName);
 
@@ -99,7 +90,7 @@ namespace Rebus.AwsSnsAndSqsTests
             return ConnectionInfo.CreateFromString(value);
         }
 
-        static ConnectionInfo ConnectionInfoFromFileOrNull()
+        private static ConnectionInfo ConnectionInfoFromFileOrNull()
         {
             var awsCredentials = FallbackCredentialsFactory.GetCredentials();
 
@@ -108,7 +99,7 @@ namespace Rebus.AwsSnsAndSqsTests
             return new ConnectionInfo(immutableCredentials.AccessKey, immutableCredentials.SecretKey, RegionEndpoint.USWest2.SystemName);
         }
 
-        static ConnectionInfo Throw(string message)
+        private static ConnectionInfo Throw(string message)
         {
             throw new RebusConfigurationException(message);
         }

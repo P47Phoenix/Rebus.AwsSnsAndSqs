@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,42 +8,37 @@ using Amazon.Auth.AccessControlPolicy;
 using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
-using Amazon.SQS.Model;
 using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
 using Rebus.AwsSnsAndSqs.RebusAmazon.SQS;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Transport;
-using AddPermissionRequest = Amazon.SQS.Model.AddPermissionRequest;
 
 #pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     /// <summary>
-    /// Implementation of <see cref="ITransport"/> that uses Amazon Simple Queue Service to move messages around
+    ///     Implementation of <see cref="ITransport" /> that uses Amazon Simple Queue Service to move messages around
     /// </summary>
     internal class AmazonSQSTransport : IAmazonSQSTransport
     {
-        private readonly ILog m_log;
-        private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
-        private readonly ISendMessage m_sendMessage;
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
+        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
+        private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
         private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
         private readonly AmazonSQSRecieve m_amazonSqsRecieve;
-        private readonly IAmazonInternalSettings m_AmazonInternalSettings;
+        private readonly ILog m_log;
+        private readonly ISendMessage m_sendMessage;
 
         /// <summary>
-        /// Constructs the transport with the specified settings
+        ///     Constructs the transport with the specified settings
         /// </summary>
         public AmazonSQSTransport(IAmazonInternalSettings amazonInternalSettings)
         {
-            m_AmazonInternalSettings =
-                amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
+            m_AmazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
 
-            m_log = amazonInternalSettings
-                .RebusLoggerFactory
-                .GetLogger<AmazonSQSTransport>();
+            m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSQSTransport>();
 
             if (amazonInternalSettings.InputQueueAddress != null)
             {
@@ -55,6 +49,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     throw new ArgumentException(message, nameof(amazonInternalSettings.InputQueueAddress));
                 }
             }
+
             m_amazonSQSQueueContext = new AmazonSQSQueueContext(m_AmazonInternalSettings);
             m_sendMessage = new AmazonSendMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext);
             m_amazonCreateSqsQueue = new AmazonCreateSQSQueue(m_AmazonInternalSettings);
@@ -62,29 +57,8 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             m_amazonSqsRecieve = new AmazonSQSRecieve(m_AmazonInternalSettings, m_amazonSQSQueueContext);
         }
 
-        public void Purge()
-        {
-            if (Address == null)
-            {
-                return;
-            }
-
-            var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
-            m_amazonSqsQueuePurgeUtility.Purge(queueUri);
-        }
-
         /// <summary>
-        /// Public initialization method that allows for configuring the peek lock duration. Mostly useful for tests.
-        /// </summary>
-        public void Initialize(TimeSpan peeklockDuration)
-        {
-            m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration = peeklockDuration;
-
-            Initialize();
-        }
-
-        /// <summary>
-        /// Initializes the transport by creating the input queue
+        ///     Initializes the transport by creating the input queue
         /// </summary>
         public void Initialize()
         {
@@ -97,7 +71,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         }
 
         /// <summary>
-        /// Creates the queue with the given name
+        ///     Creates the queue with the given name
         /// </summary>
         public void CreateQueue(string address)
         {
@@ -117,28 +91,15 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         }
 
         /// <summary>
-        /// Gets the input queue name
+        ///     Gets the input queue name
         /// </summary>
         public string Address => m_AmazonInternalSettings.InputQueueAddress;
 
         public bool IsCentralized => true;
 
-        /// <summary>
-        /// Deletes the transport's input queue
-        /// </summary>
-        public void DeleteQueue()
-        {
-            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
-            {
-                var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
-                AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));
-            }
-        }
-
         public async Task<string[]> GetSubscriberAddresses(string topic)
         {
             var snsClient = m_AmazonInternalSettings.CreateSnsClient();
-
 
             var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
 
@@ -149,7 +110,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 throw new ArgumentOutOfRangeException($"The topic {formatedTopicName} does not exist");
             }
 
-            return new[] { findTopicResult.TopicArn };
+            return new[] {findTopicResult.TopicArn};
         }
 
         public async Task RegisterSubscriber(string topic, string subscriberAddress)
@@ -178,57 +139,21 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     }
 
                     var sqsClient = m_AmazonInternalSettings.CreateSqsClient(scope.TransactionContext);
-                    
-                    var sqsPolicy = new Policy()
-                        .WithStatements(new Statement(Statement.StatementEffect.Allow)
-                            .WithPrincipals(Principal.AllUsers)
-                            .WithResources(new Resource(sqsInformation.Arn))
-                            .WithConditions(ConditionFactory.NewSourceArnCondition(topicArn))
-                            .WithActionIdentifiers(SQSActionIdentifiers.SendMessage));
 
-                    var attributes = new Dictionary<string, string>
-                    {
-                        {
-                            "Policy",
-                            sqsPolicy.ToJson()
-                        }
-                    };
+                    var sqsPolicy = new Policy().WithStatements(new Statement(Statement.StatementEffect.Allow).WithPrincipals(Principal.AllUsers).WithResources(new Resource(sqsInformation.Arn)).WithConditions(ConditionFactory.NewSourceArnCondition(topicArn)).WithActionIdentifiers(SQSActionIdentifiers.SendMessage));
+
+                    var attributes = new Dictionary<string, string> {{"Policy", sqsPolicy.ToJson()}};
 
                     await sqsClient.SetAttributesAsync(sqsInformation.Url, attributes);
-                    
                 }
             }
-
         }
 
-        private async Task<string> GetTopicArn(IAmazonSimpleNotificationService snsClient, string topic)
-        {
-            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
-
-            var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
-
-            var topicArn = findTopicResult?.TopicArn;
-            if (topicArn == null)
-            {
-                var createTopicResponse = await snsClient.CreateTopicAsync(formatedTopicName);
-
-                if (createTopicResponse.HttpStatusCode != HttpStatusCode.OK)
-                {
-                    throw new SnsRebusExption($"Error creating topic {formatedTopicName}.",
-                        createTopicResponse.CreateAmazonExceptionFromResponse());
-                }
-
-                topicArn = createTopicResponse.TopicArn;
-            }
-
-            return topicArn;
-        }
-        
 
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {
             var snsClient = m_AmazonInternalSettings.CreateSnsClient();
-            
+
             var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
 
             var topicArn = await GetTopicArn(snsClient, formatedTopicName);
@@ -255,6 +180,62 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     }
                 }
             }
+        }
+
+        public void Purge()
+        {
+            if (Address == null)
+            {
+                return;
+            }
+
+            var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
+            m_amazonSqsQueuePurgeUtility.Purge(queueUri);
+        }
+
+        /// <summary>
+        ///     Public initialization method that allows for configuring the peek lock duration. Mostly useful for tests.
+        /// </summary>
+        public void Initialize(TimeSpan peeklockDuration)
+        {
+            m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration = peeklockDuration;
+
+            Initialize();
+        }
+
+        /// <summary>
+        ///     Deletes the transport's input queue
+        /// </summary>
+        public void DeleteQueue()
+        {
+            using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
+            {
+                var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
+                AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));
+            }
+        }
+
+        private async Task<string> GetTopicArn(IAmazonSimpleNotificationService snsClient, string topic)
+        {
+            var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
+
+            var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
+
+            var topicArn = findTopicResult?.TopicArn;
+
+            if (topicArn == null)
+            {
+                var createTopicResponse = await snsClient.CreateTopicAsync(formatedTopicName);
+
+                if (createTopicResponse.HttpStatusCode != HttpStatusCode.OK)
+                {
+                    throw new SnsRebusExption($"Error creating topic {formatedTopicName}.", createTopicResponse.CreateAmazonExceptionFromResponse());
+                }
+
+                topicArn = createTopicResponse.TopicArn;
+            }
+
+            return topicArn;
         }
     }
 }

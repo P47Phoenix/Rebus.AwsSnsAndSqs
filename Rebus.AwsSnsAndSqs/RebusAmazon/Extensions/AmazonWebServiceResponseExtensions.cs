@@ -14,12 +14,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
             if (exception == null)
             {
-                return new AmazonWebServiceException(
-                    $"Http status code was {amazonWebServiceResponse.HttpStatusCode}. Reponse details: {jArray.ToString(Formatting.Indented)}");
+                return new AmazonWebServiceException($"Http status code was {amazonWebServiceResponse.HttpStatusCode}. Reponse details: {jArray.ToString(Formatting.Indented)}");
             }
 
-            return new AmazonWebServiceException(
-                $"Http status code was {amazonWebServiceResponse.HttpStatusCode}. Reponse details: {jArray.ToString(Formatting.Indented)}", exception);
+            return new AmazonWebServiceException($"Http status code was {amazonWebServiceResponse.HttpStatusCode}. Reponse details: {jArray.ToString(Formatting.Indented)}", exception);
         }
     }
 }

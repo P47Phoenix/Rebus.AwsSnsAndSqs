@@ -31,7 +31,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
         /// <inheritdoc />
         public async Task<TransportMessage> Receive(ITransactionContext context, string address, CancellationToken cancellationToken)
         {
-            if (context == null) throw new ArgumentNullException(nameof(context));
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
             if (address == null)
             {
@@ -127,6 +130,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             }
         }
 
-        private byte[] GetBodyBytes(string bodyText) => Convert.FromBase64String(bodyText);
+        private byte[] GetBodyBytes(string bodyText)
+        {
+            return Convert.FromBase64String(bodyText);
+        }
     }
 }

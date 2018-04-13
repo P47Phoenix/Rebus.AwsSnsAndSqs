@@ -13,13 +13,13 @@ using Rebus.Tests.Contracts.Extensions;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-    [TestFixture, Category("snsAndSqsPubSub")]
+    [TestFixture][Category("snsAndSqsPubSub")]
     public class SnsAndSqsPubSubTest : FixtureBase
     {
-        readonly string _publisherQueueName = TestConfig.GetName("publisher");
-        readonly string _subscriber1QueueName = TestConfig.GetName("sub1");
-        readonly string _subscriber2QueueName = TestConfig.GetName("sub2");
-        BuiltinHandlerActivator _publisher;
+        private readonly string _publisherQueueName = TestConfig.GetName("publisher");
+        private readonly string _subscriber1QueueName = TestConfig.GetName("sub1");
+        private readonly string _subscriber2QueueName = TestConfig.GetName("sub2");
+        private BuiltinHandlerActivator _publisher;
 
         protected override void SetUp()
         {
@@ -57,7 +57,7 @@ namespace Rebus.AwsSnsAndSqsTests
             sub2GotEvent.WaitOrDie(TimeSpan.FromSeconds(30));
         }
 
-        BuiltinHandlerActivator GetBus(string queueName, Func<string, Task> handlerMethod = null)
+        private BuiltinHandlerActivator GetBus(string queueName, Func<string, Task> handlerMethod = null)
         {
             var activator = Using(new BuiltinHandlerActivator());
 

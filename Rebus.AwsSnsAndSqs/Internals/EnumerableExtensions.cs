@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Rebus.AwsSnsAndSqs.Internals
 {
-    static class EnumerableExtensions
+    internal static class EnumerableExtensions
     {
         public static IEnumerable<List<T>> Batch<T>(this IEnumerable<T> items, int maxItemsPerBatch)
         {

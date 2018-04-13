@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Rebus.AwsSnsAndSqs
 {
-    using global::Amazon.Runtime;
+    using Amazon.Runtime;
 
     public interface IAmazonCredentialsFactory
     {

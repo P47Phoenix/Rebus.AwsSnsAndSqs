@@ -33,10 +33,21 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
         /// <inheritdoc />
         public async Task Send(string destinationAddress, TransportMessage message, ITransactionContext context)
         {
-            if (destinationAddress == null) throw new ArgumentNullException(nameof(destinationAddress));
-            if (message == null) throw new ArgumentNullException(nameof(message));
-            if (context == null) throw new ArgumentNullException(nameof(context));
-            
+            if (destinationAddress == null)
+            {
+                throw new ArgumentNullException(nameof(destinationAddress));
+            }
+
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (destinationAddress.StartsWith(c_SnsArn))
             {
                 var snsClient = m_AmazonInternalSettings.CreateSnsClient();
@@ -70,7 +81,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
         private async Task SendOutgoingMessages(ConcurrentQueue<AmazonOutgoingMessage> outgoingMessages, ITransactionContext context)
         {
-            if (!outgoingMessages.Any()) return;
+            if (!outgoingMessages.Any())
+            {
+                return;
+            }
 
             var client = m_AmazonInternalSettings.CreateSqsClient(context);
 

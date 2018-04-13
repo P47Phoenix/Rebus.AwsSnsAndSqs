@@ -19,7 +19,7 @@ namespace Rebus.AwsSnsAndSqs
                 var lastLetter = new char();
                 foreach (var c in topicKey)
                 {
-                    if (Char.IsDigit(c) || Char.IsLetter(c) || c == '_' || c == '-')
+                    if (char.IsDigit(c) || char.IsLetter(c) || c == '_' || c == '-')
                     {
                         newWord.Add(c);
                     }

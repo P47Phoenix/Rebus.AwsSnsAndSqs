@@ -1,6 +1,6 @@
 ﻿namespace Rebus.AwsSnsAndSqs
 {
-    using global::Amazon.Runtime;
+    using Amazon.Runtime;
 
     public class StaticAmazonCredentialsFactory : IAmazonCredentialsFactory
     {

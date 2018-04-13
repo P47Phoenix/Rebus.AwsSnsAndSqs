@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    static class AmazonAsyncHelpers
+    internal static class AmazonAsyncHelpers
     {
         /// <summary>
         /// Executes a task synchronously on the calling thread by installing a temporary synchronization context that queues continuations

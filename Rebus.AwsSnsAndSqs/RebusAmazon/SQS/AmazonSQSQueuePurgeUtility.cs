@@ -44,7 +44,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                         AmazonAsyncHelpers.RunSync(() => receiveTask);
                         var response = receiveTask.Result;
 
-                        if (!response.Messages.Any()) break;
+                        if (!response.Messages.Any())
+                        {
+                            break;
+                        }
 
                         var deleteTask = client.DeleteMessageBatchAsync(queueUrl, response.Messages
                             .Select(m => new DeleteMessageBatchRequestEntry(m.MessageId, m.ReceiptHandle))
@@ -68,7 +71,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
             }
             catch (AmazonSQSException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
             {
-                if (exception.Message.Contains("queue does not exist")) return;
+                if (exception.Message.Contains("queue does not exist"))
+                {
+                    return;
+                }
 
                 throw;
             }

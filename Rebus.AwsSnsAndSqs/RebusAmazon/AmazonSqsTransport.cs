@@ -64,7 +64,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public void Purge()
         {
-            if (Address == null) return;
+            if (Address == null)
+            {
+                return;
+            }
+
             var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
             m_amazonSqsQueuePurgeUtility.Purge(queueUri);
         }
@@ -84,7 +88,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// </summary>
         public void Initialize()
         {
-            if (Address == null) return;
+            if (Address == null)
+            {
+                return;
+            }
 
             CreateQueue(Address);
         }
@@ -172,7 +179,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
                     var sqsClient = m_AmazonInternalSettings.CreateSqsClient(scope.TransactionContext);
                     
-                    Policy sqsPolicy = new Policy()
+                    var sqsPolicy = new Policy()
                         .WithStatements(new Statement(Statement.StatementEffect.Allow)
                             .WithPrincipals(Principal.AllUsers)
                             .WithResources(new Resource(sqsInformation.Arn))
@@ -200,7 +207,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
             var findTopicResult = await snsClient.FindTopicAsync(formatedTopicName);
 
-            string topicArn = findTopicResult?.TopicArn;
+            var topicArn = findTopicResult?.TopicArn;
             if (topicArn == null)
             {
                 var createTopicResponse = await snsClient.CreateTopicAsync(formatedTopicName);

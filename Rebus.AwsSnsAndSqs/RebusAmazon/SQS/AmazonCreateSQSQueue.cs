@@ -85,7 +85,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
         private static string GetQueueNameFromAddress(string address)
         {
-            if (!Uri.IsWellFormedUriString(address, UriKind.Absolute)) return address;
+            if (!Uri.IsWellFormedUriString(address, UriKind.Absolute))
+            {
+                return address;
+            }
 
             var queueFullAddress = new Uri(address);
 

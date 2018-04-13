@@ -11,13 +11,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     /// </summary>
     internal class AmazonSynchronizationContext : SynchronizationContext
     {
-        readonly ConcurrentQueue<Tuple<SendOrPostCallback, object>> _items = new ConcurrentQueue<Tuple<SendOrPostCallback, object>>();
-        readonly AutoResetEvent _workItemsWaiting = new AutoResetEvent(false);
-        readonly Func<Task> _task;
+        private readonly ConcurrentQueue<Tuple<SendOrPostCallback, object>> _items = new ConcurrentQueue<Tuple<SendOrPostCallback, object>>();
+        private readonly AutoResetEvent _workItemsWaiting = new AutoResetEvent(false);
+        private readonly Func<Task> _task;
 
-        ExceptionDispatchInfo _caughtException;
+        private ExceptionDispatchInfo _caughtException;
 
-        bool _done;
+        private bool _done;
 
         public AmazonSynchronizationContext(Func<Task> task)
         {
@@ -60,7 +60,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 {
                     task.Item1(task.Item2);
 
-                    if (_caughtException == null) continue;
+                    if (_caughtException == null)
+                    {
+                        continue;
+                    }
 
                     _caughtException.Throw();
                 }

@@ -15,7 +15,7 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.Config
 {
-    using global::Amazon.SimpleNotificationService;
+    using Amazon.SimpleNotificationService;
     using Subscriptions;
 
     /// <summary>
@@ -50,7 +50,7 @@ namespace Rebus.AwsSnsAndSqs.Config
             Configure(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, workerQueueAddress, amazonSnsAndSqsTransportOptions, topicFormatter);
         }
 
-        static void Configure(
+        private static void Configure(
             StandardConfigurer<ITransport> configurer,
             IAmazonCredentialsFactory amazonCredentialsFactory,
             AmazonSQSConfig amazonSqsConfig,

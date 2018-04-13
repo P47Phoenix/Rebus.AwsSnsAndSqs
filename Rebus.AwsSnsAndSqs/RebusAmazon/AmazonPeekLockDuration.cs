@@ -6,7 +6,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     {
         private TimeSpan _PeekLockDuration = TimeSpan.FromMinutes(5);
         private TimeSpan _PeekLockRenewalInterval = TimeSpan.FromMinutes(4);
-        
+
         public TimeSpan PeekLockDuration
         {
             get => _PeekLockDuration;
@@ -17,10 +17,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             }
         }
 
-        public TimeSpan PeekLockRenewalInterval
-        {
-            get => _PeekLockRenewalInterval;
-            set => _PeekLockRenewalInterval = value;
-        }
+        public TimeSpan PeekLockRenewalInterval => _PeekLockRenewalInterval;
     }
 }

@@ -11,7 +11,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public AmazonSQSTransportFactory(IAmazonInternalSettings amazonInternalSettings)
         {
-            this.m_amazonInternalSettings = amazonInternalSettings;
+            m_amazonInternalSettings = amazonInternalSettings;
         }
 
         public IAmazonSQSTransport Create()

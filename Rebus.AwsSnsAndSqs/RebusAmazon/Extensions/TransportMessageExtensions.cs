@@ -6,7 +6,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
     internal static class TransportMessageExtensions
     {
-        public static bool MessageIsExpired(this TransportMessage message, global::Amazon.SQS.Model.Message sqsMessage)
+        public static bool MessageIsExpired(this TransportMessage message, Amazon.SQS.Model.Message sqsMessage)
         {
             if (message.Headers.TryGetValue(Headers.TimeToBeReceived, out var value) == false)
             {
@@ -29,7 +29,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             return RebusTime.Now.UtcDateTime - rebusUtcTimeSent > timeToBeReceived;
         }
 
-        private static bool MessageIsExpiredUsingNativeSqsSentTimestamp(global::Amazon.SQS.Model.Message message, TimeSpan timeToBeReceived)
+        private static bool MessageIsExpiredUsingNativeSqsSentTimestamp(Amazon.SQS.Model.Message message, TimeSpan timeToBeReceived)
         {
             if (message.Attributes.TryGetValue("SentTimestamp", out var sentTimeStampString) == false)
             {

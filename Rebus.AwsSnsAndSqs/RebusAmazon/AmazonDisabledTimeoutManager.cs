@@ -7,7 +7,7 @@ using Rebus.Timeouts;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    class AmazonDisabledTimeoutManager : ITimeoutManager
+    internal class AmazonDisabledTimeoutManager : ITimeoutManager
     {
         public Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
         {

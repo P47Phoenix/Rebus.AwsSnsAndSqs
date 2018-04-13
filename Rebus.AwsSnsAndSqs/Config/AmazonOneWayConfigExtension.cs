@@ -3,10 +3,10 @@
 namespace Rebus.AwsSnsAndSqs.Config
 {
     using System;
-    using global::Amazon;
-    using global::Amazon.Runtime;
-    using global::Amazon.SimpleNotificationService;
-    using global::Amazon.SQS;
+    using Amazon;
+    using Amazon.Runtime;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
     using Logging;
     using Pipeline;
     using Pipeline.Receive;
@@ -93,7 +93,7 @@ namespace Rebus.AwsSnsAndSqs.Config
                     });
 
                 standardConfigurer.OtherService<ITimeoutManager>()
-                    .Register(c => new AmazonDisabledTimeoutManager(), description: AmazonConstaints.SqsTimeoutManagerText);
+                    .Register(c => new AmazonDisabledTimeoutManager(), AmazonConstaints.SqsTimeoutManagerText);
             }
         }
     }

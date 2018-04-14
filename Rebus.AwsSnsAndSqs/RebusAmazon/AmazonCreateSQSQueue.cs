@@ -6,7 +6,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Rebus.Logging;
 
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonCreateSQSQueue
     {
@@ -39,7 +39,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                     var request = new GetQueueUrlRequest(queueName);
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSGetQueueUrlRequest.html for options
                     var getQueueUrlTask = client.GetQueueUrlAsync(request);
-                    AmazonAsyncHelpers.RunSync(() => getQueueUrlTask);
+                    AsyncHelpers.RunSync(() => getQueueUrlTask);
                     var getQueueUrlResponse = getQueueUrlTask.Result;
 
                     if (getQueueUrlResponse.HttpStatusCode != HttpStatusCode.OK)
@@ -51,7 +51,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSSetQueueAttributesRequest.html for options
                     var setAttributesTask = client.SetQueueAttributesAsync(getQueueUrlResponse.QueueUrl, new Dictionary<string, string> {["VisibilityTimeout"] = visibilityTimeout});
-                    AmazonAsyncHelpers.RunSync(() => setAttributesTask);
+                    AsyncHelpers.RunSync(() => setAttributesTask);
                     var setAttributesResponse = setAttributesTask.Result;
 
                     if (setAttributesResponse.HttpStatusCode != HttpStatusCode.OK)
@@ -64,7 +64,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSCreateQueueRequest.html for options
                     var createQueueRequest = new CreateQueueRequest(queueName) {Attributes = {["VisibilityTimeout"] = ((int) m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture)}};
                     var task = client.CreateQueueAsync(createQueueRequest);
-                    AmazonAsyncHelpers.RunSync(() => task);
+                    AsyncHelpers.RunSync(() => task);
                     var response = task.Result;
 
                     if (response.HttpStatusCode != HttpStatusCode.OK)

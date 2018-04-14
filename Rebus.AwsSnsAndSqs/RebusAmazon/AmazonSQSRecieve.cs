@@ -13,7 +13,7 @@ using Rebus.Threading;
 using Rebus.Transport;
 using Message = Amazon.SQS.Model.Message;
 
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonSQSRecieve
     {

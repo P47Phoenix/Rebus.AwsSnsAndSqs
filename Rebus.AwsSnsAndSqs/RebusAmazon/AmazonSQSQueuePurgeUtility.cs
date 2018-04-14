@@ -7,7 +7,7 @@ using Amazon.SQS.Model;
 using Rebus.Exceptions;
 using Rebus.Logging;
 
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonSQSQueuePurgeUtility
     {
@@ -41,7 +41,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                     {
                         var request = new ReceiveMessageRequest(queueUrl) {MaxNumberOfMessages = 10};
                         var receiveTask = client.ReceiveMessageAsync(request);
-                        AmazonAsyncHelpers.RunSync(() => receiveTask);
+                        AsyncHelpers.RunSync(() => receiveTask);
                         var response = receiveTask.Result;
 
                         if (!response.Messages.Any())
@@ -51,7 +51,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
 
                         var deleteTask = client.DeleteMessageBatchAsync(queueUrl, response.Messages.Select(m => new DeleteMessageBatchRequestEntry(m.MessageId, m.ReceiptHandle)).ToList());
 
-                        AmazonAsyncHelpers.RunSync(() => deleteTask);
+                        AsyncHelpers.RunSync(() => deleteTask);
 
                         var deleteResponse = deleteTask.Result;
 

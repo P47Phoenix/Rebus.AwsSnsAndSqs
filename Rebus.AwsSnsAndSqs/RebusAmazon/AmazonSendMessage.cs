@@ -14,7 +14,7 @@ using Rebus.Messages;
 using Rebus.Time;
 using Rebus.Transport;
 
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonSendMessage : ISendMessage
     {

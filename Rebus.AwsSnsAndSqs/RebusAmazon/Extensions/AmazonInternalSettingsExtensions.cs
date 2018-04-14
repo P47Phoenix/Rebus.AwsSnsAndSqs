@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Auth.AccessControlPolicy;
 using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
 using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
-using NUnit.Framework.Constraints;
-using Rebus.AwsSnsAndSqs.RebusAmazon.SQS;
 using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
@@ -49,16 +46,20 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
                 var findTopicAsync = snsClient.FindTopicAsync(formatedTopicName);
 
-                AmazonAsyncHelpers.RunSync(() => findTopicAsync);
+                AsyncHelpers.RunSync(() => findTopicAsync);
 
                 var findTopicResult = findTopicAsync.Result;
 
+                string topicArn = findTopicResult?.TopicArn;
+
                 if (findTopicResult == null)
                 {
-                    throw new ArgumentOutOfRangeException($"The topic {formatedTopicName} does not exist");
+                    var task = snsClient.CreateTopicAsync(new CreateTopicRequest(formatedTopicName));
+                    AsyncHelpers.RunSync(() => task);
+                    topicArn = task.Result?.TopicArn;
                 }
 
-                return findTopicResult.TopicArn;
+                return topicArn;
             });
         }
 

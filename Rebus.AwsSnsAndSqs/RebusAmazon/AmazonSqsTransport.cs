@@ -9,7 +9,6 @@ using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
-using Rebus.AwsSnsAndSqs.RebusAmazon.SQS;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Transport;
@@ -201,7 +200,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             using (var client = new AmazonSQSClient(m_AmazonInternalSettings.AmazonCredentialsFactory.Create(), m_AmazonInternalSettings.AmazonSqsConfig))
             {
                 var queueUri = m_amazonSQSQueueContext.GetInputQueueUrl(Address);
-                AmazonAsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));
+                AsyncHelpers.RunSync(() => client.DeleteQueueAsync(queueUri));
             }
         }
     }

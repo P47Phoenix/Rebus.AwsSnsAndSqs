@@ -6,7 +6,7 @@ using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
 using Rebus.Exceptions;
 using Rebus.Transport;
 
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonSQSQueueContext
     {
@@ -65,7 +65,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
                 var client = m_AmazonInternalSettings.CreateSqsClient(transactionContext);
                 var task = client.GetQueueUrlAsync(address);
 
-                AmazonAsyncHelpers.RunSync(() => task);
+                AsyncHelpers.RunSync(() => task);
 
                 var urlResponse = task.Result;
 

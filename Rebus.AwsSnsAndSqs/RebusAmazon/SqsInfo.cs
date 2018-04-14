@@ -1,4 +1,4 @@
-﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class SqsInfo
     {

@@ -2,7 +2,7 @@
 using Rebus.Messages;
 using Rebus.Transport;
 
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.SQS
+namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal interface ISendMessage
     {

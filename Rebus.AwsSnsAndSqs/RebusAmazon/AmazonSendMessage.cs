@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
@@ -56,7 +57,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
                 var msg = m_AmazonInternalSettings.MessageSerializer.Serialize(sqsMessage);
 
-                var publishResponse = await snsClient.PublishAsync(new PublishRequest(destinationAddress, msg));
+                var msgBytes = Encoding.UTF8.GetBytes(msg);
+
+                var publishResponse = await snsClient.PublishAsync(new PublishRequest(destinationAddress, GetBody(msgBytes)));
 
                 if (publishResponse.HttpStatusCode != HttpStatusCode.OK)
                 {

@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using Rebus.Activation;
-using Rebus.AwsSnsAndSqs;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Bus;
+using System.IO;
+using Rebus.AwsSnsAndSqsPerformanceTest.Markdown;
 using Rebus.Config;
-using Rebus.Routing.TypeBased;
+using Serilog;
+using Logger = Serilog.Log;
 
 namespace Rebus.AwsSnsAndSqsPerformanceTest
 {
@@ -22,15 +14,42 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
         {
             try
             {
-#if DEBUG
-                PerformanceTest pt = new PerformanceTest();
+                Logger.Logger = new LoggerConfiguration()
+                    .Enrich.WithRebusCorrelationId("Test-Run")
+                     .WriteTo.File("logs-*.txt")
+                     .CreateLogger();
+                var markDownPage = new MarkDownPage();
 
-                pt.Setup();
-                pt.SendAndRecieve(100, 4);
-                pt.TearDown();
-#else
-                var result = BenchmarkRunner.Run<PerformanceTest>();
-#endif
+                markDownPage.AddMarkDown(new Header
+                {
+                    HeaderLevel = HeaderLevel.One,
+                    Text = "Aws rebus sns and sqs load test results"
+                });
+
+                markDownPage.AddMarkDown(TextControl.Newline);
+
+                var tableControl = new TableControl();
+
+                markDownPage.AddMarkDown(tableControl);
+
+                tableControl.AddColumn("Test");
+                tableControl.AddColumn("Total test durration");
+                tableControl.AddColumn("Publish Count");
+                tableControl.AddColumn("Publish Taken Min");
+                tableControl.AddColumn("Publish Taken Max");
+                tableControl.AddColumn("Publish Taken Avg");
+                tableControl.AddColumn("Receive Count");
+                tableControl.AddColumn("Receive Taken Min");
+                tableControl.AddColumn("Receive Taken Max");
+                tableControl.AddColumn("Receive Taken Avg");
+
+                RunTest(100, 4, tableControl);
+
+                using (FileStream fs = new FileStream("..\\..\\..\\LoadResults.md", FileMode.CreateNew))
+                {
+                    markDownPage.Write(fs);
+                }
+
             }
             finally
             {
@@ -38,123 +57,42 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 Console.ReadLine();
             }
         }
+
+        private static void RunTest(long numberOfMessages, int messageSizeKilobytes, TableControl tableControl)
+        {
+            var result = PerformanceTest.RunTest(numberOfMessages, messageSizeKilobytes);
+
+            var timeText = $"{numberOfMessages} messages at {messageSizeKilobytes} kilobytes";
+
+            var total = TimeSpan.FromMilliseconds(result.TotalTestTimeMilliseconds);
+
+            var sendMin = TimeSpan.FromMilliseconds(result.MessageSentTimes.MinValue);
+            var sendMax = TimeSpan.FromMilliseconds(result.MessageSentTimes.MaxValue);
+            var sendAvg = TimeSpan.FromMilliseconds(result.MessageSentTimes.TolalValue / result.MessageSentTimes.Count);
+
+            var receivedMin = TimeSpan.FromMilliseconds(result.MessageRecivedTimes.MinValue);
+            var recievedMax = TimeSpan.FromMilliseconds(result.MessageRecivedTimes.MaxValue);
+            var receivedAvg = TimeSpan.FromMilliseconds(result.MessageRecivedTimes.TolalValue / result.MessageRecivedTimes.Count);
+
+            tableControl.AddRow(new List<TableCellControl>()
+            {
+                new TableCellControl(timeText), 
+                new TableCellControl($"{total}"), 
+                new TableCellControl($"{result.MessageSentTimes.Count}"), 
+                new TableCellControl($"{sendMin}"), 
+                new TableCellControl($"{sendMax}"), 
+                new TableCellControl($"{sendAvg}"), 
+                new TableCellControl($"{result.MessageRecivedTimes.Count}"), 
+                new TableCellControl($"{receivedMin}"), 
+                new TableCellControl($"{recievedMax}"), 
+                new TableCellControl($"{receivedAvg}"),
+            });
+        }
     }
 
-    public class PerformanceTest
+
+    public class MarkDownBuilder
     {
-        private IBus _bus;
-        private BuiltinHandlerActivator _builtinHandlerActivator;
-
-        private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
-
-        public class PerformanceTestMessage
-        {
-            public string Message { get; set; }
-        }
-
-        private long _messageCounter;
-        private long _messagesSent;
-        private long _waitingFor;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _messageCounter = 0;
-
-            _builtinHandlerActivator = new BuiltinHandlerActivator();
-
-            _builtinHandlerActivator.Handle<PerformanceTestMessage>(message =>
-            {
-                var val = Interlocked.Increment(ref _messageCounter);
-
-                if (val >= Interlocked.Read(ref _waitingFor))
-                {
-                    _autoResetEvent.Set();
-                }
-
-                return Task.CompletedTask;
-
-            });
-
-            var queueName = nameof(SendAndRecieve);
-
-            _bus = Configure
-                .With(_builtinHandlerActivator)
-                .Logging(configurer => configurer.Trace())
-                .Transport(t =>
-                {
-                    // set the worker queue name
-                    t.UseAmazonSnsAndSqs(workerQueueAddress: queueName);
-                    //t.UseAmazonSnsAndSqsAsOneWayClient();
-                })
-                .Routing(r =>
-                {
-                    // Map the message type to the queue
-                    r.TypeBased().Map<PerformanceTestMessage>(queueName);
-                })
-                .Start();
-
-            var task = _bus.Subscribe<PerformanceTestMessage>();
-            AsyncHelpers.RunSync(() => task);
-
-        }
-
-        [GlobalCleanup]
-        public void TearDown()
-        {
-            _bus.Dispose();
-
-            _builtinHandlerActivator.Dispose();
-        }
-
-        [Benchmark]
-        [Arguments(10, 4)]
-        [Arguments(10, 8)]
-        [Arguments(10, 16)]
-        [Arguments(10, 32)]
-        [Arguments(10, 64)]
-        [Arguments(10, 128)]
-        [Arguments(100, 4)]
-        [Arguments(100, 8)]
-        [Arguments(100, 16)]
-        [Arguments(100, 32)]
-        [Arguments(100, 64)]
-        [Arguments(100, 128)]
-        [Arguments(1000, 4)]
-        [Arguments(1000, 8)]
-        [Arguments(1000, 16)]
-        [Arguments(1000, 32)]
-        [Arguments(1000, 64)]
-        [Arguments(1000, 128)]
-        [Arguments(10000, 4)]
-        [Arguments(10000, 8)]
-        [Arguments(10000, 16)]
-        [Arguments(10000, 32)]
-        [Arguments(10000, 64)]
-        [Arguments(10000, 128)]
-        public void SendAndRecieve(long numberOfMessages, int messageSizeKilobytes)
-        {
-            Interlocked.Exchange(ref _waitingFor, numberOfMessages);
-            Interlocked.Exchange(ref _messageCounter, 0);
-            Interlocked.Exchange(ref _messagesSent, 0);
-
-            for (int i = 0; i < numberOfMessages; i++)
-            {
-                var task = _bus.Publish(new PerformanceTestMessage
-                {
-                    Message = new string('1', messageSizeKilobytes * 1024)
-                });
-
-                AsyncHelpers.RunSync(() => task);
-                Interlocked.Increment(ref _messagesSent);
-            }
-
-            while (_autoResetEvent.WaitOne(3000) == false)
-            {
-                Console.WriteLine($"Recieved:{Interlocked.Read(ref _messageCounter)} Sent:{Interlocked.Read(ref _messagesSent)}");
-            }
-
-            Interlocked.Exchange(ref _messageCounter, 0);
-        }
+        private MarkDownPage _markDownPage = new MarkDownPage();
     }
 }

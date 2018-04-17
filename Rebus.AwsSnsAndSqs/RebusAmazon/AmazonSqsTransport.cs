@@ -26,7 +26,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
         private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
-        private readonly AmazonSQSRecieve m_amazonSqsRecieve;
+        private readonly AmazonRecieveMessage _mAmazonRecieveMessage;
         private readonly ILog m_log;
         private readonly ISendMessage m_sendMessage;
 
@@ -53,7 +53,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             m_sendMessage = new AmazonSendMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext);
             m_amazonCreateSqsQueue = new AmazonCreateSQSQueue(m_AmazonInternalSettings);
             m_amazonSqsQueuePurgeUtility = new AmazonSQSQueuePurgeUtility(m_AmazonInternalSettings);
-            m_amazonSqsRecieve = new AmazonSQSRecieve(m_AmazonInternalSettings, m_amazonSQSQueueContext);
+            _mAmazonRecieveMessage = new AmazonRecieveMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// <inheritdoc />
         public async Task<TransportMessage> Receive(ITransactionContext context, CancellationToken cancellationToken)
         {
-            return await m_amazonSqsRecieve.Receive(context, Address, cancellationToken);
+            return await _mAmazonRecieveMessage.Receive(context, Address, cancellationToken);
         }
 
         /// <summary>

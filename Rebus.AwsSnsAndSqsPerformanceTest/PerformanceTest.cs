@@ -19,16 +19,6 @@ using Logger = Serilog.Log;
 
 namespace Rebus.AwsSnsAndSqsPerformanceTest
 {
-
-    public class PerformanceTestResult
-    {
-        public TimeCounter MessageSentTimes { get; set; }
-
-        public TimeCounter MessageRecivedTimes { get; set; }
-
-        public long TotalTestTimeMilliseconds { get; set; }
-    }
-
     internal class PerformanceTest
     {
         public static PerformanceTestResult RunTest(long numberOfMessages, int messageSizeKilobytes)
@@ -60,45 +50,18 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
         private TimeCounter MessageSentTimeInMillisecondsCount { get; } = new TimeCounter();
         private TimeCounter MessageRecievedTimeInMillisecondsCount { get; } = new TimeCounter();
-        private readonly ConcurrentDictionary<int, SendAndReceivedState> _sendAndReceiveds = new ConcurrentDictionary<int, SendAndReceivedState>();
 
 
-        private void Sent(int id)
-        {
-            var sentOrReceived = _sendAndReceiveds.GetOrAdd(id, i => new SendAndReceivedState(i));
-            sentOrReceived.Sent = true;
-        }
-
-        private bool IsReceivedAlready(int id)
-        {
-            var sendAndReceived = _sendAndReceiveds[id];
-            lock (sendAndReceived)
-            {
-                if (sendAndReceived.Received)
-                {
-                    return true;
-                }
-
-                sendAndReceived.Received = true;
-            }
-            return false;
-        }
 
         private void Setup()
         {
             MessageRecievedTimeInMillisecondsCount.Clear();
             MessageSentTimeInMillisecondsCount.Clear();
-            _sendAndReceiveds.Clear();
 
             _builtinHandlerActivator = new BuiltinHandlerActivator();
 
             _builtinHandlerActivator.Handle<PerformanceTestMessage>(message =>
             {
-                if (IsReceivedAlready(message.Number))
-                {
-                    return Task.CompletedTask;
-                }
-
                 var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var milliseconds = now > message.UnixTimeMilliseconds ? now - message.UnixTimeMilliseconds : message.UnixTimeMilliseconds - now;
 
@@ -164,13 +127,15 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
             Guid runId = Guid.NewGuid();
 
+            var bufferBlock = new BufferBlock<PerformanceTestMessage>();
+
+
             var actionBlock = new ActionBlock<PerformanceTestMessage>(message =>
             {
                 message.UnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                Sent(message.Number);
                 var task = _bus.Publish(message, new Dictionary<string, string>()
                 {
                     {
@@ -189,16 +154,31 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 MaxMessagesPerTask = 20
             });
 
+
+            bufferBlock.LinkTo(actionBlock, new DataflowLinkOptions()
+            {
+                PropagateCompletion = true
+            });
+
             var msg = new string('1', messageSizeKilobytes * 1024);
 
             for (var i = 0; i < numberOfMessages; i++)
             {
-                actionBlock.Post(new PerformanceTestMessage
+                bufferBlock.Post(new PerformanceTestMessage
                 {
                     Message = msg,
                     Number = i
                 });
             }
+
+            bufferBlock.Complete();
+
+            bufferBlock.Completion.ContinueWith(delegate
+            {
+                actionBlock.Complete();
+            }).Wait();
+
+            actionBlock.Completion.Wait();
 
             while (_autoResetEvent.WaitOne(3000) == false)
             {

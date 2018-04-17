@@ -56,7 +56,7 @@ Full example located here [here](FullExample.md)
 ## Load and perfomance tests
 Results may vary depending on network latency, region, cpu, etc.
 
-(Load test summary)[LoadResults.md]
+[Load test summary](LoadResults.md)
 
 ## Permissions
 The permissions needed and example polcy documents are [here](PERMISSIONS.md)

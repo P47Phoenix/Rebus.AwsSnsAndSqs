@@ -50,17 +50,45 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest.Markdown
 
                 column.Write(ste);
             }
+            
+            TextControl.Newline.Write(ste);
+            isFirstColumn = true;
+
+            for (var i = 0; i < _tableColumns.Count; i++)
+            {
+                if (isFirstColumn == false)
+                {
+                    TextControl.Space.Write(ste);
+                    TextControl.Pipe.Write(ste);
+                    TextControl.Space.Write(ste);
+                }
+                else
+                {
+                    isFirstColumn = false;
+                }
+
+                TextControl.Hyphen.Write(ste);
+            }
 
             TextControl.Newline.Write(ste);
 
             foreach (var tableRow in _tableRows)
             {
+                isFirstColumn = true;
+
                 foreach (var tableCellControl in tableRow)
                 {
+                    if (isFirstColumn == false)
+                    {
+                        TextControl.Space.Write(ste);
+                        TextControl.Pipe.Write(ste);
+                        TextControl.Space.Write(ste);
+                    }
+                    else
+                    {
+                        isFirstColumn = false;
+                    }
                     tableCellControl.Write(ste);
-                    TextControl.Space.Write(ste);
-                    TextControl.Pipe.Write(ste);
-                    TextControl.Space.Write(ste);
                 }
 
                 TextControl.Newline.Write(ste);

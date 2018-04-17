@@ -43,9 +43,19 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 tableControl.AddColumn("Receive Taken Max");
                 tableControl.AddColumn("Receive Taken Avg");
 
-                RunTest(100, 4, tableControl);
+                RunTest(100000, 4, tableControl);
+                RunTest(100000, 8, tableControl);
+                RunTest(100000, 16, tableControl);
+                RunTest(100000, 32, tableControl);
+                RunTest(100000, 64, tableControl);
+                RunTest(100000, 128, tableControl);
+                RunTest(100000, 192, tableControl);
 
-                using (FileStream fs = new FileStream("..\\..\\..\\LoadResults.md", FileMode.CreateNew))
+                Console.WriteLine("Creating load test result markdown");
+
+                var file = "..\\..\\..\\LoadResults.md";
+                
+                using (FileStream fs = new FileStream(file, FileMode.Create ))
                 {
                     markDownPage.Write(fs);
                 }
@@ -76,15 +86,15 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
             tableControl.AddRow(new List<TableCellControl>()
             {
-                new TableCellControl(timeText), 
-                new TableCellControl($"{total}"), 
-                new TableCellControl($"{result.MessageSentTimes.Count}"), 
-                new TableCellControl($"{sendMin}"), 
-                new TableCellControl($"{sendMax}"), 
-                new TableCellControl($"{sendAvg}"), 
-                new TableCellControl($"{result.MessageRecivedTimes.Count}"), 
-                new TableCellControl($"{receivedMin}"), 
-                new TableCellControl($"{recievedMax}"), 
+                new TableCellControl(timeText),
+                new TableCellControl($"{total}"),
+                new TableCellControl($"{result.MessageSentTimes.Count}"),
+                new TableCellControl($"{sendMin}"),
+                new TableCellControl($"{sendMax}"),
+                new TableCellControl($"{sendAvg}"),
+                new TableCellControl($"{result.MessageRecivedTimes.Count}"),
+                new TableCellControl($"{receivedMin}"),
+                new TableCellControl($"{recievedMax}"),
                 new TableCellControl($"{receivedAvg}"),
             });
         }

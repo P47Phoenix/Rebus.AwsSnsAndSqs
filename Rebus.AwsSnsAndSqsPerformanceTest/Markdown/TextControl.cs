@@ -22,6 +22,11 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest.Markdown
             Text = " "
         };
 
+        internal static TextControl Hyphen { get; } = new TextControl
+        {
+            Text = "-"
+        };
+
         internal static TextControl Pipe { get; } = new TextControl
         {
             Text = "|"

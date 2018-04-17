@@ -149,9 +149,12 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
         private void TearDown()
         {
+            Console.WriteLine("Cleaning up bus");
             _bus.Dispose();
 
             _builtinHandlerActivator.Dispose();
+
+
         }
 
         private void SendAndRecieve(long numberOfMessages, int messageSizeKilobytes)
@@ -200,10 +203,8 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             while (_autoResetEvent.WaitOne(3000) == false)
             {
                 Console.WriteLine($"Recieved:{MessageRecievedTimeInMillisecondsCount.Count} Sent:{MessageSentTimeInMillisecondsCount.Count}");
-                Console.WriteLine($"Waiting on messsages: {JArray.FromObject(_sendAndReceiveds.Where(sr => sr.Value.Received == false).ToList()).ToString(Formatting.Indented)}");
             }
 
-            Interlocked.Exchange(ref _messagesRecievedCounter, 0);
         }
     }
 }

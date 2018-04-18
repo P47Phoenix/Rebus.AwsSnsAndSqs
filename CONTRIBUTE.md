@@ -105,6 +105,8 @@ namespace Rebus.AwsSnsAndSqsTests
 }
 ```
 ## C# Standards 
+Not all the existing code keeps to the standard. Much of the library was ported from the [Rebus.AmazonSQS](https://github.com/rebus-org/Rebus.AmazonSQS) repository and will be refactored over time.
+
 ### Private members
 All private member variables should be preceded with an underscore then camel casing and placed at the top of the class
 

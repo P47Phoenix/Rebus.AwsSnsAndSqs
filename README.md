@@ -1,6 +1,15 @@
 # Rebus.AwsSnsAndSqs
 Implement aws sns and sqs provider for [Rebus](https://github.com/rebus-org/Rebus)
 
+## Target Framworks
+
+Framwork       | What works
+-------------- | ----------
+netstandard1.3 | Everything exept attribute based topics
+netstandard2.0 | Everything
+net45          | Everything
+
+
 ## Contract based pubsub
 
 For example this following contract
@@ -50,13 +59,59 @@ do
 }
 while (string.IsNullOrWhiteSpace(line) == false);
 ```
-
 Full example located here [here](FullExample.md)
 
-## Load and perfomance tests
-Results may vary depending on network latency, region, cpu, etc.
+## Don't like the convention based topic approach?
+Make your own topic formater based using the ITopicFormatter
+```csharp
+public interface ITopicFormatter
+{
+    string FormatTopic(string topic);
+}
+```
 
-(Load test summary)[LoadResults.md]
+Topic formaters are set when configuring the transport
+Below you can see that we are going to us the attirbute based formated.
+```csharp
+Configure
+    .With(activator)
+    .Transport(t => 
+    { 
+        t.UseAmazonSnsAndSqs(workerQueueAddress: queueName, topicFormatter: new YourCustomTopicFormatter()); 
+    })
+    .Routing(r => r.TypeBased().Map<string>(queueName))
+    .Start();
+```
+
+Attribute based topic formater allows you to set an attributes for the topic name
+```csharp
+using Rebus.AwsSnsAndSqs;
+
+namespace Rebus.AwsSnsAndSqsTests
+{
+    [TopicName(nameof(SomeMessageTopic))]
+    public class SomeMessageTopic
+    {
+        public string Message { get; set; }
+    }
+}
+``` 
+
+Setup the transport to use attribute based topic
+```csharp
+Configure
+    .With(activator)
+    .Transport(t => 
+    { 
+        t.UseAmazonSnsAndSqs(workerQueueAddress: queueName, topicFormatter: new AttributeBasedTopicFormatter()); 
+    })
+    .Routing(r => r.TypeBased().Map<string>(queueName))
+    .Start();
+```
+
+## Load and perfomance tests
+Load test results are located (here)[LoadResults.md]
+Results may vary depending on network latency, region, cpu, etc.
 
 ## Permissions
 The permissions needed and example polcy documents are [here](PERMISSIONS.md)

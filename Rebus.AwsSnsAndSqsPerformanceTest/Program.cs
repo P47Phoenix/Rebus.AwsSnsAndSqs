@@ -8,6 +8,10 @@ using Logger = Serilog.Log;
 
 namespace Rebus.AwsSnsAndSqsPerformanceTest
 {
+    using System.Threading.Tasks;
+    using Amazon.Runtime.Internal;
+    using AwsSnsAndSqs;
+
     public class Program
     {
         static void Main(string[] args)
@@ -33,34 +37,93 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 markDownPage.AddMarkDown(tableControl);
 
                 tableControl.AddColumn("Test");
-                tableControl.AddColumn("Total test durration");
-                tableControl.AddColumn("Publish Count");
-                tableControl.AddColumn("Publish Taken Min");
-                tableControl.AddColumn("Publish Taken Max");
-                tableControl.AddColumn("Publish Taken Avg");
-                tableControl.AddColumn("Receive Count");
-                tableControl.AddColumn("Receive Taken Min");
-                tableControl.AddColumn("Receive Taken Max");
-                tableControl.AddColumn("Receive Taken Avg");
+                tableControl.AddColumn("max # concurrent publishes");
+                tableControl.AddColumn("Publish per second");
+                tableControl.AddColumn("# of workers");
+                tableControl.AddColumn("Receive max parallelism");
+                tableControl.AddColumn("Receive per second");
 
-                #if DEBUG
-                RunTest(10000, 4, tableControl);
-                #else
-                RunTest(10000, 4, tableControl);
-                RunTest(10000, 8, tableControl);
-                RunTest(10000, 16, tableControl);
-                RunTest(10000, 32, tableControl);
-                RunTest(10000, 64, tableControl);
-                RunTest(10000, 128, tableControl);
-                RunTest(10000, 192, tableControl);
-                #endif
-
+#if DEBUG
+                AsyncHelpers.RunSync(() => RunTest(
+                    new SendOptions()
+                    {
+                        MessageSizeKilobytes = 4,
+                        MaxDegreeOfParallelism = 200,
+                        MaxMessagesPerTask = 1,
+                    },
+                    new ReceiveOptions()
+                    {
+                        RebusMaxParallelism = 200,
+                        RebusNumberOfWorkers = Environment.ProcessorCount
+                    }, tableControl));
+#else
+                 AsyncHelpers.RunSync(() => RunTest(
+                    new SendOptions()
+                    {
+                        MessageSizeKilobytes = 4,
+                        MaxDegreeOfParallelism = 200,
+                        MaxMessagesPerTask = 1
+                    },
+                    new ReceiveOptions()
+                    {
+                        RebusMaxParallelism = 200,
+                        RebusNumberOfWorkers = Environment.ProcessorCount
+                    }, tableControl));
+                AsyncHelpers.RunSync(() => RunTest(
+                    new SendOptions()
+                    {
+                        MessageSizeKilobytes = 16,
+                        MaxDegreeOfParallelism = 200,
+                        MaxMessagesPerTask = 1
+                    },
+                    new ReceiveOptions()
+                    {
+                        RebusMaxParallelism = 200,
+                        RebusNumberOfWorkers = Environment.ProcessorCount
+                    }, tableControl));
+                AsyncHelpers.RunSync(() => RunTest(
+                    new SendOptions()
+                    {
+                        MessageSizeKilobytes = 32,
+                        MaxDegreeOfParallelism = 200,
+                        MaxMessagesPerTask = 1
+                    },
+                    new ReceiveOptions()
+                    {
+                        RebusMaxParallelism = 200,
+                        RebusNumberOfWorkers = Environment.ProcessorCount
+                    }, tableControl));
+                AsyncHelpers.RunSync(() => RunTest(
+                    new SendOptions()
+                    {
+                        MessageSizeKilobytes = 64,
+                        MaxDegreeOfParallelism = 200,
+                        MaxMessagesPerTask = 1
+                    },
+                    new ReceiveOptions()
+                    {
+                        RebusMaxParallelism = 200,
+                        RebusNumberOfWorkers = Environment.ProcessorCount
+                    }, tableControl));
+                AsyncHelpers.RunSync(() => RunTest(
+                    new SendOptions()
+                    {
+                        MessageSizeKilobytes = 128,
+                        MaxDegreeOfParallelism = 200,
+                        MaxMessagesPerTask = 1
+                    },
+                    new ReceiveOptions()
+                    {
+                        RebusMaxParallelism = 200,
+                        RebusNumberOfWorkers = Environment.ProcessorCount
+                    }, tableControl));
+#endif
 
                 Console.WriteLine("Creating load test result markdown");
 
                 var file = "..\\..\\..\\LoadResults.md";
-                
-                using (FileStream fs = new FileStream(file, FileMode.Create ))
+
+                using (FileStream fs = new FileStream(file, FileMode.Create))
                 {
                     markDownPage.Write(fs);
                 }
@@ -73,41 +136,25 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             }
         }
 
-        private static void RunTest(long numberOfMessages, int messageSizeKilobytes, TableControl tableControl)
+        private static async Task RunTest(SendOptions sendOptions, ReceiveOptions receiveOptions, TableControl tableControl)
         {
-            var result = PerformanceTest.RunTest(numberOfMessages, messageSizeKilobytes);
+            var result = await PerformanceTest.RunTest(sendOptions, receiveOptions);
 
-            var timeText = $"{numberOfMessages} messages at {messageSizeKilobytes} kilobytes";
+            var text = $"send msg for {sendOptions.MessageSizeKilobytes} kilobytes";
 
-            var total = TimeSpan.FromMilliseconds(result.TotalTestTimeMilliseconds);
+            var messagesSentPerSecond = result.MessageSentTimes.MessagesSentCounter.Value / result.MessageSentTimes.MessageSentTimePerTimePeriod.TotalSeconds;
 
-            var sendMin = TimeSpan.FromMilliseconds(result.MessageSentTimes.MinValue);
-            var sendMax = TimeSpan.FromMilliseconds(result.MessageSentTimes.MaxValue);
-            var sendAvg = TimeSpan.FromMilliseconds(result.MessageSentTimes.TolalValue / result.MessageSentTimes.Count);
-
-            var receivedMin = TimeSpan.FromMilliseconds(result.MessageRecivedTimes.MinValue);
-            var recievedMax = TimeSpan.FromMilliseconds(result.MessageRecivedTimes.MaxValue);
-            var receivedAvg = TimeSpan.FromMilliseconds(result.MessageRecivedTimes.TolalValue / result.MessageRecivedTimes.Count);
+            var messagesReceivedPerSecond = result.MessageReceivedTimes.MessagesReceivedCounter.Value / result.MessageReceivedTimes.MessageRecievedTimePerTimePeriod.Elapsed.TotalSeconds;
 
             tableControl.AddRow(new List<TableCellControl>()
             {
-                new TableCellControl(timeText),
-                new TableCellControl($"{total}"),
-                new TableCellControl($"{result.MessageSentTimes.Count}"),
-                new TableCellControl($"{sendMin}"),
-                new TableCellControl($"{sendMax}"),
-                new TableCellControl($"{sendAvg}"),
-                new TableCellControl($"{result.MessageRecivedTimes.Count}"),
-                new TableCellControl($"{receivedMin}"),
-                new TableCellControl($"{recievedMax}"),
-                new TableCellControl($"{receivedAvg}"),
+                new TableCellControl(text),
+                new TableCellControl($"{sendOptions.MaxDegreeOfParallelism}"),
+                new TableCellControl($"{messagesSentPerSecond}"),
+                new TableCellControl($"{receiveOptions.RebusNumberOfWorkers}"),
+                new TableCellControl($"{receiveOptions.RebusMaxParallelism}"),
+                new TableCellControl($"{messagesReceivedPerSecond}"),
             });
         }
-    }
-
-
-    public class MarkDownBuilder
-    {
-        private MarkDownPage _markDownPage = new MarkDownPage();
     }
 }

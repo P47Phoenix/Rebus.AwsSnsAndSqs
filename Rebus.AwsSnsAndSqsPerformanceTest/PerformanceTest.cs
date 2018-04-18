@@ -19,52 +19,137 @@ using Logger = Serilog.Log;
 
 namespace Rebus.AwsSnsAndSqsPerformanceTest
 {
+    using AwsSnsAndSqs.RebusAmazon;
+    using Counters;
+    using Transport;
+
     internal class PerformanceTest
     {
-        public static PerformanceTestResult RunTest(long numberOfMessages, int messageSizeKilobytes)
+        public static async Task<PerformanceTestResult> RunTest(SendOptions sendOptions, ReceiveOptions receiveOptions)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var performanceTest = new PerformanceTest();
-            performanceTest.Setup();
-            performanceTest.SendAndRecieve(numberOfMessages, messageSizeKilobytes);
-            performanceTest.TearDown();
-            stopwatch.Stop();
-            return new PerformanceTestResult
+            var receiver = await performanceTest.Receive(receiveOptions);
+            using (receiver.Worker)
             {
-                MessageRecivedTimes = performanceTest.MessageRecievedTimeInMillisecondsCount,
-                MessageSentTimes = performanceTest.MessageSentTimeInMillisecondsCount,
-                TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds
-            };
+                try
+                {
+                    var send = await performanceTest.Send(sendOptions);
+
+                    stopwatch.Stop();
+                    performanceTest.PurgeQueue();
+                    return new PerformanceTestResult
+                    {
+                        MessageReceivedTimes = receiver,
+                        MessageSentTimes = send,
+                        TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds
+                    };
+                }
+                finally
+                {
+                    receiver.MessageRecievedTimePerTimePeriod.Stop();
+                }
+            }
+
         }
 
 
-        private IBus _Client;
-        private IBus _Worker;
-
-        private BuiltinHandlerActivator _clientBuiltinHandlerActivator;
-        private BuiltinHandlerActivator _workerBuiltinHandlerActivator;
-
-        private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
-
-        private long _messagesRecievedCounter;
-
-        private long _messsagesToSend;
-
-        private TimeCounter MessageSentTimeInMillisecondsCount { get; } = new TimeCounter();
-        private TimeCounter MessageRecievedTimeInMillisecondsCount { get; } = new TimeCounter();
-
-
-
-        private void Setup()
+        private async Task<SendResult> Send(SendOptions sendOptions)
         {
-            MessageRecievedTimeInMillisecondsCount.Clear();
-            MessageSentTimeInMillisecondsCount.Clear();
+            Stopwatch sw = new Stopwatch();
+            Counter MessagesSentCounter = new Counter();
 
-            _workerBuiltinHandlerActivator = new BuiltinHandlerActivator();
-
-            _workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(message =>
+            using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
+            using (BuiltinHandlerActivator clientBuiltinHandlerActivator = new BuiltinHandlerActivator())
             {
+                var client = Configure.With(clientBuiltinHandlerActivator)
+                    .Logging(configurer => configurer.Serilog(Logger.Logger))
+                    .Transport(t =>
+                    {
+                        t.UseAmazonSnsAndSqsAsOneWayClient();
+                        t.Decorate(context => context.Get<ITransport>());
+                    }).Start();
+
+                Guid runId = Guid.NewGuid();
+
+                var bufferBlock = new BufferBlock<PerformanceTestMessage>();
+
+
+                var actionBlock = new ActionBlock<PerformanceTestMessage>(async message =>
+                {
+                    message.UnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                    var stopWatch = new Stopwatch();
+
+                    stopWatch.Start();
+
+                    await client.Publish(message, optionalHeaders: new Dictionary<string, string>() { { "Test-Run", $"{message.Number}-{runId}" } });
+
+                    stopWatch.Stop();
+
+
+                    MessagesSentCounter.Increment();
+
+                    stopWatch.Reset();
+
+                }, dataflowBlockOptions: new ExecutionDataflowBlockOptions()
+                {
+                    MaxDegreeOfParallelism = sendOptions.MaxDegreeOfParallelism,
+                    MaxMessagesPerTask = sendOptions.MaxMessagesPerTask
+                });
+
+
+                bufferBlock.LinkTo(actionBlock, linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
+
+                var msg = new string('1', count: sendOptions.MessageSizeKilobytes * 1024);
+                cancellationTokenSource.CancelAfter(sendOptions.HowLongToSend);
+                sw.Start();
+                int i = 0;
+                while (cancellationTokenSource.IsCancellationRequested == false)
+                {
+                    if (bufferBlock.Count > 10000 || actionBlock.InputCount > 10000)
+                    {
+                        Console.WriteLine(value: $"Sent:{MessagesSentCounter.Value}");
+                        Thread.Sleep(500);
+                        continue;
+                    }
+
+                    bufferBlock.Post(item: new PerformanceTestMessage { Message = msg, Number = ++i });
+                }
+                sw.Stop();
+
+                bufferBlock.Complete();
+
+                bufferBlock.Completion.ContinueWith(delegate { actionBlock.Complete(); }).Wait(TimeSpan.FromMinutes(1));
+
+                actionBlock.Completion.Wait(TimeSpan.FromMinutes(1));
+
+                return new SendResult
+                {
+                    MessageSentTimePerTimePeriod = sw.Elapsed,
+                    MessagesSentCounter = MessagesSentCounter,
+                    SendOptions = sendOptions
+                };
+            }
+        }
+
+        private long receivedMessage = 0;
+
+        private async Task<ReceiveResult> Receive(ReceiveOptions receiveOptions)
+        {
+            Stopwatch sw = new Stopwatch();
+            Counter MessagesReceivedCounter = new Counter();
+
+            var workerBuiltinHandlerActivator = new BuiltinHandlerActivator();
+
+            workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(async message =>
+            {
+                if (Interlocked.Exchange(ref receivedMessage, 1) == 0)
+                {
+                    sw.Start();
+                }
+
                 var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var milliseconds = now > message.UnixTimeMilliseconds ? now - message.UnixTimeMilliseconds : message.UnixTimeMilliseconds - now;
 
@@ -73,133 +158,40 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                     throw new Exception($"Time not correct {nameof(milliseconds)}:{milliseconds}");
                 }
 
-                MessageRecievedTimeInMillisecondsCount.AddTime(milliseconds);
-                
-                if (MessageRecievedTimeInMillisecondsCount.Count >= Interlocked.Read(ref _messsagesToSend))
-                {
-                    _autoResetEvent.Set();
-                }
-
-                return Task.CompletedTask;
-
-            });
-
-            
-            _clientBuiltinHandlerActivator = new BuiltinHandlerActivator();
-
-
-            var queueName = nameof(SendAndRecieve);
-
-            _Client = CreateClient();
-
-            var task = _Client.Subscribe<PerformanceTestMessage>();
-            AsyncHelpers.RunSync(() => task);
-
-        }
-
-        private IBus CreateClient()
-        {
-            throw new NotImplementedException();
-        }
-
-        private IBus CreateWorker(string queueName)
-        {
-            return Configure
-                .With(_workerBuiltinHandlerActivator)
-                .Logging(configurer => configurer.Serilog(Logger.Logger))
-                .Transport(t =>
-                {
-                    // set the worker queue name
-                    t.UseAmazonSnsAndSqs(workerQueueAddress: queueName);
-                    //t.UseAmazonSnsAndSqsAsOneWayClient();
-                })
-                .Routing(r =>
-                {
-                    // Map the message type to the queue
-                    r.TypeBased().Map<PerformanceTestMessage>(queueName);
-                })
-                .Options(configurer =>
-                {
-                    configurer.SetMaxParallelism(Environment.ProcessorCount);
-                    configurer.SetNumberOfWorkers(Environment.ProcessorCount);
-                })
-                .Start();
-        }
-
-        private void TearDown()
-        {
-            Console.WriteLine("Cleaning up bus");
-            _Client.Dispose();
-
-            _workerBuiltinHandlerActivator.Dispose();
-
-
-        }
-
-        private void SendAndRecieve(long numberOfMessages, int messageSizeKilobytes)
-        {
-            Interlocked.Exchange(ref _messsagesToSend, numberOfMessages);
-            Interlocked.Exchange(ref _messagesRecievedCounter, 0);
-
-            Guid runId = Guid.NewGuid();
-
-            var bufferBlock = new BufferBlock<PerformanceTestMessage>();
-
-
-            var actionBlock = new ActionBlock<PerformanceTestMessage>(message =>
-            {
-                message.UnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                var stopWatch = new Stopwatch();
-                stopWatch.Start();
-                var task = _Client.Publish(message, optionalHeaders: new Dictionary<string, string>()
-                {
-                    {
-                        "Test-Run",
-                        $"{message.Number}-{runId}"
-                    }
-                });
-                AsyncHelpers.RunSync(() => task);
-                stopWatch.Stop();
-                MessageSentTimeInMillisecondsCount.AddTime(stopWatch.ElapsedMilliseconds);
-                stopWatch.Reset();
-
-            }, dataflowBlockOptions: new ExecutionDataflowBlockOptions()
-            {
-                MaxDegreeOfParallelism = Environment.ProcessorCount,
-                MaxMessagesPerTask = 1
+                MessagesReceivedCounter.Increment();
             });
 
 
-            bufferBlock.LinkTo(actionBlock, linkOptions: new DataflowLinkOptions()
+
+            var worker = Configure.With(workerBuiltinHandlerActivator).Logging(configurer => configurer.Serilog(Logger.Logger)).Transport(t =>
             {
-                PropagateCompletion = true
-            });
-
-            var msg = new string('1', count: messageSizeKilobytes * 1024);
-
-            for (var i = 0; i < numberOfMessages; i++)
+                // set the worker queue name
+                t.UseAmazonSnsAndSqs(workerQueueAddress: nameof(Send));
+            }).Routing(r =>
             {
-                bufferBlock.Post(item: new PerformanceTestMessage
-                {
-                    Message = msg,
-                    Number = i
-                });
-            }
-
-            while (_autoResetEvent.WaitOne(3000) == false)
+                // Map the message type to the queue
+                r.TypeBased().Map<PerformanceTestMessage>(nameof(Send));
+            }).Options(configurer =>
             {
-                Console.WriteLine(value: $"Recieved:{MessageRecievedTimeInMillisecondsCount.Count} Sent:{MessageSentTimeInMillisecondsCount.Count}");
-            }
-            
-            bufferBlock.Complete();
+                configurer.SetMaxParallelism(receiveOptions.RebusMaxParallelism);
+                configurer.SetNumberOfWorkers(receiveOptions.RebusNumberOfWorkers);
+            }).Start();
 
-            bufferBlock.Completion.ContinueWith(delegate
+
+            await worker.Subscribe<PerformanceTestMessage>();
+
+            return new ReceiveResult
             {
-                actionBlock.Complete();
-            }).Wait();
+                Worker = workerBuiltinHandlerActivator,
+                MessageRecievedTimePerTimePeriod = sw,
+                MessagesReceivedCounter = MessagesReceivedCounter,
+                ReceiveOptions = receiveOptions
+            };
+        }
 
-            actionBlock.Completion.Wait();
+        private void PurgeQueue()
+        {
+            TransportWrapperSingleton.GetAmazonSqsTransport(nameof(Send))?.Purge();
         }
     }
 }

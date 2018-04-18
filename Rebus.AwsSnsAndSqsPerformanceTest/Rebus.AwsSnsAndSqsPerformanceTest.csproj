@@ -187,7 +187,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Counter.cs" />
+    <Compile Include="Counters\Counter.cs" />
+    <Compile Include="Counters\DateTimeWrapper.cs" />
+    <Compile Include="Counters\IDateTimeWrapper.cs" />
+    <Compile Include="Counters\TimeSegment.cs" />
+    <Compile Include="Counters\TimeSpanCounter.cs" />
     <Compile Include="Markdown\Header.cs" />
     <Compile Include="Markdown\HeaderLevel.cs" />
     <Compile Include="Markdown\Helpers.cs" />
@@ -202,8 +206,12 @@
     <Compile Include="PerformanceTestResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReceiveOptions.cs" />
+    <Compile Include="ReceiveResult.cs" />
     <Compile Include="SendAndReceivedState.cs" />
-    <Compile Include="TimeCounter.cs" />
+    <Compile Include="Counters\TimeCounter.cs" />
+    <Compile Include="SendOptions.cs" />
+    <Compile Include="SendResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

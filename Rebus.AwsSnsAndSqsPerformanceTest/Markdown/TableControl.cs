@@ -68,6 +68,7 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest.Markdown
                 }
 
                 TextControl.Hyphen.Write(ste);
+                TextControl.Hyphen.Write(ste);
             }
 
             TextControl.Newline.Write(ste);

@@ -6,7 +6,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     internal class AmazonSQSTransportFactory : IAmazonSQSTransportFactory
     {
-        private static readonly ConcurrentDictionary<IAmazonInternalSettings, AmazonSQSTransport> m_AmazonSqsTransports = new ConcurrentDictionary<IAmazonInternalSettings, AmazonSQSTransport>();
         private readonly IAmazonInternalSettings m_amazonInternalSettings;
 
         public AmazonSQSTransportFactory(IAmazonInternalSettings amazonInternalSettings)
@@ -16,7 +15,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public IAmazonSQSTransport Create()
         {
-            return m_AmazonSqsTransports.GetOrAdd(m_amazonInternalSettings, settings => new AmazonSQSTransport(settings));
+            var transport = new AmazonSQSTransport(m_amazonInternalSettings);
+            TransportWrapperSingleton.Register(m_amazonInternalSettings.InputQueueAddress, transport);
+            return transport;
         }
     }
 }

@@ -21,12 +21,12 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public AmazonSynchronizationContext(Func<Task> task)
         {
-            _task = task ?? throw new ArgumentNullException(nameof(task), "Please remember to pass a Task to be executed");
+            _task = task ?? throw new ArgumentNullException(paramName: nameof(task), message: "Please remember to pass a Task to be executed");
         }
 
         public override void Post(SendOrPostCallback function, object state)
         {
-            _items.Enqueue(Tuple.Create(function, state));
+            _items.Enqueue(item: Tuple.Create(function, state));
             _workItemsWaiting.Set();
         }
 
@@ -35,7 +35,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// </summary>
         public void Run()
         {
-            Post(async _ =>
+            Post(function: async _ =>
             {
                 try
                 {
@@ -48,15 +48,14 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 }
                 finally
                 {
-                    Post(state => _done = true, null);
+                    Post(function: state => _done = true, state: null);
                 }
-            }, null);
+            }, state: null);
 
             while (!_done)
             {
-                Tuple<SendOrPostCallback, object> task;
 
-                if (_items.TryDequeue(out task))
+                if (_items.TryDequeue(result: out Tuple<SendOrPostCallback, object> task))
                 {
                     task.Item1(task.Item2);
 

@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Rebus.AwsSnsAndSqsPerformanceTest
+﻿namespace Rebus.AwsSnsAndSqsPerformanceTest.Counters
 {
+    using System.Threading;
+
     public class Counter
     {
         protected long _Value;

@@ -4,7 +4,7 @@
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-#if NET45
+#if NET45 || NETSTANDARD2_0
 
     [TopicName(nameof(SomeMessageTopic))]
     public class SomeMessageTopic

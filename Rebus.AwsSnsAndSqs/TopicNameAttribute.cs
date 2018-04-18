@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Rebus.AwsSnsAndSqs
 {
-#if NET45
+#if NET45 || NETSTANDARD2_0
     [AttributeUsage(AttributeTargets.Class)]
     public class TopicNameAttribute : Attribute
     {

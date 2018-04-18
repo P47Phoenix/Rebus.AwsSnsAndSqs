@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Rebus.AwsSnsAndSqs
 {
-#if NET45
+#if NET45 || NETSTANDARD2_0
     public class AttributeBasedTopicFormatter : ITopicFormatter
     {
         private readonly ConcurrentDictionary<string, string> _topicCache = new ConcurrentDictionary<string, string>();

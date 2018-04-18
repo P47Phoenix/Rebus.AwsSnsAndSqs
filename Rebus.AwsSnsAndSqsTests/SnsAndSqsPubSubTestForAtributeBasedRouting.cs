@@ -14,7 +14,7 @@ using Rebus.Tests.Contracts.Extensions;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
-#if NET45
+#if NET45 || NETSTANDARD2_0
     [TestFixture]
     [Category("snsAndSqsPubSub")]
     public class SnsAndSqsPubSubTestForAtributeBasedRouting : FixtureBase
@@ -38,7 +38,14 @@ namespace Rebus.AwsSnsAndSqsTests
                 activator.Handle(handlerMethod);
             }
 
-            Configure.With(activator).Transport(t => { t.UseAmazonSnsAndSqs(workerQueueAddress: queueName, topicFormatter: new AttributeBasedTopicFormatter()); }).Routing(r => r.TypeBased().Map<string>(queueName)).Start();
+            Configure
+                .With(activator)
+                .Transport(t => 
+                { 
+                    t.UseAmazonSnsAndSqs(workerQueueAddress: queueName, topicFormatter: new AttributeBasedTopicFormatter()); 
+                })
+                .Routing(r => r.TypeBased().Map<string>(queueName))
+                .Start();
 
             return activator;
         }

@@ -13,7 +13,7 @@ I will list the permissions needed by the rebus sns and sqs transport
 * sns:Unsubscribe
 
 ### Policy
-Sns policy template
+SNS policy template
 ```json
 {
   "Id": "Policy1523639845348",
@@ -82,7 +82,7 @@ The following example would give you access to any Lead topics
 
 
 ### Policy
-Sns policy template
+SQS policy template
 ```json
 {
   "Id": "Policy1523640379661",
@@ -142,3 +142,8 @@ The following example would allow you create queues prefixed for lead work
   ]
 }
 ```
+
+## Referneces
+* https://docs.aws.amazon.com/sns/latest/dg/AccessPolicyLanguage_SpecialInfo.html
+* https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-api-permissions-reference.html
+* https://awspolicygen.s3.amazonaws.com/policygen.html

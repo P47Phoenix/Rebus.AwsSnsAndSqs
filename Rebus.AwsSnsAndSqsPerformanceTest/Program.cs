@@ -44,15 +44,15 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 tableControl.AddColumn("Receive Taken Avg");
 
                 #if DEBUG
-                RunTest(100, 4, tableControl);
+                RunTest(10000, 4, tableControl);
                 #else
-                RunTest(100000, 4, tableControl);
-                RunTest(100000, 8, tableControl);
-                RunTest(100000, 16, tableControl);
-                RunTest(100000, 32, tableControl);
-                RunTest(100000, 64, tableControl);
-                RunTest(100000, 128, tableControl);
-                RunTest(100000, 192, tableControl);
+                RunTest(10000, 4, tableControl);
+                RunTest(10000, 8, tableControl);
+                RunTest(10000, 16, tableControl);
+                RunTest(10000, 32, tableControl);
+                RunTest(10000, 64, tableControl);
+                RunTest(10000, 128, tableControl);
+                RunTest(10000, 192, tableControl);
                 #endif
 
 

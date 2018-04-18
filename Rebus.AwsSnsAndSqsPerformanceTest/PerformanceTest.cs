@@ -23,24 +23,27 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
     {
         public static PerformanceTestResult RunTest(long numberOfMessages, int messageSizeKilobytes)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-            var pt = new PerformanceTest();
-            pt.Setup();
-            pt.SendAndRecieve(numberOfMessages, messageSizeKilobytes);
-            pt.TearDown();
-            sw.Stop();
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var performanceTest = new PerformanceTest();
+            performanceTest.Setup();
+            performanceTest.SendAndRecieve(numberOfMessages, messageSizeKilobytes);
+            performanceTest.TearDown();
+            stopwatch.Stop();
             return new PerformanceTestResult
             {
-                MessageRecivedTimes = pt.MessageRecievedTimeInMillisecondsCount,
-                MessageSentTimes = pt.MessageSentTimeInMillisecondsCount,
-                TotalTestTimeMilliseconds = sw.ElapsedMilliseconds
+                MessageRecivedTimes = performanceTest.MessageRecievedTimeInMillisecondsCount,
+                MessageSentTimes = performanceTest.MessageSentTimeInMillisecondsCount,
+                TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds
             };
         }
 
 
-        private IBus _bus;
-        private BuiltinHandlerActivator _builtinHandlerActivator;
+        private IBus _Client;
+        private IBus _Worker;
+
+        private BuiltinHandlerActivator _clientBuiltinHandlerActivator;
+        private BuiltinHandlerActivator _workerBuiltinHandlerActivator;
 
         private readonly AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
 
@@ -58,9 +61,9 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             MessageRecievedTimeInMillisecondsCount.Clear();
             MessageSentTimeInMillisecondsCount.Clear();
 
-            _builtinHandlerActivator = new BuiltinHandlerActivator();
+            _workerBuiltinHandlerActivator = new BuiltinHandlerActivator();
 
-            _builtinHandlerActivator.Handle<PerformanceTestMessage>(message =>
+            _workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(message =>
             {
                 var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var milliseconds = now > message.UnixTimeMilliseconds ? now - message.UnixTimeMilliseconds : message.UnixTimeMilliseconds - now;
@@ -71,8 +74,7 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 }
 
                 MessageRecievedTimeInMillisecondsCount.AddTime(milliseconds);
-
-
+                
                 if (MessageRecievedTimeInMillisecondsCount.Count >= Interlocked.Read(ref _messsagesToSend))
                 {
                     _autoResetEvent.Set();
@@ -82,10 +84,28 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
             });
 
+            
+            _clientBuiltinHandlerActivator = new BuiltinHandlerActivator();
+
+
             var queueName = nameof(SendAndRecieve);
 
-            _bus = Configure
-                .With(_builtinHandlerActivator)
+            _Client = CreateClient();
+
+            var task = _Client.Subscribe<PerformanceTestMessage>();
+            AsyncHelpers.RunSync(() => task);
+
+        }
+
+        private IBus CreateClient()
+        {
+            throw new NotImplementedException();
+        }
+
+        private IBus CreateWorker(string queueName)
+        {
+            return Configure
+                .With(_workerBuiltinHandlerActivator)
                 .Logging(configurer => configurer.Serilog(Logger.Logger))
                 .Transport(t =>
                 {
@@ -100,22 +120,18 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 })
                 .Options(configurer =>
                 {
-                    configurer.SetMaxParallelism(Environment.ProcessorCount * 2);
+                    configurer.SetMaxParallelism(Environment.ProcessorCount);
                     configurer.SetNumberOfWorkers(Environment.ProcessorCount);
                 })
                 .Start();
-
-            var task = _bus.Subscribe<PerformanceTestMessage>();
-            AsyncHelpers.RunSync(() => task);
-
         }
 
         private void TearDown()
         {
             Console.WriteLine("Cleaning up bus");
-            _bus.Dispose();
+            _Client.Dispose();
 
-            _builtinHandlerActivator.Dispose();
+            _workerBuiltinHandlerActivator.Dispose();
 
 
         }
@@ -136,7 +152,7 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                var task = _bus.Publish(message, new Dictionary<string, string>()
+                var task = _Client.Publish(message, optionalHeaders: new Dictionary<string, string>()
                 {
                     {
                         "Test-Run",
@@ -148,29 +164,34 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 MessageSentTimeInMillisecondsCount.AddTime(stopWatch.ElapsedMilliseconds);
                 stopWatch.Reset();
 
-            }, new ExecutionDataflowBlockOptions()
+            }, dataflowBlockOptions: new ExecutionDataflowBlockOptions()
             {
-                MaxDegreeOfParallelism = 4,
-                MaxMessagesPerTask = 20
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                MaxMessagesPerTask = 1
             });
 
 
-            bufferBlock.LinkTo(actionBlock, new DataflowLinkOptions()
+            bufferBlock.LinkTo(actionBlock, linkOptions: new DataflowLinkOptions()
             {
                 PropagateCompletion = true
             });
 
-            var msg = new string('1', messageSizeKilobytes * 1024);
+            var msg = new string('1', count: messageSizeKilobytes * 1024);
 
             for (var i = 0; i < numberOfMessages; i++)
             {
-                bufferBlock.Post(new PerformanceTestMessage
+                bufferBlock.Post(item: new PerformanceTestMessage
                 {
                     Message = msg,
                     Number = i
                 });
             }
 
+            while (_autoResetEvent.WaitOne(3000) == false)
+            {
+                Console.WriteLine(value: $"Recieved:{MessageRecievedTimeInMillisecondsCount.Count} Sent:{MessageSentTimeInMillisecondsCount.Count}");
+            }
+            
             bufferBlock.Complete();
 
             bufferBlock.Completion.ContinueWith(delegate
@@ -179,12 +200,6 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             }).Wait();
 
             actionBlock.Completion.Wait();
-
-            while (_autoResetEvent.WaitOne(3000) == false)
-            {
-                Console.WriteLine($"Recieved:{MessageRecievedTimeInMillisecondsCount.Count} Sent:{MessageSentTimeInMillisecondsCount.Count}");
-            }
-
         }
     }
 }

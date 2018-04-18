@@ -199,6 +199,7 @@
     <Compile Include="Markdown\TextControl.cs" />
     <Compile Include="PerformanceTest.cs" />
     <Compile Include="PerformanceTestMessage.cs" />
+    <Compile Include="PerformanceTestResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SendAndReceivedState.cs" />

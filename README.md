@@ -110,7 +110,7 @@ Configure
 ```
 
 ## Load and perfomance tests
-Load test results are located (here)[LoadResults.md]
+Load test results are located [here](LoadResults.md)
 Results may vary depending on network latency, region, cpu, etc.
 
 ## Permissions

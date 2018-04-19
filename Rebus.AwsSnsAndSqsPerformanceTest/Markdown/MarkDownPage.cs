@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -29,6 +30,15 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest.Markdown
         public void Remove(IMarkDownControl markDownWriter)
         {
             _markDownWriters.Remove(markDownWriter);
+        }
+
+        internal void AddTextNewLine(string text)
+        {
+            _markDownWriters.Add(TextControl.Newline);
+            _markDownWriters.Add(new TextControl()
+            {
+                Text = text
+            });
         }
     }
 }

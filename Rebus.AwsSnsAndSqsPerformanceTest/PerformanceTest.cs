@@ -27,30 +27,40 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
     {
         public static async Task<PerformanceTestResult> RunTest(SendOptions sendOptions, ReceiveOptions receiveOptions)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            var performanceTest = new PerformanceTest();
-            var receiver = await performanceTest.Receive(receiveOptions);
-            using (receiver.Worker)
+            try
             {
-                try
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                var performanceTest = new PerformanceTest();
+                var receiver = await performanceTest.Receive(receiveOptions);
+
+                using (receiver.Worker)
                 {
                     var send = await performanceTest.Send(sendOptions);
 
                     stopwatch.Stop();
-                    performanceTest.PurgeQueue();
-                    return new PerformanceTestResult
-                    {
-                        MessageReceivedTimes = receiver,
-                        MessageSentTimes = send,
-                        TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds
-                    };
-                }
-                finally
-                {
+
                     receiver.MessageRecievedTimePerTimePeriod.Stop();
+
+                    try
+                    {
+                        performanceTest.PurgeQueue();
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Logger.Error(e, "Error purging queue of extra records");
+                    }
+
+                    return new PerformanceTestResult { MessageReceivedTimes = receiver, MessageSentTimes = send, TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds };
+
                 }
             }
+            catch (Exception exception)
+            {
+                Logger.Logger.Error(exception, "Error running test");
+            }
+
+            return null;
 
         }
 
@@ -60,78 +70,103 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             Stopwatch sw = new Stopwatch();
             Counter MessagesSentCounter = new Counter();
 
-            using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
-            using (BuiltinHandlerActivator clientBuiltinHandlerActivator = new BuiltinHandlerActivator())
+            try
             {
-                var client = Configure.With(clientBuiltinHandlerActivator)
-                    .Logging(configurer => configurer.Serilog(Logger.Logger))
-                    .Transport(t =>
+
+                using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
+                using (BuiltinHandlerActivator clientBuiltinHandlerActivator = new BuiltinHandlerActivator())
+                {
+                    var client = Configure.With(clientBuiltinHandlerActivator).Logging(configurer => configurer.Serilog(Logger.Logger)).Transport(t =>
                     {
                         t.UseAmazonSnsAndSqsAsOneWayClient();
                         t.Decorate(context => context.Get<ITransport>());
                     }).Start();
 
-                Guid runId = Guid.NewGuid();
+                    Guid runId = Guid.NewGuid();
 
-                var bufferBlock = new BufferBlock<PerformanceTestMessage>();
-
-
-                var actionBlock = new ActionBlock<PerformanceTestMessage>(async message =>
-                {
-                    message.UnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                    var stopWatch = new Stopwatch();
-
-                    stopWatch.Start();
-
-                    await client.Publish(message, optionalHeaders: new Dictionary<string, string>() { { "Test-Run", $"{message.Number}-{runId}" } });
-
-                    stopWatch.Stop();
+                    var bufferBlock = new BufferBlock<PerformanceTestMessage>(new DataflowBlockOptions { CancellationToken = cancellationTokenSource.Token });
 
 
-                    MessagesSentCounter.Increment();
-
-                    stopWatch.Reset();
-
-                }, dataflowBlockOptions: new ExecutionDataflowBlockOptions()
-                {
-                    MaxDegreeOfParallelism = sendOptions.MaxDegreeOfParallelism,
-                    MaxMessagesPerTask = sendOptions.MaxMessagesPerTask
-                });
-
-
-                bufferBlock.LinkTo(actionBlock, linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
-
-                var msg = new string('1', count: sendOptions.MessageSizeKilobytes * 1024);
-                cancellationTokenSource.CancelAfter(sendOptions.HowLongToSend);
-                sw.Start();
-                int i = 0;
-                while (cancellationTokenSource.IsCancellationRequested == false)
-                {
-                    if (bufferBlock.Count > 10000 || actionBlock.InputCount > 10000)
+                    var actionBlock = new ActionBlock<PerformanceTestMessage>(async message =>
                     {
-                        Console.WriteLine(value: $"Sent:{MessagesSentCounter.Value}");
-                        Thread.Sleep(500);
-                        continue;
+                        var stopWatch = new Stopwatch();
+
+                        try
+                        {
+                            if (cancellationTokenSource.Token.IsCancellationRequested)
+                            {
+                                return;
+                            }
+
+                            message.UnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                            stopWatch.Start();
+
+                            await client.Publish(message, optionalHeaders: new Dictionary<string, string>() { { "Test-Run", $"{message.Number}-{runId}" } });
+
+                            stopWatch.Stop();
+
+
+                            MessagesSentCounter.Increment();
+
+                        }
+                        catch (Exception error)
+                        {
+                            Logger.Logger.Error(error, "Error sending message");
+                        }
+                        finally
+                        {
+                            stopWatch.Reset();
+                        }
+
+                    }, dataflowBlockOptions: new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = sendOptions.MaxDegreeOfParallelism, MaxMessagesPerTask = sendOptions.MaxMessagesPerTask, CancellationToken = cancellationTokenSource.Token });
+
+
+                    bufferBlock.LinkTo(actionBlock, linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
+
+                    var msg = new string('1', count: sendOptions.MessageSizeKilobytes * 1024);
+                    cancellationTokenSource.CancelAfter(sendOptions.HowLongToSend);
+                    sw.Start();
+                    int i = 0;
+
+                    while (cancellationTokenSource.IsCancellationRequested == false)
+                    {
+                        if (bufferBlock.Count > 10000 || actionBlock.InputCount > 10000)
+                        {
+                            Console.WriteLine(value: $"Sent:{MessagesSentCounter.Value}");
+                            Thread.Sleep(500);
+                            continue;
+                        }
+
+                        bufferBlock.Post(item: new PerformanceTestMessage { Message = msg, Number = ++i });
                     }
 
-                    bufferBlock.Post(item: new PerformanceTestMessage { Message = msg, Number = ++i });
+                    sw.Stop();
+
+                    bufferBlock.Complete();
+
+                    bufferBlock.Completion.ContinueWith(delegate { actionBlock.Complete(); }).Wait(TimeSpan.FromMinutes(5));
+
+                    actionBlock.Completion.Wait(TimeSpan.FromMinutes(5));
                 }
-                sw.Stop();
-
-                bufferBlock.Complete();
-
-                bufferBlock.Completion.ContinueWith(delegate { actionBlock.Complete(); }).Wait(TimeSpan.FromMinutes(1));
-
-                actionBlock.Completion.Wait(TimeSpan.FromMinutes(1));
-
-                return new SendResult
-                {
-                    MessageSentTimePerTimePeriod = sw.Elapsed,
-                    MessagesSentCounter = MessagesSentCounter,
-                    SendOptions = sendOptions
-                };
             }
+            catch (Exception error)
+            {
+                Logger.Logger.Error(error, "Error for performance test send");
+            }
+            finally
+            {
+                sw.Stop();
+            }
+
+            return new SendResult
+            {
+                MessageSentTimePerTimePeriod = sw.Elapsed,
+                MessagesSentCounter = MessagesSentCounter,
+                SendOptions = sendOptions
+            };
+
+
         }
 
         private long receivedMessage = 0;
@@ -139,46 +174,67 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
         private async Task<ReceiveResult> Receive(ReceiveOptions receiveOptions)
         {
             Stopwatch sw = new Stopwatch();
+
             Counter MessagesReceivedCounter = new Counter();
 
             var workerBuiltinHandlerActivator = new BuiltinHandlerActivator();
 
-            workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(async message =>
+            try
             {
-                if (Interlocked.Exchange(ref receivedMessage, 1) == 0)
+                workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(async message =>
                 {
-                    sw.Start();
-                }
+                    try
+                    {
+                        if (Interlocked.Exchange(ref receivedMessage, 1) == 0)
+                        {
+                            sw.Start();
+                        }
 
-                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                var milliseconds = now > message.UnixTimeMilliseconds ? now - message.UnixTimeMilliseconds : message.UnixTimeMilliseconds - now;
+                        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                        var milliseconds = now > message.UnixTimeMilliseconds ? now - message.UnixTimeMilliseconds : message.UnixTimeMilliseconds - now;
 
-                if (milliseconds <= 0)
-                {
-                    throw new Exception($"Time not correct {nameof(milliseconds)}:{milliseconds}");
-                }
+                        if (milliseconds <= 0)
+                        {
+                            throw new Exception($"Time not correct {nameof(milliseconds)}:{milliseconds}");
+                        }
+                    }
+                    catch (Exception error)
+                    {
+                        Logger.Logger.Error(error, "Error in PerformanceTestMessage handler");
+                    }
+                    finally
+                    {
+                        MessagesReceivedCounter.Increment();
+                    }
 
-                MessagesReceivedCounter.Increment();
-            });
+                });
 
 
 
-            var worker = Configure.With(workerBuiltinHandlerActivator).Logging(configurer => configurer.Serilog(Logger.Logger)).Transport(t =>
+                var worker = Configure
+                    .With(workerBuiltinHandlerActivator)
+                    .Logging(configurer => configurer.Serilog(Logger.Logger))
+                    .Transport(t =>
+                    {
+                        // set the worker queue name
+                        t.UseAmazonSnsAndSqs(workerQueueAddress: QueueName);
+                    }).Routing(r =>
+                    {
+                        // Map the message type to the queue
+                        r.TypeBased().Map<PerformanceTestMessage>(QueueName);
+                    }).Options(configurer =>
+                    {
+                        configurer.SetMaxParallelism(receiveOptions.RebusMaxParallelism);
+                        configurer.SetNumberOfWorkers(receiveOptions.RebusNumberOfWorkers);
+                    }).Start();
+
+
+                await worker.Subscribe<PerformanceTestMessage>();
+            }
+            catch (Exception error)
             {
-                // set the worker queue name
-                t.UseAmazonSnsAndSqs(workerQueueAddress: nameof(Send));
-            }).Routing(r =>
-            {
-                // Map the message type to the queue
-                r.TypeBased().Map<PerformanceTestMessage>(nameof(Send));
-            }).Options(configurer =>
-            {
-                configurer.SetMaxParallelism(receiveOptions.RebusMaxParallelism);
-                configurer.SetNumberOfWorkers(receiveOptions.RebusNumberOfWorkers);
-            }).Start();
-
-
-            await worker.Subscribe<PerformanceTestMessage>();
+                Logger.Logger.Error(error, "Error starting up worker");
+            }
 
             return new ReceiveResult
             {
@@ -189,9 +245,11 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             };
         }
 
+        public string QueueName { get; set; } = nameof(Send);
+
         private void PurgeQueue()
         {
-            TransportWrapperSingleton.GetAmazonSqsTransport(nameof(Send))?.Purge();
+            TransportWrapperSingleton.GetAmazonSqsTransport(QueueName)?.Purge();
         }
     }
 }

@@ -20,15 +20,17 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             {
                 Logger.Logger = new LoggerConfiguration()
                     .Enrich.WithRebusCorrelationId("Test-Run")
-                     .WriteTo.File("logs-*.txt")
+                     .WriteTo.RollingFile("logs-{date}.txt")
                      .CreateLogger();
                 var markDownPage = new MarkDownPage();
 
                 markDownPage.AddMarkDown(new Header
                 {
                     HeaderLevel = HeaderLevel.One,
-                    Text = "Aws rebus sns and sqs load test results"
+                    Text = "Load test data"
                 });
+                markDownPage.AddTextNewLine("Aws rebus sns and sqs load test results.");
+                markDownPage.AddTextNewLine("Test were run with out compression or encryption");
 
                 markDownPage.AddMarkDown(TextControl.Newline);
 
@@ -39,9 +41,9 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 tableControl.AddColumn("Test");
                 tableControl.AddColumn("max # concurrent publishes");
                 tableControl.AddColumn("Publish per second");
-                tableControl.AddColumn("# of workers");
+                tableControl.AddColumn("Receive # of workers");
                 tableControl.AddColumn("Receive max parallelism");
-                tableControl.AddColumn("Receive per second");
+                tableControl.AddColumn("# msgs Receive per second");
 
 #if DEBUG
                 AsyncHelpers.RunSync(() => RunTest(
@@ -139,8 +141,13 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
         private static async Task RunTest(SendOptions sendOptions, ReceiveOptions receiveOptions, TableControl tableControl)
         {
             var result = await PerformanceTest.RunTest(sendOptions, receiveOptions);
-
-            var text = $"send msg for {sendOptions.MessageSizeKilobytes} kilobytes";
+            
+            var text = $"send msgs at {sendOptions.MessageSizeKilobytes} kilobytes i size";
+            
+            if (result == null)
+            {
+                Console.WriteLine($"Test failed: {text}");
+            }
 
             var messagesSentPerSecond = result.MessageSentTimes.MessagesSentCounter.Value / result.MessageSentTimes.MessageSentTimePerTimePeriod.TotalSeconds;
 

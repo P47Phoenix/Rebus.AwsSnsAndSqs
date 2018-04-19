@@ -1,5 +1,5 @@
 ﻿# Aws rebus sns and sqs load test results
 
-Test | Publish per second | Receive per second
--- | -- | --
-send msg for 4 kilobytes | 136.087177884844 | 39.80850139591
+Test | max # concurrent publishes | Publish per second | # of workers | Receive max parallelism | Receive per second
+-- | -- | -- | -- | -- | --
+send msg for 4 kilobytes | 200 | 194.126846407012 | 8 | 200 | 106.049948250239

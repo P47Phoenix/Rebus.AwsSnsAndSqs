@@ -24,7 +24,7 @@ node {
         bat "tools\\nuget.exe install OpenCoverToCoberturaConverter -Version 0.3.1"
         bat "tools\\nuget.exe install NUnit.Console -Version 3.8.0"
         bat ".\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -target:\"NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -register:user -filter:\"+[Rebus.AwsSnsAndSqs]*\""
-        step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true]])
+        step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
         step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
     }
     stage('Pack')

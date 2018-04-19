@@ -32,27 +32,32 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 var performanceTest = new PerformanceTest();
-                var receiver = await performanceTest.Receive(receiveOptions);
 
-                using (receiver.Worker)
+                using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
                 {
-                    var send = await performanceTest.Send(sendOptions);
+                    var receiver = await performanceTest.Receive(receiveOptions, cancellationTokenSource.Token);
 
-                    stopwatch.Stop();
-
-                    receiver.MessageRecievedTimePerTimePeriod.Stop();
-
-                    try
+                    using (receiver.Worker)
                     {
-                        performanceTest.PurgeQueue();
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Logger.Error(e, "Error purging queue of extra records");
-                    }
 
-                    return new PerformanceTestResult { MessageReceivedTimes = receiver, MessageSentTimes = send, TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds };
+                        var send = await performanceTest.Send(sendOptions, cancellationTokenSource);
 
+                        stopwatch.Stop();
+
+                        receiver.MessageRecievedTimePerTimePeriod.Stop();
+
+                        try
+                        {
+                            performanceTest.PurgeQueue();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Logger.Error(e, "Error purging queue of extra records");
+                        }
+
+                        return new PerformanceTestResult { MessageReceivedTimes = receiver, MessageSentTimes = send, TotalTestTimeMilliseconds = stopwatch.ElapsedMilliseconds };
+
+                    }
                 }
             }
             catch (Exception exception)
@@ -65,7 +70,7 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
         }
 
 
-        private async Task<SendResult> Send(SendOptions sendOptions)
+        private async Task<SendResult> Send(SendOptions sendOptions, CancellationTokenSource cancellationTokenSource)
         {
             Stopwatch sw = new Stopwatch();
             Counter MessagesSentCounter = new Counter();
@@ -73,7 +78,6 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             try
             {
 
-                using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
                 using (BuiltinHandlerActivator clientBuiltinHandlerActivator = new BuiltinHandlerActivator())
                 {
                     var client = Configure.With(clientBuiltinHandlerActivator).Logging(configurer => configurer.Serilog(Logger.Logger)).Transport(t =>
@@ -85,7 +89,6 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                     Guid runId = Guid.NewGuid();
 
                     var bufferBlock = new BufferBlock<PerformanceTestMessage>(new DataflowBlockOptions { CancellationToken = cancellationTokenSource.Token });
-
 
                     var actionBlock = new ActionBlock<PerformanceTestMessage>(async message =>
                     {
@@ -125,11 +128,10 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                     bufferBlock.LinkTo(actionBlock, linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
 
                     var msg = new string('1', count: sendOptions.MessageSizeKilobytes * 1024);
-                    cancellationTokenSource.CancelAfter(sendOptions.HowLongToSend);
                     sw.Start();
                     int i = 0;
-
-                    while (cancellationTokenSource.IsCancellationRequested == false)
+                    cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+                    while (cancellationTokenSource.Token.IsCancellationRequested == false)
                     {
                         if (bufferBlock.Count > 10000 || actionBlock.InputCount > 10000)
                         {
@@ -171,7 +173,7 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
         private long receivedMessage = 0;
 
-        private async Task<ReceiveResult> Receive(ReceiveOptions receiveOptions)
+        private async Task<ReceiveResult> Receive(ReceiveOptions receiveOptions, CancellationToken cancellationToken)
         {
             Stopwatch sw = new Stopwatch();
 
@@ -183,8 +185,14 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
             {
                 workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(async message =>
                 {
+
                     try
                     {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
                         if (Interlocked.Exchange(ref receivedMessage, 1) == 0)
                         {
                             sw.Start();

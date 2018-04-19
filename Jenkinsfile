@@ -16,7 +16,7 @@ node {
     }
     stage('Build')
     {
-        bat "${env.MSBUILD2017Exe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release"
+        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release"
     }
     stage('test')
     {

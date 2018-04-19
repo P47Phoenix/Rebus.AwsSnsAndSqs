@@ -45,7 +45,6 @@
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.0.27" />
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.5" />
     <PackageReference Include="Rebus" Version="4.2.1" />
-    <PackageReference Include="Rebus.Tests.Contracts" Version="4.2.0" />
   </ItemGroup>
 
 </Project>

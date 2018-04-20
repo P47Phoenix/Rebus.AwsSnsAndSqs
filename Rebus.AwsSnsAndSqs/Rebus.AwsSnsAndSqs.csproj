@@ -7,6 +7,12 @@
     <AssemblyName>Rebus.AwsSnsAndSqs</AssemblyName>
     <TargetFrameworks>net45;netstandard1.3;netstandard2.0</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackageLicenseUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</PackageProjectUrl>
+    <RepositoryUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</RepositoryUrl>
+    <RepositoryType>Inner source</RepositoryType>
+    <PackageTags>Rebus sns sqs innersource</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,5 +52,15 @@
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.5" />
     <PackageReference Include="Rebus" Version="4.2.1" />
   </ItemGroup>
+  <Target Name="BeforeBuild" >
+    <Message Text="Updating AssemblyInfo to Version $(VersionNumber)"></Message>
+    <Message Text="Writing to AssemblyInfo files in $(SolutionRoot)"></Message>
+    <AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)"
+                  AssemblyCopyright="$(AssemblyCopyright)"
+                  AssemblyVersion="$(VersionNumber)"
+                  AssemblyFileVersion="$(VersionNumber)"
+    >
+    </AssemblyInfo>
+  </Target>
 
 </Project>

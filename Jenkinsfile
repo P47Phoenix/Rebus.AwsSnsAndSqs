@@ -16,7 +16,22 @@ node {
     }
     stage('Build')
     {
-        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release"
+        // nuget versioning is controlled here
+        env.AssemblyVersion = "4.0.${env.BUILD_NUMBER}"
+
+        def isAlpha = true
+
+        if(env.BRANCH_NAME.equals('master'))
+        {
+            isAlpha = false
+        }
+
+        if(isAlpha)
+        {
+            env.AssemblyVersion = env.AssemblyVersion + '-alpha-' + env.BRANCH_NAME
+        }
+
+        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=${env.AssemblyVersion} /p:\"RepositoryBranch:${env.BRANCH_NAME}\"  /p:\"RepositoryCommit:${gitHash}\" "
     }
     stage('test')
     {
@@ -29,24 +44,7 @@ node {
     }
     stage('Pack')
     {
-        env.AssemblyVersion = PowerShell('.\\GetAssemblyVersion.ps1')
-
-        def isAlpha = true
-        if(env.BRANCH_NAME.equals('master'))
-        {
-            isAlpha = false
-        }
-
-        if(isAlpha)
-        {
-            env.AssemblyVersion = env.AssemblyVersion + '-alpha'
-        }
-
         echo "package version ${env.AssemblyVersion}"
-
-        bat "${env.NuGetExe} pack ${env.Workspace}\\Rebus.AwsSnsAndSqs\\Rebus.AwsSnsAndSqs.csproj -Version ${env.AssemblyVersion} -Properties Configuration=Release -OutputDirectory ${env.Workspace} -Symbols"
-
-        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.AwsSnsAndSqs.*.nupkg -Source ${env.VinNuGetServer} -ApiKey ${env.VinNuGetApiKey}"
     }
 }
 

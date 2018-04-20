@@ -2,6 +2,18 @@
 Implement aws [sns](https://aws.amazon.com/sns/) and [sqs](https://aws.amazon.com/sqs/) provider for [Rebus](https://github.com/rebus-org/Rebus)
 This provider is port of the existing sqs provider located [here](https://github.com/rebus-org/Rebus.AmazonSQS) with the some slight refactoring and the addition of sns support.
 
+## Getting Started
+
+* Install the nuget packages
+```batch
+Install-Package Rebus -Version 4.2.1
+Install-Package Rebus.AwsSnsAndSqs -Version 4.0.10 -Source http://proget.homenet.local/nuget/VINSolutions/
+```
+* You will also need to setup your dev env for aws. See [this](https://aws.amazon.com/blogs/developer/referencing-credentials-using-profiles/) for how to set that up.
+* next pull the example solution located [here](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample)
+* the only 2 things you really need to the sample are the [main](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample/MessangerConsole/Program.cs) and the [topic](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample/Topic.Contracts/MessengerMessage.cs)
+
+
 ## Target Framworks
 
 Framwork       | What works

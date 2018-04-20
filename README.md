@@ -2,17 +2,75 @@
 Implement aws [sns](https://aws.amazon.com/sns/) and [sqs](https://aws.amazon.com/sqs/) provider for [Rebus](https://github.com/rebus-org/Rebus)
 This provider is port of the existing sqs provider located [here](https://github.com/rebus-org/Rebus.AmazonSQS) with the some slight refactoring and the addition of sns support.
 
-## Getting Started
+## Nuget
 
-* Install the nuget packages
+* You will need rebus
 ```batch
 Install-Package Rebus -Version 4.2.1
+
+```
+* This library
+```batch
 Install-Package Rebus.AwsSnsAndSqs -Version 4.0.10 -Source http://proget.homenet.local/nuget/VINSolutions/
 ```
-* You will also need to setup your dev env for aws. See [this](https://aws.amazon.com/blogs/developer/referencing-credentials-using-profiles/) for how to set that up.
-* next pull the example solution located [here](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample)
-* the only 2 things you really need to the sample are the [main](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample/MessangerConsole/Program.cs) and the [topic](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/RebusSnsSqsExample/Topic.Contracts/MessengerMessage.cs)
+* Some aws creds. See [this](https://aws.amazon.com/blogs/developer/referencing-credentials-using-profiles/) for how to set that up.
+* Create a bus
+```csharp
+using(var workHandlerActivator = new BuiltinHandlerActivator())
+{
+    workHandlerActivator.Handle<string>(s =>
+    {
+        // handle the message
+        Console.WriteLine(s);
 
+        return Task.CompletedTask;
+    });
+    var queueName = Environment.MachineName;
+    var worker = Configure
+        .With(workHandlerActivator)
+        .Logging(configurer => configurer.ColoredConsole())
+        .Transport(t =>
+        {
+            // set the worker queue name
+            t.UseAmazonSnsAndSqs(workerQueueAddress: queueName);
+        })
+        .Routing(r =>
+        {
+            // Map the message type to the queue
+            r.TypeBased().Map<string>(queueName);
+        })
+        .Start();
+
+    // subscribe to string topic
+    await worker.Subscribe<string>();
+
+    while(true)
+    {        
+        Console.Write("message:");
+        string line = Console.ReadLine();
+
+        // publish to a topic
+        await worker.Publish($"topic {line}");
+
+        // send to this bus queue
+        await worker.Send($"{queueName}: {line}");
+        
+        // send to this bus queue
+        await worker.Defer(TimeSpan.FromSeconds(30), $"defer {queueName}: {line}");
+
+    }
+}
+```
+* read Contract based pubsub down a page for more
+
+
+For more information on rebus there are lots of examples in the wild.
+* [Just run a bus](https://github.com/rebus-org/Rebus)
+* [Running in core](https://github.com/rebus-org/Rebus.ServiceProvider)
+* [Ninject](https://github.com/rebus-org/Rebus.Ninject)
+* [StructureMap](https://github.com/rebus-org/Rebus.StructureMap)
+* [Search for others](https://github.com/rebus-org)
+* [The rebus wiki](https://github.com/rebus-org/Rebus/wiki)
 
 ## Target Framworks
 

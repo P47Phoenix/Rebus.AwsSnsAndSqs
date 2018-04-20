@@ -7,6 +7,12 @@
     <AssemblyName>Rebus.AwsSnsAndSqs</AssemblyName>
     <TargetFrameworks>net45;netstandard1.3;netstandard2.0</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackageLicenseUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</PackageProjectUrl>
+    <RepositoryUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Rebus sns sqs innersource</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,5 +52,7 @@
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.5" />
     <PackageReference Include="Rebus" Version="4.2.1" />
   </ItemGroup>
-
+  <ItemGroup>
+    <AssemblyInfoFiles Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
 </Project>

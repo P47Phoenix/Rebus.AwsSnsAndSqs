@@ -16,22 +16,11 @@ node {
     }
     stage('Build')
     {
-        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release"
-    }
-    stage('test')
-    {
-        // bat "tools\\nuget.exe install OpenCover -Version 4.6.519"
-        // bat "tools\\nuget.exe install OpenCoverToCoberturaConverter -Version 0.3.1"
-        // bat "tools\\nuget.exe install NUnit.Console -Version 3.8.0"
-        bat ".\\tools\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -target:\"tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -filter:\"+[Rebus.AwsSnsAndSqs]*\""
-        step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
-        step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
-    }
-    stage('Pack')
-    {
-        env.AssemblyVersion = PowerShell('.\\GetAssemblyVersion.ps1')
+        // nuget versioning is controlled here
+        env.AssemblyVersion = "4.0.${env.BUILD_NUMBER}"
 
         def isAlpha = true
+
         if(env.BRANCH_NAME.equals('master'))
         {
             isAlpha = false
@@ -39,14 +28,32 @@ node {
 
         if(isAlpha)
         {
-            env.AssemblyVersion = env.AssemblyVersion + '-alpha'
+            env.AssemblyVersion = env.AssemblyVersion + '-alpha-' + env.BRANCH_NAME
         }
+        echo "package version ${env.AssemblyVersion}"        
+        bat "Tools\\Aversion\\Aversion.exe patch -ver \"${env.AssemblyVersion}\" -in Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs -out Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo_Patch.cs -token \"4.0.0.0\""
+        bat "del /Q Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs"
+        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=\"${env.AssemblyVersion}\""
+    }
+    stage('test')
+    {
+        bat "tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll"
+        //bat ".\\tools\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -register:Path32 -target:\"tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -filter:\"+[Rebus.AwsSnsAndSqs]*\""
+        step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
+        // def opencoverExists = fileExists 'results.xml'
+        // if(opencoverExists)
+        // {
+        //     bat 'Tools\\OpenCoverToCoberturaConverter.0.3.1\\tools\\OpenCoverToCoberturaConverter.exe "-input:results.xml" "-output:Cobertura.xml"'
+        //     step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
+        // }
+        // else
+        // {
+        //     echo "open cover could not run properly"
+        // }
+    }
+    stage('publish')
+    {
 
-        echo "package version ${env.AssemblyVersion}"
-
-        bat "${env.NuGetExe} pack ${env.Workspace}\\Rebus.AwsSnsAndSqs\\Rebus.AwsSnsAndSqs.csproj -Version ${env.AssemblyVersion} -Properties Configuration=Release -OutputDirectory ${env.Workspace} -Symbols"
-
-        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.AwsSnsAndSqs.*.nupkg -Source ${env.VinNuGetServer} -ApiKey ${env.VinNuGetApiKey}"
     }
 }
 

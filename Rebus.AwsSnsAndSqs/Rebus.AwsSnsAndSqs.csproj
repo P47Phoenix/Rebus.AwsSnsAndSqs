@@ -11,7 +11,7 @@
     <PackageProjectUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</PackageProjectUrl>
     <RepositoryUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>Rebus sns sqs innersource</PackageTags>
+    <PackageTags>Rebus sns sqs messaging pubsub innersource</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

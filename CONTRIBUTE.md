@@ -29,14 +29,16 @@ If additional changes are pushed to the fork during this process, the changes be
 All PRs are accepted by the act of being merged in.
 
 ## Versioning
+Version numbers are controlled via the [Jenkins file](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/Jenkinsfile)
+
 We are using (semantic versioning)[https://semver.org/#semantic-versioning-200]
 
 Given a version number MAJOR.MINOR.PATCH, increment the:
 
 1. MAJOR version when you make incompatible API changes,
 2. MINOR version when you add functionality in a backwards-compatible manner, and
-3. PATCH version when you make backwards-compatible bug fixes.
-Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+3. PATCH version when you make backwards-compatible bug fixes. (The build will set this based on the build number for the branch)
+Additional labels we be applied based on the source branch.
 
 The Major version should match the major version of rebus being used.
 

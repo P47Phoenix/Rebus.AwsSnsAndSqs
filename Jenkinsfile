@@ -30,7 +30,8 @@ node {
         {
             env.AssemblyVersion = env.AssemblyVersion + '-alpha-' + env.BRANCH_NAME
         }
-
+        bat "Tools\\Aversion\\Aversion.exe patch -ver \"${env.AssemblyVersion}\" -in Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs -out Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo_Patch.cs -token \"4.0.0.0\""
+        bat "del /Q Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs"
         bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=\"${env.AssemblyVersion}\" /p:RepositoryBranch:\"${env.BRANCH_NAME}\"  /p:RepositoryCommit:\"${gitHash}\""
     }
     stage('test')

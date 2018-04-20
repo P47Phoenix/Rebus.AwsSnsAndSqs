@@ -8,17 +8,19 @@ using NUnit.Framework;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using Amazon;
+    using AwsSnsAndSqs;
+
     [TestFixture]
     public class TestQueueGeneration
     {
         [Test]
         public async Task Run()
         {
-            var info = AmazonSqsTransportFactory.ConnectionInfo;
-            var credentials = new BasicAWSCredentials(info.AccessKeyId, info.SecretAccessKey);
-            var config = new AmazonSQSConfig {RegionEndpoint = info.RegionEndpoint};
 
-            using (var client = new AmazonSQSClient(credentials, config))
+            var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.USWest2 };
+
+            using (var client = new AmazonSQSClient(new FailbackAmazonCredentialsFactory().Create(), config))
             {
                 var queueName = "test1";
                 var response = await client.CreateQueueAsync(new CreateQueueRequest(queueName));

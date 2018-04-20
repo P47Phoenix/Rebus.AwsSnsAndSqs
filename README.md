@@ -4,14 +4,9 @@ This provider is port of the existing sqs provider located [here](https://github
 
 ## Nuget
 
-* You will need rebus
+* Get rebus
 ```batch
-Install-Package Rebus -Version 4.2.1
-
-```
-* This library
-```batch
-Install-Package Rebus.AwsSnsAndSqs -Version 4.0.10 -Source http://proget.homenet.local/nuget/VINSolutions/
+Install-Package Rebus.AwsSnsAndSqs -Source http://proget.homenet.local/nuget/VINSolutions/
 ```
 * Some aws creds. See [this](https://aws.amazon.com/blogs/developer/referencing-credentials-using-profiles/) for how to set that up.
 * Create a bus

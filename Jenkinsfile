@@ -30,6 +30,7 @@ node {
         {
             env.AssemblyVersion = env.AssemblyVersion + '-alpha-' + env.BRANCH_NAME
         }
+        echo "package version ${env.AssemblyVersion}"        
         bat "Tools\\Aversion\\Aversion.exe patch -ver \"${env.AssemblyVersion}\" -in Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs -out Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo_Patch.cs -token \"4.0.0.0\""
         bat "del /Q Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs"
         bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=\"${env.AssemblyVersion}\""
@@ -37,13 +38,21 @@ node {
     stage('test')
     {
         bat ".\\tools\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -register:Path32 -target:\"tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -filter:\"+[Rebus.AwsSnsAndSqs]*\""
-        bat 'Tools\\OpenCoverToCoberturaConverter.0.3.1\\tools\\OpenCoverToCoberturaConverter.exe "-input:results.xml" "-output:Cobertura.xml"'
         step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
-        step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
+        def opencoverExists = fileExists 'results.xml'
+        if(opencoverExists)
+        {
+            bat 'Tools\\OpenCoverToCoberturaConverter.0.3.1\\tools\\OpenCoverToCoberturaConverter.exe "-input:results.xml" "-output:Cobertura.xml"'
+            step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
+        }
+        else
+        {
+            echo "open cover could not run properly"
+        }
     }
-    stage('Pack')
+    stage('publish')
     {
-        echo "package version ${env.AssemblyVersion}"
+        
     }
 }
 

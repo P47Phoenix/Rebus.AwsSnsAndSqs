@@ -31,7 +31,7 @@ node {
             env.AssemblyVersion = env.AssemblyVersion + '-alpha-' + env.BRANCH_NAME
         }
 
-        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=${env.AssemblyVersion} /p:\"RepositoryBranch:${env.BRANCH_NAME}\"  /p:\"RepositoryCommit:${gitHash}\" "
+        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=${env.AssemblyVersion} /p:RepositoryBranch:${env.BRANCH_NAME}  /p:RepositoryCommit:${gitHash}"
     }
     stage('test')
     {

@@ -37,22 +37,23 @@ node {
     }
     stage('test')
     {
-        bat ".\\tools\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -register:Path32 -target:\"tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -filter:\"+[Rebus.AwsSnsAndSqs]*\""
+        bat "tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll"
+        //bat ".\\tools\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -register:Path32 -target:\"tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -filter:\"+[Rebus.AwsSnsAndSqs]*\""
         step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
-        def opencoverExists = fileExists 'results.xml'
-        if(opencoverExists)
-        {
-            bat 'Tools\\OpenCoverToCoberturaConverter.0.3.1\\tools\\OpenCoverToCoberturaConverter.exe "-input:results.xml" "-output:Cobertura.xml"'
-            step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
-        }
-        else
-        {
-            echo "open cover could not run properly"
-        }
+        // def opencoverExists = fileExists 'results.xml'
+        // if(opencoverExists)
+        // {
+        //     bat 'Tools\\OpenCoverToCoberturaConverter.0.3.1\\tools\\OpenCoverToCoberturaConverter.exe "-input:results.xml" "-output:Cobertura.xml"'
+        //     step([$class: 'CoberturaPublisher', coberturaReportFile: 'outputCobertura.xml'])
+        // }
+        // else
+        // {
+        //     echo "open cover could not run properly"
+        // }
     }
     stage('publish')
     {
-        
+
     }
 }
 

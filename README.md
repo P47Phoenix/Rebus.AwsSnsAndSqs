@@ -1,5 +1,6 @@
 # Rebus.AwsSnsAndSqs
-Implement aws sns and sqs provider for [Rebus](https://github.com/rebus-org/Rebus)
+Implement aws [sns](https://aws.amazon.com/sns/) and [sqs](https://aws.amazon.com/sqs/) provider for [Rebus](https://github.com/rebus-org/Rebus)
+This provider is port of the existing sqs provider located [here](https://github.com/rebus-org/Rebus.AmazonSQS)
 
 ## Target Framworks
 

@@ -2,11 +2,31 @@
 
 Rebus.AwsSnsAndSqs is an [inner source](https://en.wikipedia.org/wiki/Inner_source) project. Pull requests are welcomed from anyone in Cox Automotive.
 
+I do prefer it if we communicate a little bit before you send PRs, though. This is because I value your time, and it would be a shame if you spent time working on something that could be made better in another way, or wasn't actually needed because what you wanted to achieve could be done better in another way, etc.
+
+## "Beginners"
+Contributions are ALSO very welcome if you consider yourself a beginner at [inner source](https://en.wikipedia.org/wiki/Inner_source). Everyone has to start somewhere, right?
+
+Here's how you would ideally do it if want to contribute:
+
+Pick an [issue](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/issues) you're interested in doing, or dream up something yourself that you feel is missing.
+If you talk to me first (either via comments on the issue or by email), I will guarantee that your contribution is accepted.
+Send me a "pull request" (which is how you make contributions on GitHub)
+
 ## Quick Start
 
-1. Clone this repository
-2. Open solution [Rebus.AwsSnsAndSqs](Rebus.AwsSnsAndSqs.sln)
+1. Fork this repository ([Fork A Repo @ GitHub docs](https://help.github.com/articles/fork-a-repo/))
+2. Clone the fork ([Cloning A Repository @ GitHub docs](https://help.github.com/articles/cloning-a-repository/))
 3. You will need a suffient credentials to create sns and sqs resources. See [this](https://aws.amazon.com/blogs/developer/referencing-credentials-using-profiles/) for setting up an aws profile on your local machine. By default the [FallbackCredentialsFactory](https://github.com/aws/aws-sdk-net/blob/master/sdk/src/Core/Amazon.Runtime/Credentials/FallbackCredentialsFactory.cs) is used for finding credentials to run the tests and the example.
+4. Open solution [Rebus.AwsSnsAndSqs](Rebus.AwsSnsAndSqs.sln)
+5. Push your local changes to your fork ([Pushing To A Remote @ GitHub docs](https://help.github.com/articles/pushing-to-a-remote/))
+6. Send me a pull request ([Using Pull Requests @ GitHub docs](https://help.github.com/articles/using-pull-requests/))
+
+When this is done, the changes become visible. They can then be reviewed and discussed.
+
+If additional changes are pushed to the fork during this process, the changes become immediately available in the pull request.
+
+All PRs are accepted by the act of being merged in.
 
 ## Versioning
 We are using (semantic versioning)[https://semver.org/#semantic-versioning-200]
@@ -17,6 +37,8 @@ Given a version number MAJOR.MINOR.PATCH, increment the:
 2. MINOR version when you add functionality in a backwards-compatible manner, and
 3. PATCH version when you make backwards-compatible bug fixes.
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+
+The Major version should match the major version of rebus being used.
 
 ## Testing changes
 Testing is done using Nunit with Rebus.Tests.Contracts providing supporting mocks and fakes for testing.

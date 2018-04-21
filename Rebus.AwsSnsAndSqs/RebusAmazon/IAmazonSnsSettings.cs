@@ -2,9 +2,8 @@
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    public interface IAmazonSnsSettings
+    public interface IAmazonSnsSettings : IAmazonSettings
     {
-        IAmazonCredentialsFactory AmazonCredentialsFactory { get; }
         AmazonSimpleNotificationServiceConfig AmazonSimpleNotificationServiceConfig { get; }
     }
 }

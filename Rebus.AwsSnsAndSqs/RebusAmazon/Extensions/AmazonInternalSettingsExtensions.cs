@@ -38,7 +38,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
         public static async Task<string> GetTopicArn(this IAmazonInternalSettings m_AmazonInternalSettings, ITransactionContext transactionContext, string topic)
         {
-            return s_topicArnCache.GetOrAdd(topic, s =>
+            var result = await Task.FromResult(s_topicArnCache.GetOrAdd(topic, s =>
             {
                 var snsClient = m_AmazonInternalSettings.CreateSnsClient(transactionContext);
 
@@ -60,7 +60,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
                 }
 
                 return topicArn;
-            });
+            }));
+
+            return result;
         }
 
         public static async Task CheckSqsPolicy(this IAmazonInternalSettings amazonInternalSettings, ITransactionContext transactionContext, string destinationQueueUrlByName, SqsInfo sqsInformation, string topicArn)

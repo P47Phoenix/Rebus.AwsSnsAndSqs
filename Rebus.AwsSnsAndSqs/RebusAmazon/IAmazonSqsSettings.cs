@@ -3,9 +3,8 @@ using Rebus.AwsSnsAndSqs.Config;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    public interface IAmazonSqsSettings
+    public interface IAmazonSqsSettings : IAmazonSettings
     {
-        IAmazonCredentialsFactory AmazonCredentialsFactory { get; }
         AmazonSQSConfig AmazonSqsConfig { get; }
         AmazonSnsAndSqsTransportOptions AmazonSnsAndSqsTransportOptions { get; }
     }

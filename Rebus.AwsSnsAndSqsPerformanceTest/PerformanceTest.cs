@@ -161,12 +161,9 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 sw.Stop();
             }
 
-            return new SendResult
-            {
-                MessageSentTimePerTimePeriod = sw.Elapsed,
-                MessagesSentCounter = MessagesSentCounter,
-                SendOptions = sendOptions
-            };
+            var result = await Task.FromResult(new SendResult { MessageSentTimePerTimePeriod = sw.Elapsed, MessagesSentCounter = MessagesSentCounter, SendOptions = sendOptions });
+
+            return result;
 
 
         }
@@ -183,14 +180,14 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
 
             try
             {
-                workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(async message =>
+                workerBuiltinHandlerActivator.Handle<PerformanceTestMessage>(message =>
                 {
 
                     try
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {
-                            return;
+                            return Task.CompletedTask;
                         }
 
                         if (Interlocked.Exchange(ref receivedMessage, 1) == 0)
@@ -214,6 +211,8 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                     {
                         MessagesReceivedCounter.Increment();
                     }
+
+                    return Task.CompletedTask;
 
                 });
 
@@ -244,13 +243,9 @@ namespace Rebus.AwsSnsAndSqsPerformanceTest
                 Logger.Logger.Error(error, "Error starting up worker");
             }
 
-            return new ReceiveResult
-            {
-                Worker = workerBuiltinHandlerActivator,
-                MessageRecievedTimePerTimePeriod = sw,
-                MessagesReceivedCounter = MessagesReceivedCounter,
-                ReceiveOptions = receiveOptions
-            };
+            var result = await Task.FromResult(new ReceiveResult { Worker = workerBuiltinHandlerActivator, MessageRecievedTimePerTimePeriod = sw, MessagesReceivedCounter = MessagesReceivedCounter, ReceiveOptions = receiveOptions });
+
+            return result;
         }
 
         public string QueueName { get; set; } = nameof(Send);

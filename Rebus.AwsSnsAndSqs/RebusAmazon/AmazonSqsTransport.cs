@@ -98,18 +98,17 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public async Task<string[]> GetSubscriberAddresses(string topic)
         {
-            using (var rebusTransactionScope = new RebusTransactionScope())
-            {
-                var topicArn = await m_AmazonInternalSettings.GetTopicArn(rebusTransactionScope.TransactionContext, topic);
-                return new[] { topicArn };
-            }
+            var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic);
+            m_log.Debug("using sns topic {0} for topic contract {1}", topicArn, topic);
+            return new[] { topicArn };
         }
 
         public async Task RegisterSubscriber(string topic, string subscriberAddress)
         {
+            m_log.Debug("Adding sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
             using (var rebusTransactionScope = new RebusTransactionScope())
             {
-                var topicArn = await m_AmazonInternalSettings.GetTopicArn(rebusTransactionScope.TransactionContext, topic);
+                var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic, rebusTransactionScope);
 
                 var destinationQueueUrlByName = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(subscriberAddress, rebusTransactionScope.TransactionContext);
 
@@ -133,6 +132,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     await m_AmazonInternalSettings.CheckSqsPolicy(rebusTransactionScope.TransactionContext, destinationQueueUrlByName, sqsInformation, topicArn);
                 }
             }
+            m_log.Debug("Added sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }
 
 
@@ -140,16 +140,17 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {
+            m_log.Debug("Removing sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
             using (var rebusTransactionScope = new RebusTransactionScope())
             {
-                var topicArn = await m_AmazonInternalSettings.GetTopicArn(rebusTransactionScope.TransactionContext, topic);
+                var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic, rebusTransactionScope);
 
                 using (var scope = new RebusTransactionScope())
                 {
                     var destinationQueueUrlByName = m_amazonSQSQueueContext.GetDestinationQueueUrlByName(subscriberAddress, scope.TransactionContext);
 
                     var sqsInfo = m_amazonSQSQueueContext.GetSqsInformationFromUri(destinationQueueUrlByName);
-                    
+
                     var snsClient = m_AmazonInternalSettings.CreateSnsClient(rebusTransactionScope.TransactionContext);
 
                     var listSubscriptionsByTopicResponse = await snsClient.ListSubscriptionsByTopicAsync(topicArn);
@@ -169,6 +170,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     }
                 }
             }
+            m_log.Debug("Removed sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }
 
         public void Purge()

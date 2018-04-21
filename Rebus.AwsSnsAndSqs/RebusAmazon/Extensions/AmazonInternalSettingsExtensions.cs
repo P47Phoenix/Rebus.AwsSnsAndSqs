@@ -3,15 +3,38 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.Auth.AccessControlPolicy;
 using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
+using Amazon.Runtime.Internal.Util;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
+using Rebus.Logging;
 using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
     internal static class AmazonInternalSettingsExtensions
     {
+        internal class LoggerSettingsHelper
+        {
+            private ILog m_logger;
+
+            public LoggerSettingsHelper(IRebusLoggerFactory rebusLoggerFactory)
+            {
+                m_logger = rebusLoggerFactory.GetLogger<LoggerSettingsHelper>();
+            }
+
+            public ILog Logger => m_logger;
+        }
+
+        private static LoggerSettingsHelper s_loggerSettingsHelper = null;
+
+        private static ILog GetLogger(this IRebusLoggerFactory rebusLoggerFactory)
+        {
+            s_loggerSettingsHelper = s_loggerSettingsHelper ?? new LoggerSettingsHelper(rebusLoggerFactory);
+
+            return s_loggerSettingsHelper.Logger;
+        }
+
         private static ConcurrentDictionary<string, string> s_topicArnCache = new ConcurrentDictionary<string, string>();
 
         public static IAmazonSimpleNotificationService CreateSnsClient(this IAmazonSnsSettings amazonSnsSettings, ITransactionContext transactionContext)
@@ -36,35 +59,53 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             });
         }
 
-        public static async Task<string> GetTopicArn(this IAmazonInternalSettings m_AmazonInternalSettings, ITransactionContext transactionContext, string topic)
+        public static async Task<string> GetTopicArn(this IAmazonInternalSettings amazonInternalSettings, string topic, RebusTransactionScope scope = null)
         {
             return s_topicArnCache.GetOrAdd(topic, s =>
             {
-                var snsClient = m_AmazonInternalSettings.CreateSnsClient(transactionContext);
-
-                var formatedTopicName = m_AmazonInternalSettings.TopicFormatter.FormatTopic(topic);
-
-                var findTopicAsync = snsClient.FindTopicAsync(formatedTopicName);
-
-                AsyncHelpers.RunSync(() => findTopicAsync);
-
-                var findTopicResult = findTopicAsync.Result;
-
-                string topicArn = findTopicResult?.TopicArn;
-
-                if (findTopicResult == null)
+                var rebusTransactionScope = scope ?? new RebusTransactionScope();
+                try
                 {
-                    var task = snsClient.CreateTopicAsync(new CreateTopicRequest(formatedTopicName));
-                    AsyncHelpers.RunSync(() => task);
-                    topicArn = task.Result?.TopicArn;
-                }
+                    var logger = amazonInternalSettings.RebusLoggerFactory.GetLogger();
 
-                return topicArn;
+                    var snsClient = amazonInternalSettings.CreateSnsClient(rebusTransactionScope.TransactionContext);
+
+                    var formatedTopicName = amazonInternalSettings.TopicFormatter.FormatTopic(topic);
+
+                    var findTopicAsync = snsClient.FindTopicAsync(formatedTopicName);
+
+                    AsyncHelpers.RunSync(() => findTopicAsync);
+
+                    var findTopicResult = findTopicAsync.Result;
+
+                    string topicArn = findTopicResult?.TopicArn;
+
+                    if (findTopicResult == null)
+                    {
+                        logger.Debug($"Did not find sns topic {0}", formatedTopicName);
+                        var task = snsClient.CreateTopicAsync(new CreateTopicRequest(formatedTopicName));
+                        AsyncHelpers.RunSync(() => task);
+                        topicArn = task.Result?.TopicArn;
+                        logger.Debug($"Created sns topic {0} => {1}", formatedTopicName, topicArn);
+                    }
+
+                    logger.Debug($"Using sns topic {0} => {1}", formatedTopicName, topicArn);
+                    return topicArn;
+                }
+                finally
+                {
+                    if (scope == null)
+                    {
+                        rebusTransactionScope.Dispose();
+                    }
+                }
             });
         }
 
         public static async Task CheckSqsPolicy(this IAmazonInternalSettings amazonInternalSettings, ITransactionContext transactionContext, string destinationQueueUrlByName, SqsInfo sqsInformation, string topicArn)
         {
+            var logger = amazonInternalSettings.RebusLoggerFactory.GetLogger();
+
             var sqsClient = amazonInternalSettings.CreateSqsClient(transactionContext);
 
             var attributes = await sqsClient.GetAttributesAsync(destinationQueueUrlByName);
@@ -79,6 +120,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
             if (attributes.ContainsKey(policyKey))
             {
+                logger.Debug($"Updating existing policy on sqs queue {0} for topic {1}", sqsInformation.Url, topicArn);
                 var policyString = attributes[policyKey];
 
                 attributes = new Dictionary<string, string>();
@@ -94,6 +136,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             }
             else
             {
+                logger.Debug($"Creating policy on sqs queue {0} for topic {1}", sqsInformation.Url, topicArn);
                 attributes = new Dictionary<string, string>();
                 sqsPolicy = new Policy().WithStatements(statement);
                 attributes.Add(policyKey, sqsPolicy.ToJson());

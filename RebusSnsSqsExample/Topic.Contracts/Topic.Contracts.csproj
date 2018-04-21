@@ -4,4 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Rebus.AwsSnsAndSqs" Version="4.0.10" />
+  </ItemGroup>
+
 </Project>

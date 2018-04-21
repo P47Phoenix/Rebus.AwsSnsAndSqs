@@ -48,6 +48,9 @@
     <Reference Include="Rebus, Version=4.2.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Rebus.4.2.1\lib\net45\Rebus.dll</HintPath>
     </Reference>
+    <Reference Include="Rebus.AwsSnsAndSqs, Version=4.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rebus.AwsSnsAndSqs.4.0.10\lib\net45\Rebus.AwsSnsAndSqs.dll</HintPath>
+    </Reference>
     <Reference Include="Rebus.Serilog, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Rebus.Serilog.4.0.0\lib\net45\Rebus.Serilog.dll</HintPath>
     </Reference>
@@ -84,10 +87,6 @@
     <Analyzer Include="..\packages\AWSSDK.SQS.3.3.3.5\analyzers\dotnet\cs\AWSSDK.SQS.CodeAnalysis.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Rebus.AwsSnsAndSqs\Rebus.AwsSnsAndSqs.csproj">
-      <Project>{E4982F49-2551-4CCB-B69B-79703E4D9541}</Project>
-      <Name>Rebus.AwsSnsAndSqs</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Topic.Contracts\Topic.Contracts.csproj">
       <Project>{E0FE601C-D964-4BBE-8993-8931688A1A94}</Project>
       <Name>Topic.Contracts</Name>

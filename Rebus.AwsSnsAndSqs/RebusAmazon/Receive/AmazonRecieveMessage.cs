@@ -19,11 +19,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     internal class AmazonRecieveMessage
     {
         private readonly IAmazonInternalSettings m_amazonInternalSettings;
+        private readonly IAmazonMessageProcessorFactory _amazonMessageProcessorFactory;
         private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
         private readonly ILog m_log;
 
-        public AmazonRecieveMessage(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext)
+        public AmazonRecieveMessage(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext, IAmazonMessageProcessorFactory amazonMessageProcessorFactory)
         {
+            _amazonMessageProcessorFactory = amazonMessageProcessorFactory;
             m_amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
             m_amazonSqsQueueContext = amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(amazonSQSQueueContext));
             m_log = m_amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonRecieveMessage>();
@@ -112,32 +114,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         private TransportMessage ExtractTransportMessageFrom(Message message)
         {
-            var messageJObject = JObject.Parse(message.Body);
+            IAmazonMessageProcessor amazonMessageProcessor = _amazonMessageProcessorFactory.Create(message);
 
-            var isFromSnsTopic = messageJObject["Type"]?.Value<string>() == "Notification";
-
-            if (isFromSnsTopic)
-            {
-                var snsMessage = messageJObject["Message"].Value<string>();
-
-                var msgBytes = Convert.FromBase64String(snsMessage);
-
-                var msg = Encoding.UTF8.GetString(msgBytes);
-
-                var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(msg);
-
-                return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
-            }
-            else
-            {
-                var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(message.Body);
-                return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
-            }
-        }
-
-        private byte[] GetBodyBytes(string bodyText)
-        {
-            return Convert.FromBase64String(bodyText);
+            return amazonMessageProcessor.ProcessMessage();
         }
     }
+
 }

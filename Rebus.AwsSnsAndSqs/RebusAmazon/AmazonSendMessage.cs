@@ -30,7 +30,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             this.m_amazonSQSQueueContext = m_amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(m_amazonSQSQueueContext));
         }
 
-
         /// <inheritdoc />
         public async Task Send(string destinationAddress, TransportMessage message, ITransactionContext context)
         {
@@ -59,7 +58,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
                 var msgBytes = Encoding.UTF8.GetBytes(msg);
 
-                var publishResponse = await snsClient.PublishAsync(new PublishRequest(destinationAddress, GetBody(msgBytes)));
+                // promote certain headers to a messageAttribute, we can then filter on those with policy
+                var pubRequest = new PublishRequest(destinationAddress, GetBody(msgBytes));
+                foreach(var kvp in sqsMessage.Headers.Where(h=>!string.IsNullOrEmpty(h.Value)))
+                    pubRequest.MessageAttributes[kvp.Key] = 
+                        new Amazon.SimpleNotificationService.Model.MessageAttributeValue { StringValue = kvp.Value, DataType = "String" };
+
+                var publishResponse = await snsClient.PublishAsync(pubRequest);
 
                 if (publishResponse.HttpStatusCode != HttpStatusCode.OK)
                 {

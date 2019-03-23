@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
+    using System;
+
     public class AmazonPeekLockDuration
     {
         private TimeSpan _PeekLockDuration = TimeSpan.FromMinutes(5);

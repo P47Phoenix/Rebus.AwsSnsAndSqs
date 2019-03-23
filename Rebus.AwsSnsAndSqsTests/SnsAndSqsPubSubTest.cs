@@ -24,6 +24,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
         protected override void SetUp()
         {
+
             _publisher = GetBus(_publisherQueueName);
         }
 
@@ -37,7 +38,7 @@ namespace Rebus.AwsSnsAndSqsTests
             }
 
             Configure.With(activator).Transport(t => { t.UseAmazonSnsAndSqs(workerQueueAddress: queueName); }).Routing(r => r.TypeBased().Map<string>(queueName)).Start();
-
+            
             return activator;
         }
 

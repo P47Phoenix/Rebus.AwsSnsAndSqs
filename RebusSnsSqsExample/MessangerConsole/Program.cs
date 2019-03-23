@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Rebus.Activation;
 using Rebus.AwsSnsAndSqs.Config;
+using Rebus.AwsSnsAndSqs.RebusAmazon;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 using Serilog;
@@ -27,15 +29,15 @@ namespace MessangerConsole
             {
 
                 // Setup worker bus
-                workHandlerActivator.Handle<MessengerMessage>(message =>
+                workHandlerActivator.Handle<Rebus.AwsSnsAndSqs.RebusAmazon.VinEventMessage>(message =>
                 {
                     // igonore message we sent
-                    if (message.Sender == queueName)
+                    if (message.Source == queueName)
                     {
                         return Task.CompletedTask;
                     }
                     Console.WriteLine();
-                    Console.WriteLine($"{message.CreateDateTime:g}: {message.Message}");
+                    Console.WriteLine($"{message.TimeStamp:g}: {message.Message}");
                     Console.Write("message:");
                     return Task.CompletedTask;
                 });
@@ -62,11 +64,7 @@ namespace MessangerConsole
                 var client = Configure
                     .With(clientActivator)
                     .Logging(configurer => configurer.Serilog(Log.Logger))
-                    .Transport(t =>
-                    {
-                        // set the worker queue name
-                        t.UseAmazonSnsAndSqsAsOneWayClient();
-                    })
+                    .Transport(t =>  t.UseAmazonSnsAndSqsAsOneWayClient())                   
                     .Start();
 
                 var line = String.Empty;
@@ -76,12 +74,14 @@ namespace MessangerConsole
                     line = Console.ReadLine();
 
                     // publish a message to the MessengerMessage topic
-                    await client.Publish(new MessengerMessage
-                    {
-                        CreateDateTime = DateTime.Now,
-                        Message = line,
-                        Sender = queueName
-                    });
+                    await client.PublishEvent(new VinEventMessage
+                        {
+                            Message = line,
+                            EventId = Guid.NewGuid(),
+                            MessageVersion = new Version(1, 0),
+                            Source = "RebusSnsSqsExample.Application",
+                            MessageType = "Test.Test",
+                        });                  
                 }
                 while (string.IsNullOrWhiteSpace(line) == false);
 
@@ -90,6 +90,7 @@ namespace MessangerConsole
             }
         }
     }
+
 }
 
 

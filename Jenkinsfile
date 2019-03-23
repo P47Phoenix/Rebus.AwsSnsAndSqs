@@ -6,7 +6,7 @@ node {
     }
     stage('Getting Latest') { // for display purposes
        //Get some code from a GitHub repository
-        git url:'git@ghe.coxautoinc.com:Mike-Connelly/Rebus.AwsSnsAndSqs.git', branch:"${env.BRANCH_NAME}"
+        git url:'git@ghe.coxautoinc.com:CoxAuto/Rebus.AwsSnsAndSqs.git', branch:"${env.BRANCH_NAME}"
         def hashsplit = bat ( returnStdout:true, script:"git rev-parse --verify HEAD").split("\n?\r")
         gitHash = hashsplit[2].trim()
     }
@@ -17,7 +17,7 @@ node {
     stage('Build')
     {
         // nuget versioning is controlled here
-        env.AssemblyVersion = "4.0.${env.BUILD_NUMBER}"
+        env.AssemblyVersion = "5.0.${env.BUILD_NUMBER}"
 
         def isAlpha = true
 
@@ -31,15 +31,15 @@ node {
             env.AssemblyVersion = env.AssemblyVersion + '-alpha-' + env.BRANCH_NAME
         }
         echo "package version ${env.AssemblyVersion}"        
-        bat "Tools\\Aversion\\Aversion.exe patch -ver \"${env.AssemblyVersion}\" -in Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs -out Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo_Patch.cs -token \"4.0.0.0\""
+        bat "Tools\\Aversion\\Aversion.exe patch -ver \"${env.AssemblyVersion}\" -in Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs -out Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo_Patch.cs -token \"5.0.0.0\""
         bat "del /Q Rebus.AwsSnsAndSqs\\Properties\\AssemblyInfo.cs"
-        bat "${env.MSBUILDExe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=\"${env.AssemblyVersion}\""
+        bat "${env.MSBUILD2017Exe} ./Rebus.AwsSnsAndSqs.sln /p:Configuration=Release /p:PackageVersion=\"${env.AssemblyVersion}\""
     }
-    stage('test')
-    {
-        bat "tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll"
+//    stage('test')
+//    {
+        //bat "tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll"
         //bat ".\\tools\\OpenCover.4.6.519\\tools\\OpenCover.Console.exe -register:Path32 -target:\"tools\\NUnit.ConsoleRunner.3.8.0\\tools\\nunit3-console.exe\" -targetargs:\"Rebus.AwsSnsAndSqsTests\\bin\\Release\\net45\\Rebus.AwsSnsAndSqsTests.dll\" -filter:\"+[Rebus.AwsSnsAndSqs]*\""
-        step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
+        //step([$class: 'NUnitPublisher', testResultsPattern: 'TestResult.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
         // def opencoverExists = fileExists 'results.xml'
         // if(opencoverExists)
         // {
@@ -50,10 +50,13 @@ node {
         // {
         //     echo "open cover could not run properly"
         // }
-    }
+//    }
     stage('publish')
     {
 
+        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.AwsSnsAndSqs\\bin\\Release\\Rebus.AwsSnsAndSqs.*.nupkg -Source artifactory"
+        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.NewRelic\\bin\\Release\\Rebus.NewRelic.*.nupkg -Source artifactory"
+        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.VinSolutions\\bin\\Release\\Rebus.VinSolutions.*.nupkg -Source artifactory"
     }
 }
 

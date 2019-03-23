@@ -6,6 +6,8 @@ using Rebus.Threading;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Receive;
+
     public interface IAmazonInternalSettings : IAmazonSnsSettings, IAmazonSqsSettings
     {
         IAsyncTaskFactory AsyncTaskFactory { get; }

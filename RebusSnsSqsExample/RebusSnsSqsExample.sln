@@ -7,20 +7,33 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Topic.Contracts", "Topic.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessangerConsole", "MessangerConsole\MessangerConsole.csproj", "{D872A934-5747-41F5-AE47-DF2575DFF7F3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.AwsSnsAndSqs", "..\Rebus.AwsSnsAndSqs\Rebus.AwsSnsAndSqs.csproj", "{20EFD734-8751-4CAD-8E44-4C77F97116AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		RelaseBuildLoadTest|Any CPU = RelaseBuildLoadTest|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E0FE601C-D964-4BBE-8993-8931688A1A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E0FE601C-D964-4BBE-8993-8931688A1A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0FE601C-D964-4BBE-8993-8931688A1A94}.RelaseBuildLoadTest|Any CPU.ActiveCfg = Release|Any CPU
+		{E0FE601C-D964-4BBE-8993-8931688A1A94}.RelaseBuildLoadTest|Any CPU.Build.0 = Release|Any CPU
 		{E0FE601C-D964-4BBE-8993-8931688A1A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0FE601C-D964-4BBE-8993-8931688A1A94}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D872A934-5747-41F5-AE47-DF2575DFF7F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D872A934-5747-41F5-AE47-DF2575DFF7F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D872A934-5747-41F5-AE47-DF2575DFF7F3}.RelaseBuildLoadTest|Any CPU.ActiveCfg = Release|Any CPU
+		{D872A934-5747-41F5-AE47-DF2575DFF7F3}.RelaseBuildLoadTest|Any CPU.Build.0 = Release|Any CPU
 		{D872A934-5747-41F5-AE47-DF2575DFF7F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D872A934-5747-41F5-AE47-DF2575DFF7F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20EFD734-8751-4CAD-8E44-4C77F97116AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20EFD734-8751-4CAD-8E44-4C77F97116AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20EFD734-8751-4CAD-8E44-4C77F97116AE}.RelaseBuildLoadTest|Any CPU.ActiveCfg = RelaseBuildLoadTest|Any CPU
+		{20EFD734-8751-4CAD-8E44-4C77F97116AE}.RelaseBuildLoadTest|Any CPU.Build.0 = RelaseBuildLoadTest|Any CPU
+		{20EFD734-8751-4CAD-8E44-4C77F97116AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20EFD734-8751-4CAD-8E44-4C77F97116AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

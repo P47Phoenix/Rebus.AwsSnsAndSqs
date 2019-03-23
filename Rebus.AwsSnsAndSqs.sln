@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.AwsSnsAndSqsTests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.AwsSnsAndSqsPerformanceTest", "Rebus.AwsSnsAndSqsPerformanceTest\Rebus.AwsSnsAndSqsPerformanceTest.csproj", "{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.VinSolutions", "Rebus.VinSolutions\Rebus.VinSolutions.csproj", "{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.NewRelicApi", "Rebus.NewRelic\Rebus.NewRelicApi.csproj", "{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,18 @@ Global
 		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.RelaseBuildLoadTest|Any CPU.ActiveCfg = RelaseBuildLoadTest|Any CPU
 		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.RelaseBuildLoadTest|Any CPU.Build.0 = RelaseBuildLoadTest|Any CPU
 		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}.RelaseBuildLoadTest|Any CPU.ActiveCfg = Release|Any CPU
+		{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}.RelaseBuildLoadTest|Any CPU.Build.0 = Release|Any CPU
+		{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{761DFB8F-D25F-4EF6-BD3F-204DD1F4ABBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.RelaseBuildLoadTest|Any CPU.ActiveCfg = Release|Any CPU
+		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.RelaseBuildLoadTest|Any CPU.Build.0 = Release|Any CPU
+		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

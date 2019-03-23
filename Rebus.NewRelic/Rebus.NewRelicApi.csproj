@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <PackageLicenseUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</PackageProjectUrl>
+    <RepositoryUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Rebus sns sqs messaging pubsub innersource</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Configurations>Debug;Release;RelaseBuildLoadTest</Configurations>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Version>5.0.0.0</Version>
+    <AssemblyVersion>5.0.*</AssemblyVersion>
+    <Deterministic>False</Deterministic>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <PackageReference Include="NewRelic.Agent.Api">
+      <Version>8.14.222</Version>
+    </PackageReference>
+    <PackageReference Include="Rebus">
+      <Version>5.2.1</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="NewRelic.Agent.Api">
+      <Version>8.14.222</Version>
+    </PackageReference>
+    <PackageReference Include="Rebus">
+      <Version>5.2.1</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>

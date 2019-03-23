@@ -1,29 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Amazon.SQS;
-using Amazon.SQS.Model;
-using Newtonsoft.Json.Linq;
-using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
-using Rebus.Logging;
-using Rebus.Messages;
-using Rebus.Threading;
-using Rebus.Transport;
-using Message = Amazon.SQS.Model.Message;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Amazon.SQS;
+    using Amazon.SQS.Model;
+    using Extensions;
+    using Logging;
+    using Messages;
+    using Threading;
+    using Transport;
+    using Message = Amazon.SQS.Model.Message;
+
     internal class AmazonRecieveMessage
     {
         private readonly IAmazonInternalSettings m_amazonInternalSettings;
+        private readonly IAmazonMessageProcessorFactory _amazonMessageProcessorFactory;
         private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
         private readonly ILog m_log;
 
-        public AmazonRecieveMessage(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext)
+        public AmazonRecieveMessage(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext, IAmazonMessageProcessorFactory amazonMessageProcessorFactory)
         {
+            _amazonMessageProcessorFactory = amazonMessageProcessorFactory;
             m_amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
             m_amazonSqsQueueContext = amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(amazonSQSQueueContext));
             m_log = m_amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonRecieveMessage>();
@@ -53,10 +53,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
             var request = new ReceiveMessageRequest(queueUrl)
             {
-                MaxNumberOfMessages = 1, 
-                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds, 
-                AttributeNames = new List<string>(new[] {"All"}), 
-                MessageAttributeNames = new List<string>(new[] {"All"})
+                MaxNumberOfMessages = 1,
+                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds,
+                AttributeNames = new List<string>(new[] { "All" }),
+                MessageAttributeNames = new List<string>(new[] { "All" })
             };
 
             var response = await client.ReceiveMessageAsync(request, cancellationToken);
@@ -84,7 +84,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 Task.Run(() => client.ChangeMessageVisibilityAsync(queueUrl, sqsMessage.ReceiptHandle, 0, cancellationToken), cancellationToken).Wait(cancellationToken);
             });
 
-            var transportMessage = ExtractTransportMessageFrom(sqsMessage);
+            IAmazonMessageProcessor amazonMessageProcessor = _amazonMessageProcessorFactory.Create(sqsMessage);
+
+            var transportMessage = amazonMessageProcessor.ProcessMessage();
 
             if (transportMessage.MessageIsExpired(sqsMessage))
             {
@@ -104,40 +106,12 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             {
                 m_log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
 
-                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
+                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
 
                 await client.ChangeMessageVisibilityAsync(request);
-            }, intervalSeconds: (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
+            }, intervalSeconds: (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
         }
 
-        private TransportMessage ExtractTransportMessageFrom(Message message)
-        {
-            var messageJObject = JObject.Parse(message.Body);
-
-            var isFromSnsTopic = messageJObject["Type"]?.Value<string>() == "Notification";
-
-            if (isFromSnsTopic)
-            {
-                var snsMessage = messageJObject["Message"].Value<string>();
-
-                var msgBytes = Convert.FromBase64String(snsMessage);
-
-                var msg = Encoding.UTF8.GetString(msgBytes);
-
-                var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(msg);
-
-                return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
-            }
-            else
-            {
-                var sqsMessage = m_amazonInternalSettings.MessageSerializer.Deserialize(message.Body);
-                return new TransportMessage(sqsMessage.Headers, GetBodyBytes(sqsMessage.Body));
-            }
-        }
-
-        private byte[] GetBodyBytes(string bodyText)
-        {
-            return Convert.FromBase64String(bodyText);
-        }
     }
+
 }

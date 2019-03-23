@@ -15,6 +15,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Rebus.AwsSnsAndSqsPerformanceTest")]
 
 // DO NOT EDIT THE VERSION NUMBERS HERE
-[assembly: AssemblyVersion("4.0.0.0")]
-[assembly: AssemblyFileVersion("4.0.0.0")]
+[assembly: AssemblyVersion("5.0.0.0")]
+[assembly: AssemblyFileVersion("5.0.0.0")]
 // DO NOT EDIT THE VERSION NUMBERS HERE

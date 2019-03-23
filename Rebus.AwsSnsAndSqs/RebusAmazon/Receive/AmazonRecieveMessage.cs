@@ -55,10 +55,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
             var request = new ReceiveMessageRequest(queueUrl)
             {
-                MaxNumberOfMessages = 1, 
-                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds, 
-                AttributeNames = new List<string>(new[] {"All"}), 
-                MessageAttributeNames = new List<string>(new[] {"All"})
+                MaxNumberOfMessages = 1,
+                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds,
+                AttributeNames = new List<string>(new[] { "All" }),
+                MessageAttributeNames = new List<string>(new[] { "All" })
             };
 
             var response = await client.ReceiveMessageAsync(request, cancellationToken);
@@ -86,7 +86,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 Task.Run(() => client.ChangeMessageVisibilityAsync(queueUrl, sqsMessage.ReceiptHandle, 0, cancellationToken), cancellationToken).Wait(cancellationToken);
             });
 
-            var transportMessage = ExtractTransportMessageFrom(sqsMessage);
+            IAmazonMessageProcessor amazonMessageProcessor = _amazonMessageProcessorFactory.Create(sqsMessage);
+
+            var transportMessage = amazonMessageProcessor.ProcessMessage();
 
             if (transportMessage.MessageIsExpired(sqsMessage))
             {
@@ -106,18 +108,12 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             {
                 m_log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
 
-                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
+                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
 
                 await client.ChangeMessageVisibilityAsync(request);
-            }, intervalSeconds: (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
+            }, intervalSeconds: (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
         }
 
-        private TransportMessage ExtractTransportMessageFrom(Message message)
-        {
-            IAmazonMessageProcessor amazonMessageProcessor = _amazonMessageProcessorFactory.Create(message);
-
-            return amazonMessageProcessor.ProcessMessage();
-        }
     }
 
 }

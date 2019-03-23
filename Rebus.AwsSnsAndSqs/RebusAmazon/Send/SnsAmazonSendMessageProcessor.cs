@@ -1,4 +1,5 @@
 ﻿using Amazon.SimpleNotificationService.Model;
+using Rebus.AwsSnsAndSqs.Config;
 using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
 using Rebus.Messages;
 using Rebus.Transport;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System.Collections.Generic;
 
     internal class SnsAmazonSendMessageProcessor : IAmazonSendMessageProcessor
     {
@@ -28,15 +30,15 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             var sqsMessage = new AmazonTransportMessage(message.Headers, StringHelper.GetBody(message.Body));
 
             var msg = _amazonInternalSettings.MessageSerializer.Serialize(sqsMessage);
+           
+            var pubRequest = new PublishRequest(_destinationAddress, msg);
 
-            var msgBytes = Encoding.UTF8.GetBytes(msg);
+            var messageAttributeValues = context.GetOrNull<IDictionary<string, MessageAttributeValue>>(SnsAttributeMapperOutBoundStep.SnsAttributeKey) ?? new Dictionary<string, MessageAttributeValue>();
 
-            // promote certain headers to a messageAttribute, we can then filter on those with policy
-            var pubRequest = new PublishRequest(_destinationAddress, StringHelper.GetBody(msgBytes));
-            foreach (var kvp in sqsMessage.Headers.Where(h => !string.IsNullOrEmpty(h.Value)))
-                pubRequest.MessageAttributes[kvp.Key] =
-                    new Amazon.SimpleNotificationService.Model.MessageAttributeValue { StringValue = kvp.Value, DataType = "String" };
 
+            foreach (var messageAttributeValue in messageAttributeValues)
+            {
+            }
             var publishResponse = await snsClient.PublishAsync(pubRequest);
 
             if (publishResponse.HttpStatusCode != HttpStatusCode.OK)

@@ -6,7 +6,7 @@ node {
     }
     stage('Getting Latest') { // for display purposes
        //Get some code from a GitHub repository
-        git url:'git@ghe.coxautoinc.com:Mike-Connelly/Rebus.AwsSnsAndSqs.git', branch:"${env.BRANCH_NAME}"
+        git url:'git@ghe.coxautoinc.com:CoxAuto/Rebus.AwsSnsAndSqs.git', branch:"${env.BRANCH_NAME}"
         def hashsplit = bat ( returnStdout:true, script:"git rev-parse --verify HEAD").split("\n?\r")
         gitHash = hashsplit[2].trim()
     }

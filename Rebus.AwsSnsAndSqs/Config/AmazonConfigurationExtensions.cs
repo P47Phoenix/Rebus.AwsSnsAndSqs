@@ -15,6 +15,7 @@ using Rebus.Transport;
 namespace Rebus.AwsSnsAndSqs.Config
 {
     using Pipeline.Send;
+    using RebusAmazon.Send;
 
     /// <summary>
     ///     Configuration extensions for the Amazon Simple Queue Service transport

@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace Rebus.AwsSnsAndSqs.Config
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
+    using System;
     using System.Collections.Generic;
     using Amazon.SimpleNotificationService.Model;
 

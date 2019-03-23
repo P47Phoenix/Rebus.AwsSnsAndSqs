@@ -19,6 +19,7 @@ namespace Rebus.AwsSnsAndSqs.Config
     using Amazon.SimpleNotificationService.Model;
     using Injection;
     using Pipeline.Send;
+    using RebusAmazon.Send;
 
     public static class AmazonOneWayConfigExtension
     {

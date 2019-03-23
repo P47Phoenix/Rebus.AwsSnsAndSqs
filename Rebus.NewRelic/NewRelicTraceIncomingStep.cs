@@ -3,8 +3,10 @@
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using Config;
     using NewRelic.Api.Agent;
     using Pipeline;
+    using Pipeline.Receive;
 
     public class NewRelicTraceIncomingStep : IIncomingStep
     {
@@ -43,5 +45,19 @@
         }
     }
 
-    public static 
+    public static class NewRelicTraceIncomingStepExtensions
+    {
+        public static void AddNewRelicIncomingStep(this OptionsConfigurer optionsConfigurer)
+        {
+            optionsConfigurer.Decorate<IPipeline>(context =>
+            {
+
+                var onWorkflowItemCompletedStep = new NewRelicTraceIncomingStep();
+                var pipeline = context.Get<IPipeline>();
+                return new PipelineStepInjector(pipeline)
+                    .OnReceive(onWorkflowItemCompletedStep, PipelineRelativePosition.Before,
+                        typeof(DispatchIncomingMessageStep));
+            });
+        }
+    }
 }

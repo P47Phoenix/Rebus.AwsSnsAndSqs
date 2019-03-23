@@ -41,7 +41,7 @@
         /// semantic versioning. Visit the versioning event messages documentation for more details about how event publishers 
         /// should version events generated using Amazon SNS.
         /// </summary>
-        public Version MessageVersion { get; set; }
+        public string MessageVersion { get; set; }
 
         /// <summary>
         /// REQUIRED: The source attribute represents the origin of the event. Valid values for the source attribute can be things like 
@@ -74,7 +74,7 @@
         /// in UTC, with the subscriber holding the responsibility of converting to localized time where necessary.
         /// EX: 2019-03-20T18:34:27  
         /// </summary>
-        public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset TimeStamp { get; set; } = DateTimeOffset.Now;
 
     }
 

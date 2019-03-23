@@ -54,6 +54,9 @@ node {
     stage('publish')
     {
 
+        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.AwsSnsAndSqs\\bin\\Release\\Rebus.AwsSnsAndSqs.*.nupkg -Source artifactory"
+        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.NewRelic\\bin\\Release\\Rebus.NewRelic.*.nupkg -Source artifactory"
+        bat "${env.NuGetExe} push ${env.Workspace}\\Rebus.VinSolutions\\bin\\Release\\Rebus.VinSolutions.*.nupkg -Source artifactory"
     }
 }
 

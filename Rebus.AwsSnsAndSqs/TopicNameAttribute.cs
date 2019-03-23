@@ -24,7 +24,7 @@ namespace Rebus.AwsSnsAndSqs
 
             if (invalidLength || hasInvalidChar)
             {
-                throw new ArgumentException($"Topic names must be made up of only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256. {nameof(invalidLength)}:{invalidLength}, {nameof(hasInvalidChar)}:{hasInvalidChar}", nameof(topic));
+                throw new ArgumentException(message: $"Topic names must be made up of only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256. {nameof(invalidLength)}:{invalidLength}, {nameof(hasInvalidChar)}:{hasInvalidChar}", paramName: nameof(topic));
             }
 
             Topic = topic;

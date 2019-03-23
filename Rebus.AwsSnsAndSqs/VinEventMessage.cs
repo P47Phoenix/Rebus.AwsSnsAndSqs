@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.VinSolutions
 {
+    using System;
+
     /// <summary>
-    /// Explicite and "Vin-opinioned" and complient message contract for uniform messaging.
+    /// Explicit and "Vin-opinioned" and complaint message contract for uniform messaging.
     ///  
     ///  All of these fields, except message, will be "filterable" by policy in SNS, 
     ///  see https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html
@@ -16,7 +12,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     /// see https://pages.ghe.coxautoinc.com/VinSolutions/Architecture/adr/0004-message-contract-standards-adr.html
     /// 
     /// </summary>
-    public class VinEventMessage
+    public abstract class VinEventMessage
     {
         /// <summary>
         ///  REQUIRED: The payload you wish to send
@@ -59,7 +55,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// REQUIRED: The type attribute represents the type of event a given message is related to. The value should be domain specific and 
         /// based on the business or technical action the related event represents. For example, for an event that creates a message 
         /// representing a business action where a salesperson sends an outbound email to a customer, the value could be 
-        /// “Outbound Sales Email”. This attrbute is purposed specifically for message type identification and should be reused.
+        /// “Outbound Sales Email”. This attribute is purposed specifically for message type identification and should be reused.
         /// </summary>
         public string MessageType { get; set; }
 
@@ -80,54 +76,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// </summary>
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
 
-        /// <summary>
-        ///  Convers the properties to the dictionary required by Rebus.IBus
-        /// </summary>
-        /// <returns></returns>
-        public Dictionary<string, string> ToDictionary()
-        {
-            if (string.IsNullOrEmpty(Message))
-                throw new ArgumentException("Message");
-            if (EventId == null)
-                throw new ArgumentNullException("EventId");
-            if (MessageId == null)
-                throw new ArgumentNullException("MessageId");
-            if (MessageVersion == null)
-                throw new ArgumentNullException("MessageVersion");
-            if (string.IsNullOrEmpty(Source))
-                throw new ArgumentException("Source");
-            if (string.IsNullOrEmpty(MessageType))
-                throw new ArgumentException("MessageType");
-            if (TimeStamp == null)
-                throw new ArgumentNullException("TimeStamp");
-
-
-
-            return new Dictionary<string, string>() {
-                    { "EventId", EventId.ToString() },
-                    { "MessageId", MessageId.ToString() },
-                    { "Version", MessageVersion.ToString() },
-                    { "Source", Source },
-                    { "Type", MessageType },
-                    { "Href", Href },
-                    { "TimeStamp", TimeStamp.ToUniversalTime().ToString("s") }
-                };
-        }
-    }
-
-    public static class VinBusExt
-    {
-        /// <summary>
-        /// Publish a "Vin-Opinioned" complient contracted event messaging to a topic
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public static Task PublishEvent(this Rebus.Bus.IBus client,
-            VinEventMessage message)
-        {
-            return client.Publish(message, message.ToDictionary());
-        }
     }
 
 }

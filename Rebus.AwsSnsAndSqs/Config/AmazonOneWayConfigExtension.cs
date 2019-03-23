@@ -50,6 +50,13 @@ namespace Rebus.AwsSnsAndSqs.Config
                     return new PipelineStepRemover(pipeline).RemoveIncomingStep(s => s.GetType() == typeof(HandleDeferredMessagesStep));
                 });
 
+                //standardConfigurer.OtherService<IPipeline>().Decorate(p =>
+                //{
+                //    var pipeline = p.Get<IPipeline>();
+
+                //    return new 
+                //});
+
                 standardConfigurer.OtherService<ITimeoutManager>().Register(c => new AmazonDisabledTimeoutManager(), AmazonConstaints.SqsTimeoutManagerText);
             }
         }

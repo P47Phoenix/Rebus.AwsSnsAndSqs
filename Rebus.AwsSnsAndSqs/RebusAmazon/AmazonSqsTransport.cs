@@ -17,6 +17,8 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Amazon.SimpleNotificationService.Model;
+
     /// <summary>
     ///     Implementation of <see cref="ITransport" /> that uses Amazon Simple Queue Service to move messages around
     /// </summary>
@@ -25,10 +27,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
+        private readonly AmazonSendMessageCommandFactory m_AmazonSendMessageCommandFactory;
         private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
-        private readonly AmazonRecieveMessage _mAmazonRecieveMessage;
+        private readonly IAmazonMessageProcessorFactory m_AmazonMessageProcessorFactory;
+        private readonly AmazonRecieveMessage m_AmazonRecieveMessage;
         private readonly ILog m_log;
-        private readonly ISendMessage m_sendMessage;
 
         /// <summary>
         ///     Constructs the transport with the specified settings
@@ -50,10 +53,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
             }
 
             m_amazonSQSQueueContext = new AmazonSQSQueueContext(m_AmazonInternalSettings);
-            m_sendMessage = new AmazonSendMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext);
+            m_AmazonSendMessageCommandFactory = new AmazonSendMessageCommandFactory(m_AmazonInternalSettings, m_amazonSQSQueueContext);
             m_amazonCreateSqsQueue = new AmazonCreateSQSQueue(m_AmazonInternalSettings);
             m_amazonSqsQueuePurgeUtility = new AmazonSQSQueuePurgeUtility(m_AmazonInternalSettings);
-            _mAmazonRecieveMessage = new AmazonRecieveMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext);
+            m_AmazonMessageProcessorFactory = new AmazonMessageProcessorFactory(m_AmazonInternalSettings);
+            m_AmazonRecieveMessage = new AmazonRecieveMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext, m_AmazonMessageProcessorFactory);
         }
 
         /// <summary>
@@ -80,13 +84,30 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// <inheritdoc />
         public async Task Send(string destinationAddress, TransportMessage message, ITransactionContext context)
         {
-            await m_sendMessage.Send(destinationAddress, message, context);
+            if (destinationAddress == null)
+            {
+                throw new ArgumentNullException(nameof(destinationAddress));
+            }
+
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var amazonSendMessageProcessor = m_AmazonSendMessageCommandFactory.Create(destinationAddress);
+
+            await amazonSendMessageProcessor.SendAsync(message, context);
         }
 
         /// <inheritdoc />
         public async Task<TransportMessage> Receive(ITransactionContext context, CancellationToken cancellationToken)
         {
-            return await _mAmazonRecieveMessage.Receive(context, Address, cancellationToken);
+            return await m_AmazonRecieveMessage.Receive(context, Address, cancellationToken);
         }
 
         /// <summary>
@@ -120,7 +141,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
                 var subscriptions = listSubscriptionsByTopicResponse?.Subscriptions;
 
-                if (subscriptions?.Count <= 0 || subscriptions?.Any(s => s.SubscriptionArn == sqsInformation.Arn) == false)
+                var subscription = subscriptions?.FirstOrDefault(s => s.SubscriptionArn == sqsInformation.Arn);
+
+                if (subscription == null)
                 {
                     var subscribeResponse = await snsClient.SubscribeAsync(topicArn, "sqs", sqsInformation.Arn);
 
@@ -130,7 +153,14 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     }
 
                     await m_AmazonInternalSettings.CheckSqsPolicy(rebusTransactionScope.TransactionContext, destinationQueueUrlByName, sqsInformation, topicArn);
+
+                    await snsClient.SetSubscriptionAttributesAsync(subscribeResponse.SubscriptionArn, "RawMessageDelivery", bool.TrueString);
                 }
+                else
+                {
+                    await snsClient.SetSubscriptionAttributesAsync(subscription.SubscriptionArn, "RawMessageDelivery", bool.TrueString);
+                }
+
             }
             m_log.Debug("Added sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }

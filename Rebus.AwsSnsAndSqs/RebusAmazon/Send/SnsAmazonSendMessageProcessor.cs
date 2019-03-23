@@ -1,16 +1,12 @@
-﻿using Amazon.SimpleNotificationService.Model;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
-using Rebus.Messages;
-using Rebus.Transport;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
     using System.Collections.Generic;
+    using System.Net;
+    using System.Threading.Tasks;
+    using Amazon.SimpleNotificationService.Model;
+    using Extensions;
+    using Messages;
+    using Transport;
 
     internal class SnsAmazonSendMessageProcessor : IAmazonSendMessageProcessor
     {

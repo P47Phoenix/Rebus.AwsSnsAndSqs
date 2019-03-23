@@ -1,7 +1,8 @@
-﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
     using System;
     using System.Text;
+    using AwsSnsAndSqs.Extensions;
     using Messages;
     using Newtonsoft.Json.Linq;
 

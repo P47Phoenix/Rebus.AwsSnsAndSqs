@@ -1,4 +1,4 @@
-﻿namespace Rebus.VinSolutions
+﻿namespace Rebus.AwsSnsAndSqs
 {
     using System;
 

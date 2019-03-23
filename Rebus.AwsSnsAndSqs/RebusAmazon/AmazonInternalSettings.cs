@@ -9,6 +9,8 @@ using Rebus.Threading.TaskParallelLibrary;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Receive;
+
     internal class AmazonInternalSettings : IAmazonInternalSettings
     {
         private IAmazonCredentialsFactory m_AmazonCredentialsFactory;

@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.Extensions
 {
+    using System;
+
     internal static class StringExtension
     {
         public static byte[] GetBodyBytes(this string bodyText)

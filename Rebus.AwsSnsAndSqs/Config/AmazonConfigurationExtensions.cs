@@ -57,7 +57,7 @@ namespace Rebus.AwsSnsAndSqs.Config
                 {
                     var pipeline = p.Get<IPipeline>();
 
-                    return new PipelineStepInjector(pipeline).OnSend(new SnsAttributeMapperOutBoundStep(p), PipelineRelativePosition.Before, typeof(AssignDefaultHeadersStep));
+                    return new PipelineStepInjector(pipeline).OnSend(new SnsAttributeMapperOutBoundStep(p), PipelineRelativePosition.Before, typeof(SerializeOutgoingMessageStep));
                 });
             }
             if (amazonSnsAndSqsTransportOptions.UseNativeDeferredMessages)

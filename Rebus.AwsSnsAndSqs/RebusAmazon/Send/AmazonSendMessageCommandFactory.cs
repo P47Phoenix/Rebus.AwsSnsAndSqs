@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
+    using System;
+
     internal class AmazonSendMessageCommandFactory : IAmazonSendMessageCommandFactory
     {
         private const string c_SnsArn = "arn:aws:sns:";

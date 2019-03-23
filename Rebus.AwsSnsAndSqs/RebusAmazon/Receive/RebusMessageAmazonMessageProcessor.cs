@@ -1,5 +1,6 @@
-﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
+    using AwsSnsAndSqs.Extensions;
     using Messages;
     using Message = Amazon.SQS.Model.Message;
 

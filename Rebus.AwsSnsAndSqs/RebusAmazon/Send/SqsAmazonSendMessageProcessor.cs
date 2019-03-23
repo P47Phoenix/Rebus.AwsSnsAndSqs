@@ -1,19 +1,18 @@
-﻿using System.Threading.Tasks;
-using Rebus.Messages;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Amazon.SQS;
     using Amazon.SQS.Model;
     using Extensions;
     using Internals;
+    using Messages;
     using Rebus.Extensions;
     using Time;
+    using Transport;
 
     internal class SqsAmazonSendMessageProcessor : IAmazonSendMessageProcessor
     {

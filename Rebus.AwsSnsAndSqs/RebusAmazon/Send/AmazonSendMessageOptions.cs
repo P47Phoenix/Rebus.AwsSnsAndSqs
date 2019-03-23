@@ -1,4 +1,4 @@
-﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
     public class AmazonSendMessageOptions
     {

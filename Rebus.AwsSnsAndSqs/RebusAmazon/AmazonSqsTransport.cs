@@ -18,6 +18,8 @@ using Rebus.Transport;
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     using Amazon.SimpleNotificationService.Model;
+    using Receive;
+    using Send;
 
     /// <summary>
     ///     Implementation of <see cref="ITransport" /> that uses Amazon Simple Queue Service to move messages around

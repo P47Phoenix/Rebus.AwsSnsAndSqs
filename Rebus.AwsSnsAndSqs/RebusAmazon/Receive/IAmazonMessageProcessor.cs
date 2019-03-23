@@ -1,7 +1,7 @@
-﻿using Rebus.Messages;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
+    using Messages;
+
     public interface IAmazonMessageProcessor
     {
         TransportMessage ProcessMessage();

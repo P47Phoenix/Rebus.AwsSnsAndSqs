@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Amazon.SQS;
-using Amazon.SQS.Model;
-using Newtonsoft.Json.Linq;
-using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
-using Rebus.Logging;
-using Rebus.Messages;
-using Rebus.Threading;
-using Rebus.Transport;
-using Message = Amazon.SQS.Model.Message;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Amazon.SQS;
+    using Amazon.SQS.Model;
+    using Extensions;
+    using Logging;
+    using Messages;
+    using Threading;
+    using Transport;
+    using Message = Amazon.SQS.Model.Message;
+
     internal class AmazonRecieveMessage
     {
         private readonly IAmazonInternalSettings m_amazonInternalSettings;

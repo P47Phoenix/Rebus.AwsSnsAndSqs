@@ -7,9 +7,9 @@
     <AssemblyName>Rebus.AwsSnsAndSqs</AssemblyName>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PackageLicenseUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
-    <PackageProjectUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</PackageProjectUrl>
-    <RepositoryUrl>https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs</RepositoryUrl>
+    <PackageLicenseUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</PackageProjectUrl>
+    <RepositoryUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>Rebus sns sqs messaging pubsub innersource</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

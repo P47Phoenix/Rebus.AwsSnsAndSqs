@@ -1,4 +1,6 @@
-﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
+﻿using Rebus.Transport;
+
+namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
     using System;
     using System.Threading.Tasks;
@@ -24,22 +26,22 @@
         /// <returns></returns>
         public async Task Process(OutgoingStepContext context, Func<Task> next)
         {
-            var messageContext = MessageContext.Current;
+            var message = context.Load<Messages.Message>();
 
-            var body = messageContext.Message.Body;
+            var body = message.Body;
 
             var processor = _snsAttributeMapperFactory.Create(body.GetType());
 
             if (processor != null)
             {
-                var attributes = processor.GetAttributes(body);
+                var attributes = processor.GetAttributes(body, message.Headers);
 
                 if (attributes.Count > 10)
                 {
                     throw new InvalidOperationException($"You can only map up to 10 attributes with an sns message. The number of attributes mapped is {attributes.Count} and the keys are {string.Join(", ", attributes.Keys)}");
                 }
 
-                context.Save(SnsAttributeKey, attributes);
+                context.Load<ITransactionContext>().Items.AddOrUpdate(SnsAttributeKey, s => attributes, (s, o) => attributes);
             }
 
             await next();

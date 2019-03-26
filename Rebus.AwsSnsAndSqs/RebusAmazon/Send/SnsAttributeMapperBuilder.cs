@@ -8,7 +8,7 @@
     {
         private List<ISnsAttributeMapper> _snsAttributeMappers = new List<ISnsAttributeMapper>();
 
-        public void AddMap<T>(Func<T, IDictionary<string, MessageAttributeValue>> func)
+        public void AddMap<T>(Func<T, IDictionary<string, string>, IDictionary<string, MessageAttributeValue>> func)
         {
             func = func ?? throw new ArgumentNullException(nameof(func));
             _snsAttributeMappers.Add(new SnsAttributeMapper<T>(func));

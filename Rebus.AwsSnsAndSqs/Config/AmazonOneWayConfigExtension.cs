@@ -19,7 +19,9 @@ namespace Rebus.AwsSnsAndSqs.Config
     using Amazon.SimpleNotificationService.Model;
     using Injection;
     using Pipeline.Send;
+    using Rebus.Messages;
     using RebusAmazon.Send;
+    using Retry;
 
     public static class AmazonOneWayConfigExtension
     {
@@ -40,6 +42,7 @@ namespace Rebus.AwsSnsAndSqs.Config
         private static void ConfigureOneWayClient(StandardConfigurer<ITransport> standardConfigurer, IAmazonCredentialsFactory amazonCredentialsFactory, AmazonSQSConfig amazonSqsConfig, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig, AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions, ITopicFormatter topicFormatter, SnsAttributeMapperBuilder snsAttributeMapperBuilder)
         {
             amazonCredentialsFactory = amazonCredentialsFactory ?? throw new ArgumentNullException(nameof(amazonCredentialsFactory));
+            standardConfigurer.OtherService<IErrorHandler>().Register(c => new OneWayClientErrorHandler());
             standardConfigurer.OtherService<IAmazonCredentialsFactory>().Register(c => amazonCredentialsFactory);
 
             standardConfigurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>()));

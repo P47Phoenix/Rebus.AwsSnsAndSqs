@@ -26,14 +26,14 @@
             var sqsMessage = new AmazonTransportMessage(message.Headers, StringHelper.GetBody(message.Body));
 
             var msg = _amazonInternalSettings.MessageSerializer.Serialize(sqsMessage);
-           
+
             var pubRequest = new PublishRequest(_destinationAddress, msg);
 
             var messageAttributeValues = context.GetOrNull<IDictionary<string, MessageAttributeValue>>(SnsAttributeMapperOutBoundStep.SnsAttributeKey) ?? new Dictionary<string, MessageAttributeValue>();
-
-
+            
             foreach (var messageAttributeValue in messageAttributeValues)
             {
+                pubRequest.MessageAttributes.Add(messageAttributeValue.Key, messageAttributeValue.Value);
             }
             var publishResponse = await snsClient.PublishAsync(pubRequest);
 

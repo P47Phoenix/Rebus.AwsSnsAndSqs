@@ -2,44 +2,47 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text.RegularExpressions;
-using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
 using Rebus.Exceptions;
 using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Extensions;
+
     internal class AmazonSQSQueueContext
     {
-        //  using System.Text.RegularExpressions;
-
         /// <summary>
-        ///     Regular expression built for C# on: Mon, Apr 9, 2018, 09:09:51 PM
-        ///     Using Expresso Version: 3.1.6224, http://www.ultrapico.com
-        ///     A description of the regular expression:
-        ///     Match expression but don't capture it. [http|https]
-        ///     Select from 2 alternatives
-        ///     http
-        ///     http
-        ///     https
-        ///     https
-        ///     \://sqs\.
-        ///     Literal :
-        ///     //sqs
-        ///     Literal .
-        ///     [region]: A named capture group. [.*]
-        ///     Any character, any number of repetitions
-        ///     \.amazonaws\.com/
-        ///     Literal .
-        ///     amazonaws
-        ///     Literal .
-        ///     com/
-        ///     [accountId]: A named capture group. [\d+]
-        ///     Any digit, one or more repetitions
-        ///     /
-        ///     [queuename]: A named capture group. [\w+]
-        ///     Alphanumeric, one or more repetitions
+        ///  Regular expression built for C# on: Thu, Mar 28, 2019, 07:01:21 PM
+        ///  Using Expresso Version: 3.1.6224, http://www.ultrapico.com
+        ///  
+        ///  A description of the regular expression:
+        ///  
+        ///  Match expression but don't capture it. [http|https]
+        ///      Select from 2 alternatives
+        ///          http
+        ///              http
+        ///          https
+        ///              https
+        ///  \://sqs\.
+        ///      Literal :
+        ///      //sqs
+        ///      Literal .
+        ///  [region]: A named capture group. [.*]
+        ///      Any character, any number of repetitions
+        ///  \.amazonaws\.com/
+        ///      Literal .
+        ///      amazonaws
+        ///      Literal .
+        ///      com/
+        ///  [accountId]: A named capture group. [\d+]
+        ///      Any digit, one or more repetitions
+        ///  /
+        ///  [queuename]: A named capture group. [.+]
+        ///      Any character, one or more repetitions
+        ///  
+        ///
         /// </summary>
-        public static Regex m_regex_SqsUri = new Regex(@"(?:http|https)\://sqs\.(?<region>.*)\.amazonaws\.com/(?<accountId>\d+)/(?<queuename>\w+)", RegexOptions.Multiline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        public static Regex m_regex_SqsUri = new Regex(@"(?:http|https)\://sqs\.(?<region>.*)\.amazonaws\.com/(?<accountId>\d+)/(?<queuename>.+)", RegexOptions.Multiline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
 
@@ -61,6 +64,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 {
                     return address;
                 }
+
 
                 var client = m_AmazonInternalSettings.CreateSqsClient(transactionContext);
                 var task = client.GetQueueUrlAsync(address);

@@ -184,6 +184,5 @@ The permissions needed and example polcy documents are [here](PERMISSIONS.md)
 
 ## Contribute
 
-Rebus sns and sqs is an [inner source](https://en.wikipedia.org/wiki/Inner_source) project.+
 Pull requests are welcomed from anyone in Cox Automotive.
 [Here's how to contribute](CONTRIBUTE.md).

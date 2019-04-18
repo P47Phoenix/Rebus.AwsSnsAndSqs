@@ -22,7 +22,7 @@
       <Version>8.14.222</Version>
     </PackageReference>
     <PackageReference Include="Rebus">
-      <Version>5.2.1</Version>
+      <Version>5.3.0</Version>
     </PackageReference>
   </ItemGroup>
 

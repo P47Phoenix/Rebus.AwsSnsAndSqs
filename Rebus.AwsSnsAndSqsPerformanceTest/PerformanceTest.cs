@@ -2,12 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Rebus.Activation;
 using Rebus.AwsSnsAndSqs;
 using Rebus.AwsSnsAndSqs.Config;

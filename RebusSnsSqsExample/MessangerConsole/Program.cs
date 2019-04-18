@@ -6,6 +6,8 @@ using Rebus.Activation;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.AwsSnsAndSqs.RebusAmazon;
 using Rebus.Config;
+using Rebus.Messages;
+using Rebus.Pipeline;
 using Rebus.Routing.TypeBased;
 using Serilog;
 using Topic.Contracts;
@@ -29,15 +31,18 @@ namespace MessangerConsole
             {
 
                 // Setup worker bus
-                workHandlerActivator.Handle<Rebus.AwsSnsAndSqs.RebusAmazon.VinEventMessage>(message =>
+                workHandlerActivator.Handle<MessengerMessage>(message =>
                 {
-                    // igonore message we sent
-                    if (message.Source == queueName)
+                    var context = MessageContext.Current;
+                    // ignore message we sent
+                    if (message.Sender == queueName)
                     {
                         return Task.CompletedTask;
                     }
                     Console.WriteLine();
-                    Console.WriteLine($"{message.TimeStamp:g}: {message.Message}");
+
+
+                    Console.WriteLine($"{context.Headers[Headers.SentTime]}: {message.Message}");
                     Console.Write("message:");
                     return Task.CompletedTask;
                 });
@@ -64,7 +69,7 @@ namespace MessangerConsole
                 var client = Configure
                     .With(clientActivator)
                     .Logging(configurer => configurer.Serilog(Log.Logger))
-                    .Transport(t =>  t.UseAmazonSnsAndSqsAsOneWayClient())                   
+                    .Transport(t => t.UseAmazonSnsAndSqsAsOneWayClient())
                     .Start();
 
                 var line = String.Empty;
@@ -74,14 +79,28 @@ namespace MessangerConsole
                     line = Console.ReadLine();
 
                     // publish a message to the MessengerMessage topic
-                    await client.PublishEvent(new VinEventMessage
+                    await client.Publish(new MessengerMessage
+                    {
+                        Message = line
+                    }, new Dictionary<string, string>
+                    {
                         {
-                            Message = line,
-                            EventId = Guid.NewGuid(),
-                            MessageVersion = new Version(1, 0),
-                            Source = "RebusSnsSqsExample.Application",
-                            MessageType = "Test.Test",
-                        });                  
+                            "MesdageId",
+                            Guid.NewGuid().ToString()
+                        },
+                        {
+                            "MessageVersion",
+                            "1.0.0-Test"
+                        },
+                        {
+                            "Source",
+                            "RebusSnsSqsExample.Application"
+                        },
+                        {
+                            "MessageType",
+                            nameof(MessengerMessage)
+                        }
+                    });
                 }
                 while (string.IsNullOrWhiteSpace(line) == false);
 

@@ -47,9 +47,9 @@
 
     public static class NewRelicTraceIncomingStepExtensions
     {
-        public static void AddNewRelicIncomingStep(this OptionsConfigurer optionsConfigurer)
+        public static void AddNewRelicIncomingStep(this OptionsConfigurer optionsConfiguration)
         {
-            optionsConfigurer.Decorate<IPipeline>(context =>
+            optionsConfiguration.Decorate<IPipeline>(context =>
             {
 
                 var onWorkflowItemCompletedStep = new NewRelicTraceIncomingStep();

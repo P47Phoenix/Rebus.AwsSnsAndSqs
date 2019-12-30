@@ -9,5 +9,5 @@ stages:
 build:
   stage: build
   script:
-    - donet build  
+    - dotnet build  
 

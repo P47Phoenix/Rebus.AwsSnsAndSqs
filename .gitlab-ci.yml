@@ -1,4 +1,4 @@
-image: "mcr.microsoft.com/dotnet/core/sdk:3.1"
+image: "p47phoenix/dockerframeworkandcoresdk:4.8-Framwork_3.1.100-Core"
 
 before_script:
   - dotnet restore

@@ -38,4 +38,9 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NewRelic.Agent.Api" Version="8.23.107" />
+    <PackageReference Include="Rebus" Version="5.4.1" />
+  </ItemGroup>
 </Project>

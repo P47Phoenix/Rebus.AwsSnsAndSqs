@@ -17,8 +17,8 @@
 
             var messagesTypeName = messageContext.Message.Body.GetType().Name;
 
-            const string transactionName = "Messaging";
-            NewRelic.SetTransactionName(nameof(transactionName), $"{messagesTypeName}");
+            const string transactionName = nameof(transactionName);
+            NewRelic.SetTransactionName(transactionName, $"{messagesTypeName}");
 
             foreach (var messageContextHeader in messageContext.Headers)
             {

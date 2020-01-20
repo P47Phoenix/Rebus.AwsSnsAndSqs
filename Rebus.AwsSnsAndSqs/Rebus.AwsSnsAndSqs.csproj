@@ -5,7 +5,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Rebus.AwsSnsAndSqs</RootNamespace>
     <AssemblyName>Rebus.AwsSnsAndSqs</AssemblyName>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <PackageLicenseUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
     <PackageProjectUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</PackageProjectUrl>

@@ -1,5 +1,3 @@
-image: "p47phoenix/dockerframeworkandcoresdk:4.8-Framwork_3.1.100-Core"
-
 before_script:
   - dotnet restore
 
@@ -9,5 +7,5 @@ stages:
 build:
   stage: build
   script:
-    - dotnet build  
+    - dotnet build
 

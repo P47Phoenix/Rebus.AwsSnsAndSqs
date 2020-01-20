@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <PackageLicenseUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</PackageLicenseUrl>
     <PackageProjectUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</PackageProjectUrl>
     <RepositoryUrl>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs</RepositoryUrl>

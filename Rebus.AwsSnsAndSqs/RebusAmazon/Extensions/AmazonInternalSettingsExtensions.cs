@@ -16,7 +16,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
     {
         internal class LoggerSettingsHelper
         {
-            private ILog m_logger;
+            private readonly ILog m_logger;
 
             public LoggerSettingsHelper(IRebusLoggerFactory rebusLoggerFactory)
             {
@@ -34,7 +34,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
             return s_loggerSettingsHelper.Logger;
         }
-        private static ConcurrentDictionary<string, string> s_topicArnCache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> s_topicArnCache = new ConcurrentDictionary<string, string>();
 
         public static IAmazonSimpleNotificationService CreateSnsClient(this IAmazonSnsSettings amazonSnsSettings, ITransactionContext transactionContext)
         {

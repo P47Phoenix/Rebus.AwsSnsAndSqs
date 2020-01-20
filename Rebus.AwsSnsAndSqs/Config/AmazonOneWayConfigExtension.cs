@@ -26,8 +26,15 @@ namespace Rebus.AwsSnsAndSqs.Config
     public static class AmazonOneWayConfigExtension
     {
         /// <summary>
-        ///     Configures Rebus to use Amazon Simple Queue Service as the message transport
+        /// Configures Rebus to use Amazon Simple Queue Service as the message transport
         /// </summary>
+        /// <param name="configurer">The configurer.</param>
+        /// <param name="amazonCredentialsFactory">The amazon credentials factory.</param>
+        /// <param name="amazonSqsConfig">The amazon SQS configuration.</param>
+        /// <param name="amazonSimpleNotificationServiceConfig">The amazon simple notification service configuration.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="topicFormatter">The topic formatter.</param>
+        /// <param name="snsAttributeMapperBuilder">The SNS attribute mapper builder.</param>
         public static void UseAmazonSnsAndSqsAsOneWayClient(this StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory = null, AmazonSQSConfig amazonSqsConfig = null, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null, AmazonSnsAndSqsTransportOptions options = null, ITopicFormatter topicFormatter = null, SnsAttributeMapperBuilder snsAttributeMapperBuilder = null)
         {
             topicFormatter = topicFormatter ?? new ConventionBasedTopicFormatter();

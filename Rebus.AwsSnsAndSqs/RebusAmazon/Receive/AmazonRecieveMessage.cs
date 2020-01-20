@@ -39,7 +39,7 @@
 
             if (address == null)
             {
-                throw new InvalidOperationException("This Amazon SQS transport does not have an input queue, hence it is not possible to reveive anything");
+                throw new InvalidOperationException("This Amazon SQS transport does not have an input queue, hence it is not possible to receive anything");
             }
 
             var queueUrl = m_amazonSqsQueueContext.GetDestinationQueueUrlByName(address, context);

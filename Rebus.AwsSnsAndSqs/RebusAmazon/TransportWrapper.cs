@@ -15,7 +15,7 @@
                 return;
             }
 
-            throw new ArgumentException(nameof(transport), $"expected {typeof(AmazonSQSTransport).Name} and got {transport.GetType().Name}");
+            throw new ArgumentException($"expected {typeof(AmazonSQSTransport).Name} and got {transport.GetType().Name}", nameof(transport));
         }
 
         public AmazonSQSTransport GetAmazonSqsTransport()

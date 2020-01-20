@@ -1,5 +1,6 @@
 ﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
+    using System.Globalization;
     using Newtonsoft.Json.Linq;
     using Message = Amazon.SQS.Model.Message;
 
@@ -20,7 +21,7 @@
         /// <returns></returns>
         public IAmazonMessageProcessor Create(Message message)
         {
-            if (message.Body.StartsWith("{"))
+            if (message.Body.StartsWith("{", false, CultureInfo.InvariantCulture))
             {
                 
                 var messageJObject = JObject.Parse(message.Body);

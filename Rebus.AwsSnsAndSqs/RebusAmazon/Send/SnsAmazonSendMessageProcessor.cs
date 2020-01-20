@@ -39,7 +39,7 @@
 
             if (publishResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                throw new SnsRebusExption($"Error publishing message to topic {_destinationAddress}.", publishResponse.CreateAmazonExceptionFromResponse());
+                throw new SnsRebusException($"Error publishing message to topic {_destinationAddress}.", publishResponse.CreateAmazonExceptionFromResponse());
             }
         }
     }

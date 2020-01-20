@@ -5,7 +5,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Rebus.AwsSnsAndSqsTests</RootNamespace>
     <AssemblyName>Rebus.AwsSnsAndSqsTests</AssemblyName>
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>net452</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>Debug;Release;RelaseBuildLoadTest</Configurations>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

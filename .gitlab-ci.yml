@@ -5,7 +5,9 @@ stages:
   - build
 
 build:
-  stage: build
+  stage: build    
+  variables:
+    K8S_SECRET_NUGET_API_KEY: "$K8S_SECRET_NUGET_API_KEY"
   script:
     - set
     - dotnet build --configuration Release

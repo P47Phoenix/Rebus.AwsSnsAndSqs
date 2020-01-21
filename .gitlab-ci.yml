@@ -7,5 +7,7 @@ stages:
 build:
   stage: build
   script:
-    - dotnet build --configuration Release
+    - set
+    - dotnet pack --configuration Release -p:PackageVersion=5.4.$CI_PIPELINE_IID --include-symbols --include-source --output nupkgs
+    - nuget.exe push Rebus.AwsSnsAndSqs.5.4.$CI_PIPELINE_IID.nupkg $nuget_api_key
 

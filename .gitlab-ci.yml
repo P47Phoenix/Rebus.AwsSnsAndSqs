@@ -7,5 +7,5 @@ stages:
 build:
   stage: build
   script:
-    - dotnet build
+    - dotnet build --configuration Release
 

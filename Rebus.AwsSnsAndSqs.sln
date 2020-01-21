@@ -33,7 +33,6 @@ Global
 		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.RelaseBuildLoadTest|Any CPU.ActiveCfg = RelaseBuildLoadTest|Any CPU
 		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.RelaseBuildLoadTest|Any CPU.ActiveCfg = RelaseBuildLoadTest|Any CPU
@@ -44,7 +43,6 @@ Global
 		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.RelaseBuildLoadTest|Any CPU.ActiveCfg = Release|Any CPU
 		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.RelaseBuildLoadTest|Any CPU.Build.0 = Release|Any CPU
 		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

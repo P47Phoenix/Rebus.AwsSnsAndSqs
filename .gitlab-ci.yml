@@ -10,7 +10,7 @@ build:
     - set
     - dotnet build --configuration Release
     - dotnet pack --configuration Release -p:PackageVersion=5.4.%CI_PIPELINE_IID% --include-symbols --include-source --output nupkgs
-    - nuget.exe push nupkgs\Rebus.AwsSnsAndSqs.5.4.%CI_PIPELINE_IID%.nupkg "$K8S_SECRET_NUGET_API_KEY" -Source https://api.nuget.org/v3/index.json
+    - nuget.exe push nupkgs\Rebus.AwsSnsAndSqs.5.4.%CI_PIPELINE_IID%.nupkg %K8S_SECRET_NUGET_API_KEY% -Source https://api.nuget.org/v3/index.json
   artifacts:
     paths:
       - nupkgs\Rebus.AwsSnsAndSqs.5.4.%CI_PIPELINE_IID%.nupkg

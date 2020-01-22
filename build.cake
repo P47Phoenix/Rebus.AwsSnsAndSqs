@@ -75,6 +75,7 @@ Task("Pack")
     {
         DotNetCorePack(projectToPackage, new DotNetCorePackSettings
         {
+            Configuration = configuration
             OutputDirectory = outputDir,
             NoBuild = true,
             IncludeSource = true,

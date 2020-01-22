@@ -24,8 +24,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     /// <summary>
     ///     Implementation of <see cref="ITransport" /> that uses Amazon Simple Queue Service to move messages around
     /// </summary>
-    internal class AmazonSQSTransport : IAmazonSQSTransport
+    internal class AmazonSqsTransport : IAmazonSQSTransport
     {
+        private const string c_removingSqsSubscriptionMessage = "Removing sqs subscriber {0} to sns topic {1}";
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
@@ -38,11 +39,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// <summary>
         ///     Constructs the transport with the specified settings
         /// </summary>
-        public AmazonSQSTransport(IAmazonInternalSettings amazonInternalSettings)
+        public AmazonSqsTransport(IAmazonInternalSettings amazonInternalSettings)
         {
             m_AmazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
 
-            m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSQSTransport>();
+            m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSqsTransport>();
 
             if (amazonInternalSettings.InputQueueAddress != null)
             {
@@ -151,7 +152,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
                     if (subscribeResponse.HttpStatusCode != HttpStatusCode.OK)
                     {
-                        throw new SnsRebusExption($"Error creating subscription {subscriberAddress} on topic {topic}.", subscribeResponse.CreateAmazonExceptionFromResponse());
+                        throw new SnsRebusException($"Error creating subscription {subscriberAddress} on topic {topic}.", subscribeResponse.CreateAmazonExceptionFromResponse());
                     }
 
                     await m_AmazonInternalSettings.CheckSqsPolicy(rebusTransactionScope.TransactionContext, destinationQueueUrlByName, sqsInformation, topicArn);
@@ -162,17 +163,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 {
                     await snsClient.SetSubscriptionAttributesAsync(subscription.SubscriptionArn, "RawMessageDelivery", bool.TrueString);
                 }
-
             }
             m_log.Debug("Added sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }
 
-
-
-
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {
-            m_log.Debug("Removing sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
+            m_log.Debug(c_removingSqsSubscriptionMessage, subscriberAddress, topic);
             using (var rebusTransactionScope = new RebusTransactionScope())
             {
                 var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic, rebusTransactionScope);
@@ -197,7 +194,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
                         if (unsubscribeResponse.HttpStatusCode != HttpStatusCode.OK)
                         {
-                            throw new SnsRebusExption($"Error deleting subscription {subscriberAddress} on topic {topic}.", unsubscribeResponse.CreateAmazonExceptionFromResponse());
+                            throw new SnsRebusException($"Error deleting subscription {subscriberAddress} on topic {topic}.", unsubscribeResponse.CreateAmazonExceptionFromResponse());
                         }
                     }
                 }

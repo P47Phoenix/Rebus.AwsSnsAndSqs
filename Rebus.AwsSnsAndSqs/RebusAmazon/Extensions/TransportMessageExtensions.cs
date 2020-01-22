@@ -5,6 +5,8 @@ using Message = Amazon.SQS.Model.Message;
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
+    using System.Globalization;
+
     internal static class TransportMessageExtensions
     {
         public static bool MessageIsExpired(this TransportMessage message, Message sqsMessage)
@@ -14,7 +16,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
                 return false;
             }
 
-            var timeToBeReceived = TimeSpan.Parse(value);
+            var timeToBeReceived = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
 
             return MessageIsExpiredUsingRebusSentTime(message, timeToBeReceived) || MessageIsExpiredUsingNativeSqsSentTimestamp(sqsMessage, timeToBeReceived);
         }
@@ -44,7 +46,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
         private static DateTime GetTimeFromUnixTimestamp(string sentTimeStampString)
         {
-            var unixTime = long.Parse(sentTimeStampString);
+            var unixTime = long.Parse(sentTimeStampString, CultureInfo.InvariantCulture);
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             var sentTime = epoch.AddMilliseconds(unixTime);
             return sentTime;

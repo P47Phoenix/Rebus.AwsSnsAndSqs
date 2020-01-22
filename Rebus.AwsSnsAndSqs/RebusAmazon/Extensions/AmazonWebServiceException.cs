@@ -2,6 +2,7 @@
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
+    [Serializable]
     public class AmazonWebServiceException : Exception
     {
         public AmazonWebServiceException(string message) : base(message)

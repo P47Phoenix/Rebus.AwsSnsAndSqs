@@ -24,7 +24,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
                 if (createTopicResponse.HttpStatusCode != HttpStatusCode.OK)
                 {
-                    throw new SnsRebusExption($"Error creating topic {formatedTopicName}.", createTopicResponse.CreateAmazonExceptionFromResponse());
+                    throw new SnsRebusException($"Error creating topic {formatedTopicName}.", createTopicResponse.CreateAmazonExceptionFromResponse());
                 }
 
                 topicArn = createTopicResponse.TopicArn;

@@ -1,6 +1,7 @@
 ﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
     using System;
+    using System.Globalization;
 
     internal class AmazonSendMessageCommandFactory : IAmazonSendMessageCommandFactory
     {
@@ -21,13 +22,12 @@
                 throw new ArgumentNullException(nameof(destinationAddress));
             }
 
-            if (destinationAddress.StartsWith(c_SnsArn))
+            if (destinationAddress.StartsWith(c_SnsArn, true, CultureInfo.InvariantCulture))
             {
                 return new SnsAmazonSendMessageProcessor(destinationAddress, _amazonInternalSettings);
             }
 
             return new SqsAmazonSendMessageProcessor(destinationAddress, _amazonInternalSettings, _amazonSqsQueueContext);
         }
-
     }
 }

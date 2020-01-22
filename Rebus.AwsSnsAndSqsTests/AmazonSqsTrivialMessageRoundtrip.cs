@@ -19,7 +19,7 @@ namespace Rebus.AwsSnsAndSqsTests
     [Category(Category.AmazonSqs)]
     public class AmazonSqsTrivialMessageRoundtrip : SqsFixtureBase
     {
-        private AmazonSQSTransport _transport;
+        private AmazonSqsTransport _transport;
         private string _brilliantQueueName;
 
         protected override void SetUp()

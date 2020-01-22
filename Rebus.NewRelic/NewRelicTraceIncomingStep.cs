@@ -17,8 +17,8 @@
 
             var messagesTypeName = messageContext.Message.Body.GetType().Name;
 
-            const string transactionName = "Messaging";
-            NewRelic.SetTransactionName(nameof(transactionName), $"{messagesTypeName}");
+            const string transactionName = nameof(transactionName);
+            NewRelic.SetTransactionName(transactionName, $"{messagesTypeName}");
 
             foreach (var messageContextHeader in messageContext.Headers)
             {
@@ -41,23 +41,6 @@
                 NewRelic.RecordResponseTimeMetric($"{messagesTypeName}",
                     stopwatch.ElapsedMilliseconds);
             }
-
-        }
-    }
-
-    public static class NewRelicTraceIncomingStepExtensions
-    {
-        public static void AddNewRelicIncomingStep(this OptionsConfigurer optionsConfigurer)
-        {
-            optionsConfigurer.Decorate<IPipeline>(context =>
-            {
-
-                var onWorkflowItemCompletedStep = new NewRelicTraceIncomingStep();
-                var pipeline = context.Get<IPipeline>();
-                return new PipelineStepInjector(pipeline)
-                    .OnReceive(onWorkflowItemCompletedStep, PipelineRelativePosition.Before,
-                        typeof(DispatchIncomingMessageStep));
-            });
         }
     }
 }

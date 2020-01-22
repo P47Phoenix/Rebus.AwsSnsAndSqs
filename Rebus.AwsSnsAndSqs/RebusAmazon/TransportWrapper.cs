@@ -5,22 +5,22 @@
 
     internal class TransportWrapper : ITransportWrapper
     {
-        private readonly WeakReference<AmazonSQSTransport> _amazonSqsTransport;
+        private readonly WeakReference<AmazonSqsTransport> _amazonSqsTransport;
 
         public TransportWrapper(ITransport transport)
         {
-            if (transport is AmazonSQSTransport amazonSqsTransport)
+            if (transport is AmazonSqsTransport amazonSqsTransport)
             {
-                _amazonSqsTransport = new WeakReference<AmazonSQSTransport>(amazonSqsTransport);
+                _amazonSqsTransport = new WeakReference<AmazonSqsTransport>(amazonSqsTransport);
                 return;
             }
 
-            throw new ArgumentException(nameof(transport), $"expected {typeof(AmazonSQSTransport).Name} and got {transport.GetType().Name}");
+            throw new ArgumentException($"expected {typeof(AmazonSqsTransport).Name} and got {transport.GetType().Name}", nameof(transport));
         }
 
-        public AmazonSQSTransport GetAmazonSqsTransport()
+        public AmazonSqsTransport GetAmazonSqsTransport()
         {
-            if (_amazonSqsTransport.TryGetTarget(out AmazonSQSTransport amazonSqsTransport))
+            if (_amazonSqsTransport.TryGetTarget(out AmazonSqsTransport amazonSqsTransport))
             {
                 return amazonSqsTransport;
             }

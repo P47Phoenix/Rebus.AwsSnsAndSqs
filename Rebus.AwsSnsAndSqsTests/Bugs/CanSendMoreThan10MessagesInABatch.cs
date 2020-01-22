@@ -11,7 +11,7 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
     [TestFixture]
     public class CanSendMoreThan10MessagesInABatch : SqsFixtureBase
     {
-        private AmazonSQSTransport _transport;
+        private AmazonSqsTransport _transport;
         private string _inputQueueAddress;
 
         protected override void SetUp()

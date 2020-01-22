@@ -27,6 +27,8 @@ namespace Rebus.AwsSnsAndSqs.Config
         /// </summary>
         public static void UseAmazonSnsAndSqs(this StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory = null, AmazonSQSConfig amazonSqsConfig = null, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null, string workerQueueAddress = "input_queue_address", AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions = null, ITopicFormatter topicFormatter = null, SnsAttributeMapperBuilder snsAttributeMapperBuilder = null)
         {
+            configurer = configurer ?? throw new ArgumentNullException(nameof(configurer));
+
             topicFormatter = topicFormatter ?? new ConventionBasedTopicFormatter();
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
             amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.USWest2 };

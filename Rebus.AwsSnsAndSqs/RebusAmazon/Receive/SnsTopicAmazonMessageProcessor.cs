@@ -10,9 +10,6 @@
     {
         private readonly IAmazonInternalSettings _amazonInternalSettings;
         private readonly JObject _message;
-        private string c_SnsArn;
-        private IAmazonInternalSettings m_AmazonInternalSettings;
-        private AmazonSQSQueueContext m_amazonSQSQueueContext;
 
         /// <summary>Initializes a new instance of the <see cref="SnsTopicAmazonMessageProcessor"/> class.</summary>
         /// <param name="message">The message.</param>

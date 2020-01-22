@@ -15,6 +15,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 
         public SnsAttributeMapperOutBoundStep(IResolutionContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             _snsAttributeMapperFactory = context.Get<ISnsAttributeMapperFactory>();
         }
 
@@ -26,6 +31,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
         /// <returns></returns>
         public async Task Process(OutgoingStepContext context, Func<Task> next)
         {
+            next = next ?? throw new ArgumentNullException(nameof(next));
+            context = context ?? throw new ArgumentNullException(nameof(context));
+
             var message = context.Load<Messages.Message>();
 
             var body = message.Body;

@@ -6,7 +6,7 @@ namespace Rebus.AwsSnsAndSqs
 {
 #if NET45 || NETSTANDARD2_0
     [AttributeUsage(AttributeTargets.Class)]
-    public class TopicNameAttribute : Attribute
+    public sealed class TopicNameAttribute : Attribute
     {
         public TopicNameAttribute(string topic)
         {
@@ -17,7 +17,7 @@ namespace Rebus.AwsSnsAndSqs
 
             var invalidLength = topic.Length > 256 || topic.Length <= 0;
 
-            var hasInvalidChar = topic.Count(c => (char.IsLetterOrDigit(c) || c == '_' || c == '-') == false) != 0;
+            var hasInvalidChar = topic.Any(c => (char.IsLetterOrDigit(c) || c == '_' || c == '-') == false);
 
             Trace.WriteLineIf(invalidLength, nameof(invalidLength));
             Trace.WriteLineIf(hasInvalidChar, nameof(hasInvalidChar));

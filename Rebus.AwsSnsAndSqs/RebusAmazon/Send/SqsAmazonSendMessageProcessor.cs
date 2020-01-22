@@ -20,7 +20,6 @@
         private readonly IAmazonInternalSettings _amazonInternalSettings;
         private readonly AmazonSQSQueueContext _amazonSqsQueueContext;
 
-
         public SqsAmazonSendMessageProcessor(string destinationAddress, IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSqsQueueContext)
         {
             this._destinationAddress = destinationAddress;
@@ -28,7 +27,9 @@
             this._amazonSqsQueueContext = amazonSqsQueueContext;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task SendAsync(TransportMessage message, ITransactionContext context)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var outgoingMessages = context.GetOrAdd(AmazonConstaints.OutgoingMessagesItemsKey, () =>
             {

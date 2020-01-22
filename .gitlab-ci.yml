@@ -7,5 +7,5 @@ build:
     - PowerShell .\build.ps1
   artifacts:
     paths:
-      - nupkgs\Rebus.AwsSnsAndSqs.5.4.%CI_PIPELINE_IID%.nupkg
+      - nupkgs
     expire_in: 1 week

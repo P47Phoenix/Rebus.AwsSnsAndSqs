@@ -34,7 +34,6 @@ namespace Rebus.AwsSnsAndSqsTests
             return Create(inputQueueAddress, TimeSpan.FromSeconds(30));
         }
 
-
         public void CleanUp()
         {
             CleanUp(false);
@@ -73,7 +72,6 @@ namespace Rebus.AwsSnsAndSqsTests
                 transport.DeleteQueue();
             }
         }
-
 
         private static ConnectionInfo ConnectionInfoFromEnvironmentVariable(string environmentVariableName)
         {

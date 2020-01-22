@@ -41,7 +41,6 @@
                 NewRelic.RecordResponseTimeMetric($"{messagesTypeName}",
                     stopwatch.ElapsedMilliseconds);
             }
-
         }
     }
 }

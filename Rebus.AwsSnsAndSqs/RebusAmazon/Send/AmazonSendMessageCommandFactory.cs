@@ -29,6 +29,5 @@
 
             return new SqsAmazonSendMessageProcessor(destinationAddress, _amazonInternalSettings, _amazonSqsQueueContext);
         }
-
     }
 }

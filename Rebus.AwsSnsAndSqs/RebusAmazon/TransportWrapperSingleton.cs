@@ -8,7 +8,7 @@
     {
         private static ConcurrentDictionary<string, TransportWrapper> _concurrentDictionary = new ConcurrentDictionary<string, TransportWrapper>();
 
-        public static AmazonSQSTransport GetAmazonSqsTransport(string inputQueueAddress)
+        public static AmazonSqsTransport GetAmazonSqsTransport(string inputQueueAddress)
         {
             if (_concurrentDictionary.TryGetValue(inputQueueAddress, out TransportWrapper transportWrapper))
             {
@@ -17,7 +17,7 @@
             return null;
         }
 
-        internal static void Register(string inputQueueAddress, AmazonSQSTransport transport)
+        internal static void Register(string inputQueueAddress, AmazonSqsTransport transport)
         {
             _concurrentDictionary.AddOrUpdate(inputQueueAddress ?? string.Empty, s => new TransportWrapper(transport), (s, wrapper) => new TransportWrapper(transport));
         }

@@ -56,7 +56,7 @@ namespace Rebus.AwsSnsAndSqsTests
             var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
             var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
 
-            var transport = new AmazonSQSTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory)) {InputQueueAddress = queueName, AmazonSqsConfig = amazonSqsConfig});
+            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory)) {InputQueueAddress = queueName, AmazonSqsConfig = amazonSqsConfig});
             transport.Initialize();
             transport.Purge();
         }

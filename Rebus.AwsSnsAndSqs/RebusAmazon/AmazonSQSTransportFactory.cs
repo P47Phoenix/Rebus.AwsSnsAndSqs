@@ -15,7 +15,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public IAmazonSQSTransport Create()
         {
-            var transport = new AmazonSQSTransport(m_amazonInternalSettings);
+            var transport = new AmazonSqsTransport(m_amazonInternalSettings);
             TransportWrapperSingleton.Register(m_amazonInternalSettings.InputQueueAddress, transport);
             return transport;
         }

@@ -20,7 +20,6 @@
         private readonly IAmazonInternalSettings _amazonInternalSettings;
         private readonly AmazonSQSQueueContext _amazonSqsQueueContext;
 
-
         public SqsAmazonSendMessageProcessor(string destinationAddress, IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSqsQueueContext)
         {
             this._destinationAddress = destinationAddress;

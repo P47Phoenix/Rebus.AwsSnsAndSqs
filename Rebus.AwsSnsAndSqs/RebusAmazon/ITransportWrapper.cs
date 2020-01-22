@@ -2,6 +2,6 @@
 {
     internal interface ITransportWrapper
     {
-        AmazonSQSTransport GetAmazonSqsTransport();
+        AmazonSqsTransport GetAmazonSqsTransport();
     }
 }

@@ -20,7 +20,7 @@ namespace Rebus.AwsSnsAndSqsTests
     {
         private static ConnectionInfo _connectionInfo;
 
-        private readonly Dictionary<string, AmazonSQSTransport> _queuesToDelete = new Dictionary<string, AmazonSQSTransport>();
+        private readonly Dictionary<string, AmazonSqsTransport> _queuesToDelete = new Dictionary<string, AmazonSqsTransport>();
 
         internal static ConnectionInfo ConnectionInfo => _connectionInfo ?? (_connectionInfo = ConnectionInfoFromFileOrNull() ?? ConnectionInfoFromEnvironmentVariable("rebus2_asqs_connection_string") ?? Throw("Could not find Amazon Sqs connetion Info!"));
 
@@ -45,14 +45,14 @@ namespace Rebus.AwsSnsAndSqsTests
             return inputQueueAddress == null ? CreateTransport(null, peeklockDuration, options) : _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
         }
 
-        public static AmazonSQSTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
+        public static AmazonSqsTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
         {
             var connectionInfo = ConnectionInfo;
             var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
 
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
 
-            var transport = new AmazonSQSTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory()) {InputQueueAddress = inputQueueAddress, AmazonSqsConfig = amazonSqsConfig, AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(), AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(), MessageSerializer = new AmazonTransportMessageSerializer()});
+            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory()) {InputQueueAddress = inputQueueAddress, AmazonSqsConfig = amazonSqsConfig, AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(), AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(), MessageSerializer = new AmazonTransportMessageSerializer()});
 
             transport.Initialize(peeklockDuration);
 

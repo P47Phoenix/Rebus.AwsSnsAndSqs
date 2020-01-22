@@ -111,7 +111,5 @@
                 await client.ChangeMessageVisibilityAsync(request);
             }, intervalSeconds: (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
         }
-
     }
-
 }

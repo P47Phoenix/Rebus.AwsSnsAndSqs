@@ -23,7 +23,6 @@
         {
             if (message.Body.StartsWith("{", false, CultureInfo.InvariantCulture))
             {
-                
                 var messageJObject = JObject.Parse(message.Body);
 
                 var isFromSnsTopic = messageJObject["Type"]?.Value<string>() == Amazon.SimpleNotificationService.Util.Message.MESSAGE_TYPE_NOTIFICATION;

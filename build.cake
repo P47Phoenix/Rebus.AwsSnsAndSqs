@@ -96,10 +96,6 @@ Task("Push")
                 Source = "https://api.nuget.org/v3/index.json",
                 ApiKey = nugetApiKey
             });
-            NuGetPush($"{outputDir}/{packageName}.{packageVersion}.symbols.nupkg", new NuGetPushSettings {
-                Source = "https://api.nuget.org/v3/index.json",
-                ApiKey = nugetApiKey
-            });
         }
         else
         {

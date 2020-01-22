@@ -24,7 +24,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
     /// <summary>
     ///     Implementation of <see cref="ITransport" /> that uses Amazon Simple Queue Service to move messages around
     /// </summary>
-    internal class AmazonSQSTransport : IAmazonSQSTransport
+    internal class AmazonSqsTransport : IAmazonSQSTransport
     {
         private const string c_removingSqsSubscriptionMessage = "Removing sqs subscriber {0} to sns topic {1}";
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
@@ -39,11 +39,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// <summary>
         ///     Constructs the transport with the specified settings
         /// </summary>
-        public AmazonSQSTransport(IAmazonInternalSettings amazonInternalSettings)
+        public AmazonSqsTransport(IAmazonInternalSettings amazonInternalSettings)
         {
             m_AmazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
 
-            m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSQSTransport>();
+            m_log = amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonSqsTransport>();
 
             if (amazonInternalSettings.InputQueueAddress != null)
             {
@@ -163,13 +163,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 {
                     await snsClient.SetSubscriptionAttributesAsync(subscription.SubscriptionArn, "RawMessageDelivery", bool.TrueString);
                 }
-
             }
             m_log.Debug("Added sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }
-
-
-
 
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {

@@ -187,5 +187,5 @@ The permissions needed and example polcy documents are [here](PERMISSIONS.md)
 
 ## Contribute
 
-Pull requests are welcomed from anyone in Cox Automotive.
+Pull requests are welcomed from anyone.
 [Here's how to contribute](CONTRIBUTE.md).

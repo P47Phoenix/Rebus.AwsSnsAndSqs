@@ -1,17 +1,8 @@
 # Contribute
 
-Rebus.AwsSnsAndSqs is an [inner source](https://en.wikipedia.org/wiki/Inner_source) project. Pull requests are welcomed from anyone in Cox Automotive.
+Rebus.AwsSnsAndSqs is an Open source project. Pull requests are welcomed from anyone.
 
 I do prefer it if we communicate a little bit before you send PRs, though. This is because I value your time, and it would be a shame if you spent time working on something that could be made better in another way, or wasn't actually needed because what you wanted to achieve could be done better in another way, etc.
-
-## "Beginners"
-Contributions are ALSO very welcome if you consider yourself a beginner at [inner source](https://en.wikipedia.org/wiki/Inner_source). Everyone has to start somewhere, right?
-
-Here's how you would ideally do it if want to contribute:
-
-Pick an [issue](https://ghe.coxautoinc.com/Mike-Connelly/Rebus.AwsSnsAndSqs/issues) you're interested in doing, or dream up something yourself that you feel is missing.
-If you talk to me first (either via comments on the issue or by email), I will guarantee that your contribution is accepted.
-Send me a "pull request" (which is how you make contributions on GitHub)
 
 ## Quick Start
 

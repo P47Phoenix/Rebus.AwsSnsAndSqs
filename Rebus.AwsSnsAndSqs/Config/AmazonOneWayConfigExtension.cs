@@ -20,6 +20,7 @@ namespace Rebus.AwsSnsAndSqs.Config
     using Injection;
     using Pipeline.Send;
     using Rebus.Messages;
+    using Rebus.Time;
     using RebusAmazon.Send;
     using Retry;
 
@@ -52,7 +53,7 @@ namespace Rebus.AwsSnsAndSqs.Config
             standardConfigurer.OtherService<IErrorHandler>().Register(c => new OneWayClientErrorHandler());
             standardConfigurer.OtherService<IAmazonCredentialsFactory>().Register(c => amazonCredentialsFactory);
 
-            standardConfigurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>()));
+            standardConfigurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>(), c.Get<IRebusTime>()));
             standardConfigurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings { ResolutionContext = c, AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)), InputQueueAddress = null, AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)), AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)), MessageSerializer = new AmazonTransportMessageSerializer(), TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter)) });
 
             standardConfigurer.Register(c => c.Get<IAmazonSQSTransportFactory>().Create());

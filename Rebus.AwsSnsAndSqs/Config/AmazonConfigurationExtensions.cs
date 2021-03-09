@@ -15,6 +15,7 @@ using Rebus.Transport;
 namespace Rebus.AwsSnsAndSqs.Config
 {
     using Pipeline.Send;
+    using Rebus.Time;
     using RebusAmazon.Send;
 
     /// <summary>
@@ -43,7 +44,7 @@ namespace Rebus.AwsSnsAndSqs.Config
             amazonCredentialsFactory = amazonCredentialsFactory ?? throw new ArgumentNullException(nameof(amazonCredentialsFactory));
             configurer.OtherService<IAmazonCredentialsFactory>().Register(c => amazonCredentialsFactory);
 
-            configurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>()));
+            configurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>(), c.Get<IRebusTime>()));
             configurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings { ResolutionContext = c, AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)), InputQueueAddress = inputQueueAddress ?? throw new ArgumentNullException(nameof(inputQueueAddress)), AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)), AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)), MessageSerializer = new AmazonTransportMessageSerializer(), TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter)) });
 
             configurer.Register(c => c.Get<IAmazonSQSTransportFactory>().Create());

@@ -58,7 +58,7 @@
     </PackageReference>
     <PackageReference Include="OpenCover" Version="4.7.922" />
     <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.3.4" />
-    <PackageReference Include="Rebus" Version="5.4.1" />
+    <PackageReference Include="Rebus" Version="6.5.5" />
     <PackageReference Include="Rebus.Tests.Contracts" Version="5.2.0" />
   </ItemGroup>
   <ItemGroup>

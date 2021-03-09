@@ -18,6 +18,7 @@ using Rebus.Transport;
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
     using Amazon.SimpleNotificationService.Model;
+    using Rebus.Time;
     using Receive;
     using Send;
 
@@ -39,7 +40,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// <summary>
         ///     Constructs the transport with the specified settings
         /// </summary>
-        public AmazonSqsTransport(IAmazonInternalSettings amazonInternalSettings)
+        public AmazonSqsTransport(IAmazonInternalSettings amazonInternalSettings, IRebusTime rebusTime)
         {
             m_AmazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
 
@@ -55,12 +56,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 }
             }
 
+            //TODO!!!!
             m_amazonSQSQueueContext = new AmazonSQSQueueContext(m_AmazonInternalSettings);
-            m_AmazonSendMessageCommandFactory = new AmazonSendMessageCommandFactory(m_AmazonInternalSettings, m_amazonSQSQueueContext);
+            m_AmazonSendMessageCommandFactory = new AmazonSendMessageCommandFactory(m_AmazonInternalSettings, m_amazonSQSQueueContext, rebusTime);
             m_amazonCreateSqsQueue = new AmazonCreateSQSQueue(m_AmazonInternalSettings);
             m_amazonSqsQueuePurgeUtility = new AmazonSQSQueuePurgeUtility(m_AmazonInternalSettings);
             m_AmazonMessageProcessorFactory = new AmazonMessageProcessorFactory(m_AmazonInternalSettings);
-            m_AmazonRecieveMessage = new AmazonRecieveMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext, m_AmazonMessageProcessorFactory);
+            m_AmazonRecieveMessage = new AmazonRecieveMessage(m_AmazonInternalSettings, m_amazonSQSQueueContext, m_AmazonMessageProcessorFactory, rebusTime);
         }
 
         /// <summary>

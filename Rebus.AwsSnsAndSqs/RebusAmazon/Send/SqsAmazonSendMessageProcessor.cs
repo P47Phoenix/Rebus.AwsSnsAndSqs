@@ -19,12 +19,14 @@
         private readonly string _destinationAddress;
         private readonly IAmazonInternalSettings _amazonInternalSettings;
         private readonly AmazonSQSQueueContext _amazonSqsQueueContext;
+        private readonly IRebusTime _rebusTime;
 
-        public SqsAmazonSendMessageProcessor(string destinationAddress, IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSqsQueueContext)
+        public SqsAmazonSendMessageProcessor(string destinationAddress, IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSqsQueueContext, IRebusTime rebusTime)
         {
             this._destinationAddress = destinationAddress;
             this._amazonInternalSettings = amazonInternalSettings;
             this._amazonSqsQueueContext = amazonSqsQueueContext;
+            this._rebusTime = rebusTime;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -35,7 +37,7 @@
             {
                 var sendMessageBatchRequestEntries = new ConcurrentQueue<AmazonOutgoingMessage>();
 
-                context.OnCommitted(() => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
+                context.OnCommitted((ITransactionContext ctx) => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
 
                 return sendMessageBatchRequestEntries;
             });
@@ -109,7 +111,7 @@
 
             var deferUntilDateTimeOffset = deferUntilTime.ToDateTimeOffset();
 
-            var delay = (int)Math.Ceiling((deferUntilDateTimeOffset - RebusTime.Now).TotalSeconds);
+            var delay = (int)Math.Ceiling((deferUntilDateTimeOffset - _rebusTime.Now).TotalSeconds);
 
             // SQS will only accept delays between 0 and 900 seconds.
             // In the event that the value for deferreduntil is before the current date, the message should be processed immediately. i.e. with a delay of 0 seconds.

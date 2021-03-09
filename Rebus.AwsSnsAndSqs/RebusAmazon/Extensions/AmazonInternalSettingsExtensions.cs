@@ -42,7 +42,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             {
                 var client = new AmazonSimpleNotificationServiceClient(amazonSnsSettings.AmazonCredentialsFactory.Create(), amazonSnsSettings.AmazonSimpleNotificationServiceConfig);
 
-                transactionContext.OnDisposed(client.Dispose);
+                transactionContext.OnDisposed((ITransactionContext context) => client.Dispose());
 
                 return client;
             });
@@ -53,7 +53,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             return transactionContext.GetOrAdd(AmazonConstaints.SqsClientContextKey, () =>
             {
                 var amazonSqsClient = new AmazonSQSClient(amazonSqsSettings.AmazonCredentialsFactory.Create(), amazonSqsSettings.AmazonSqsConfig);
-                transactionContext.OnDisposed(amazonSqsClient.Dispose);
+                transactionContext.OnDisposed((ITransactionContext context) => amazonSqsClient.Dispose());
                 return amazonSqsClient;
             });
         }

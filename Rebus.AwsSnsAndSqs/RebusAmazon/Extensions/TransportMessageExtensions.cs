@@ -9,7 +9,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
     internal static class TransportMessageExtensions
     {
-        public static bool MessageIsExpired(this TransportMessage message, Message sqsMessage)
+        public static bool MessageIsExpired(this TransportMessage message, IRebusTime rebusTime, Message sqsMessage)
         {
             if (message.Headers.TryGetValue(Headers.TimeToBeReceived, out var value) == false)
             {
@@ -18,10 +18,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
             var timeToBeReceived = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
 
-            return MessageIsExpiredUsingRebusSentTime(message, timeToBeReceived) || MessageIsExpiredUsingNativeSqsSentTimestamp(sqsMessage, timeToBeReceived);
+            return MessageIsExpiredUsingRebusSentTime(message, rebusTime, timeToBeReceived) || MessageIsExpiredUsingNativeSqsSentTimestamp(sqsMessage, rebusTime, timeToBeReceived);
         }
 
-        public static bool MessageIsExpiredUsingRebusSentTime(this TransportMessage message, TimeSpan timeToBeReceived)
+        public static bool MessageIsExpiredUsingRebusSentTime(this TransportMessage message, IRebusTime rebusTime, TimeSpan timeToBeReceived)
         {
             if (message.Headers.TryGetValue(Headers.SentTime, out var rebusUtcTimeSentAttributeValue) == false)
             {
@@ -30,10 +30,10 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
             var rebusUtcTimeSent = DateTimeOffset.ParseExact(rebusUtcTimeSentAttributeValue, "O", null);
 
-            return RebusTime.Now.UtcDateTime - rebusUtcTimeSent > timeToBeReceived;
+            return rebusTime.Now.UtcDateTime - rebusUtcTimeSent > timeToBeReceived;
         }
 
-        private static bool MessageIsExpiredUsingNativeSqsSentTimestamp(Message message, TimeSpan timeToBeReceived)
+        private static bool MessageIsExpiredUsingNativeSqsSentTimestamp(Message message, IRebusTime rebusTime, TimeSpan timeToBeReceived)
         {
             if (message.Attributes.TryGetValue("SentTimestamp", out var sentTimeStampString) == false)
             {
@@ -41,7 +41,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
             }
 
             var sentTime = GetTimeFromUnixTimestamp(sentTimeStampString);
-            return RebusTime.Now.UtcDateTime - sentTime > timeToBeReceived;
+            return rebusTime.Now.UtcDateTime - sentTime > timeToBeReceived;
         }
 
         private static DateTime GetTimeFromUnixTimestamp(string sentTimeStampString)

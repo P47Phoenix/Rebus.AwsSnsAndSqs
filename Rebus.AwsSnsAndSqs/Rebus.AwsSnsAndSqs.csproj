@@ -73,7 +73,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Rebus" Version="5.4.1" />
+    <PackageReference Include="Rebus" Version="6.5.5" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyInfoFiles Remove="Properties\AssemblyInfo.cs" />

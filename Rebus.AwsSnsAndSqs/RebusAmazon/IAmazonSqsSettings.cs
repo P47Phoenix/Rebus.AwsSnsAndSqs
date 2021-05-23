@@ -1,8 +1,8 @@
-﻿using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.Config;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Amazon.SQS;
+    using Config;
+
     public interface IAmazonSqsSettings : IAmazonSettings
     {
         AmazonSQSConfig AmazonSqsConfig { get; }

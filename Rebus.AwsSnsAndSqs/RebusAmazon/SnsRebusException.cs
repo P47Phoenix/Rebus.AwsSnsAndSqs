@@ -1,9 +1,9 @@
-﻿using System;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System;
+
     [Serializable]
     public class SnsRebusException : Exception
     {

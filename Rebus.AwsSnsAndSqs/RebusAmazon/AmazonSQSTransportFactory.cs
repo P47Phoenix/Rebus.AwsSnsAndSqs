@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {

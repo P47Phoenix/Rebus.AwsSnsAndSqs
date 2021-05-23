@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Rebus.AwsSnsAndSqs.Internals
+﻿namespace Rebus.AwsSnsAndSqs.Internals
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     internal static class EnumerableExtensions
     {
         public static IEnumerable<List<T>> Batch<T>(this IEnumerable<T> items, int maxItemsPerBatch)

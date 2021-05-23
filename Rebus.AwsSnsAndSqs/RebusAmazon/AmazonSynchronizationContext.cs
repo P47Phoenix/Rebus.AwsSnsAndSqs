@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Runtime.ExceptionServices;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.Runtime.ExceptionServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     ///     Synchronization context that can be "pumped" in order to have it execute continuations posted back to it
     /// </summary>
@@ -21,7 +21,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
         public AmazonSynchronizationContext(Func<Task> task)
         {
-            _task = task ?? throw new ArgumentNullException(paramName: nameof(task), message: "Please remember to pass a Task to be executed");
+            _task = task ?? throw new ArgumentNullException(nameof(task), "Please remember to pass a Task to be executed");
         }
 
         public override void Post(SendOrPostCallback function, object state)
@@ -35,7 +35,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         /// </summary>
         public void Run()
         {
-            Post(function: async _ =>
+            Post(async _ =>
             {
                 try
                 {
@@ -48,14 +48,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 }
                 finally
                 {
-                    Post(function: state => _done = true, state: null);
+                    Post(state => _done = true, null);
                 }
-            }, state: null);
+            }, null);
 
             while (!_done)
             {
-
-                if (_items.TryDequeue(result: out Tuple<SendOrPostCallback, object> task))
+                if (_items.TryDequeue(result: out var task))
                 {
                     task.Item1(task.Item2);
 

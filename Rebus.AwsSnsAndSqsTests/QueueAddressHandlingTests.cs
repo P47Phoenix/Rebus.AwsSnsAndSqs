@@ -1,11 +1,11 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqsTests
+﻿namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using NUnit.Framework;
+    using Transport;
+
     [TestFixture]
     [Category(Category.AmazonSqs)]
     public class QueueAddressHandlingTests : SqsFixtureBase

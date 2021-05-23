@@ -1,11 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqs.Config
+﻿namespace Rebus.AwsSnsAndSqs.Config
 {
-    using Rebus.Messages;
+    using System;
+    using System.Threading.Tasks;
+    using Messages;
     using Retry;
+    using Transport;
 
     public class OneWayClientErrorHandler : IErrorHandler
     {

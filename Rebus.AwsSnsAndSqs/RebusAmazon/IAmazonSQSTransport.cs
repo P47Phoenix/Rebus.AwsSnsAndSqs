@@ -1,9 +1,9 @@
-﻿using Rebus.Bus;
-using Rebus.Subscriptions;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Bus;
+    using Subscriptions;
+    using Transport;
+
     public interface IAmazonSQSTransport : ITransport, IInitializable, ISubscriptionStorage
     {
     }

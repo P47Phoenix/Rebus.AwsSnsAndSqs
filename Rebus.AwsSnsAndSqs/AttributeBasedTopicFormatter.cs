@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Reflection;
-using Newtonsoft.Json.Linq;
-
-namespace Rebus.AwsSnsAndSqs
+﻿namespace Rebus.AwsSnsAndSqs
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.Linq;
+    using System.Reflection;
+    using Newtonsoft.Json.Linq;
+
 #if NET45 || NETSTANDARD2_0
     public class AttributeBasedTopicFormatter : ITopicFormatter
     {

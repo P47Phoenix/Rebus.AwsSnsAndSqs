@@ -1,12 +1,8 @@
-﻿using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Logging;
-using Rebus.Threading;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Logging;
     using Receive;
+    using Threading;
 
     public interface IAmazonInternalSettings : IAmazonSnsSettings, IAmazonSqsSettings
     {

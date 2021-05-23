@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.Activation;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-using Rebus.Config;
-using Rebus.Messages;
-using Rebus.Tests.Contracts;
-using Rebus.Tests.Contracts.Extensions;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Activation;
+    using AwsSnsAndSqs.RebusAmazon;
+    using Config;
+    using Messages;
+    using NUnit.Framework;
+    using Tests.Contracts;
+    using Tests.Contracts.Extensions;
+
     [TestFixture]
     [Category(Category.AmazonSqs)]
     public class AmazonSqsTrivialMessageRoundtrip : SqsFixtureBase

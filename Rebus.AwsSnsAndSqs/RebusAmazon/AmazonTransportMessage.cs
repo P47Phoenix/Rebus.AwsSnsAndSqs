@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System.Collections.Generic;
+    using Newtonsoft.Json;
+
     public class AmazonTransportMessage
     {
         public AmazonTransportMessage() : this(null, null)

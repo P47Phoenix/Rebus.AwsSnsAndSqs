@@ -1,9 +1,9 @@
-﻿using Rebus.Messages;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Messages;
+
     internal class AmazonOutgoingMessage
     {
         public AmazonOutgoingMessage(string destinationAddress, TransportMessage transportMessage)

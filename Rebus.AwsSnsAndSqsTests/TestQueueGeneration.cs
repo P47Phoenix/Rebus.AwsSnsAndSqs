@@ -1,15 +1,13 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using Amazon.Runtime;
-using Amazon.SQS;
-using Amazon.SQS.Model;
-using NUnit.Framework;
-
-namespace Rebus.AwsSnsAndSqsTests
+﻿namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Net;
+    using System.Threading.Tasks;
     using Amazon;
+    using Amazon.SQS;
+    using Amazon.SQS.Model;
     using AwsSnsAndSqs;
+    using NUnit.Framework;
 
     [TestFixture]
     public class TestQueueGeneration
@@ -17,8 +15,7 @@ namespace Rebus.AwsSnsAndSqsTests
         [Test]
         public async Task Run()
         {
-
-            var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.USWest2 };
+            var config = new AmazonSQSConfig {RegionEndpoint = RegionEndpoint.USWest2};
 
             using (var client = new AmazonSQSClient(new FailbackAmazonCredentialsFactory().Create(), config))
             {

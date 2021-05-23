@@ -1,8 +1,8 @@
 ﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
     using System.Globalization;
+    using Amazon.SQS.Model;
     using Newtonsoft.Json.Linq;
-    using Message = Amazon.SQS.Model.Message;
 
     /// <summary></summary>
     internal class AmazonMessageProcessorFactory : IAmazonMessageProcessorFactory
@@ -31,12 +31,10 @@
                 {
                     return new SnsTopicAmazonMessageProcessor(messageJObject, _amazonInternalSettings);
                 }
-                else
-                {
-                    return new RebusMessageAmazonMessageProcessor(message, _amazonInternalSettings);
-                }
+
+                return new RebusMessageAmazonMessageProcessor(message, _amazonInternalSettings);
             }
-            
+
             return new RebusMessageAmazonMessageProcessor(message, _amazonInternalSettings);
         }
     }

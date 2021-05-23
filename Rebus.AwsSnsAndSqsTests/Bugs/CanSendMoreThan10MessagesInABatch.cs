@@ -1,13 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-using Rebus.AwsSnsAndSqsTests.Extensions;
-using Rebus.Tests.Contracts.Extensions;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqsTests.Bugs
+﻿namespace Rebus.AwsSnsAndSqsTests.Bugs
 {
+    using System;
+    using System.Threading.Tasks;
+    using AwsSnsAndSqs.RebusAmazon;
+    using Extensions;
+    using NUnit.Framework;
+    using Tests.Contracts.Extensions;
+    using Transport;
+
     [TestFixture]
     public class CanSendMoreThan10MessagesInABatch : SqsFixtureBase
     {

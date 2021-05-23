@@ -1,7 +1,7 @@
-﻿using Amazon.Runtime;
-
-namespace Rebus.AwsSnsAndSqs
+﻿namespace Rebus.AwsSnsAndSqs
 {
+    using Amazon.Runtime;
+
     public class StaticAmazonCredentialsFactory : IAmazonCredentialsFactory
     {
         private readonly AWSCredentials m_awsCredentials;

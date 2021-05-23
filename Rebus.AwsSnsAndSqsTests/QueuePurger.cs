@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Rebus.AwsSnsAndSqsTests
+﻿namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+
     /// <summary>
     ///     Purges the queue when it is disposed
     /// </summary>

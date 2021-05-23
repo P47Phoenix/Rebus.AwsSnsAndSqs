@@ -1,6 +1,4 @@
-﻿using Rebus.AwsSnsAndSqs;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqsTests
 {

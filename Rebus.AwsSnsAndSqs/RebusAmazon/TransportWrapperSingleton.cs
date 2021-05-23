@@ -1,19 +1,18 @@
 ﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    using System;
     using System.Collections.Concurrent;
-    using Transport;
 
     internal static class TransportWrapperSingleton
     {
-        private static ConcurrentDictionary<string, TransportWrapper> _concurrentDictionary = new ConcurrentDictionary<string, TransportWrapper>();
+        private static readonly ConcurrentDictionary<string, TransportWrapper> _concurrentDictionary = new ConcurrentDictionary<string, TransportWrapper>();
 
         public static AmazonSqsTransport GetAmazonSqsTransport(string inputQueueAddress)
         {
-            if (_concurrentDictionary.TryGetValue(inputQueueAddress, out TransportWrapper transportWrapper))
+            if (_concurrentDictionary.TryGetValue(inputQueueAddress, out var transportWrapper))
             {
                 return transportWrapper.GetAmazonSqsTransport();
             }
+
             return null;
         }
 

@@ -20,7 +20,7 @@
 
         public AmazonSqsTransport GetAmazonSqsTransport()
         {
-            if (_amazonSqsTransport.TryGetTarget(out AmazonSqsTransport amazonSqsTransport))
+            if (_amazonSqsTransport.TryGetTarget(out var amazonSqsTransport))
             {
                 return amazonSqsTransport;
             }

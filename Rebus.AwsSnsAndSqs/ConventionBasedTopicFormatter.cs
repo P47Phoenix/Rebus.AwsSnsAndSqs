@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-
-namespace Rebus.AwsSnsAndSqs
+﻿namespace Rebus.AwsSnsAndSqs
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+
     public class ConventionBasedTopicFormatter : ITopicFormatter
     {
         private static readonly ConcurrentDictionary<string, string> m_topicNameCache = new ConcurrentDictionary<string, string>();

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-
-namespace Rebus.AwsSnsAndSqs
+﻿namespace Rebus.AwsSnsAndSqs
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+
 #if NET45 || NETSTANDARD2_0
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class TopicNameAttribute : Attribute
@@ -24,7 +24,7 @@ namespace Rebus.AwsSnsAndSqs
 
             if (invalidLength || hasInvalidChar)
             {
-                throw new ArgumentException(message: $"Topic names must be made up of only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256. {nameof(invalidLength)}:{invalidLength}, {nameof(hasInvalidChar)}:{hasInvalidChar}", paramName: nameof(topic));
+                throw new ArgumentException($"Topic names must be made up of only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256. {nameof(invalidLength)}:{invalidLength}, {nameof(hasInvalidChar)}:{hasInvalidChar}", nameof(topic));
             }
 
             Topic = topic;

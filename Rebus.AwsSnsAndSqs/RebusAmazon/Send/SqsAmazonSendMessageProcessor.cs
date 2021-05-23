@@ -11,20 +11,19 @@
     using Internals;
     using Messages;
     using Rebus.Extensions;
-    using Time;
     using Transport;
 
     internal class SqsAmazonSendMessageProcessor : IAmazonSendMessageProcessor
     {
-        private readonly string _destinationAddress;
         private readonly IAmazonInternalSettings _amazonInternalSettings;
         private readonly AmazonSQSQueueContext _amazonSqsQueueContext;
+        private readonly string _destinationAddress;
 
         public SqsAmazonSendMessageProcessor(string destinationAddress, IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSqsQueueContext)
         {
-            this._destinationAddress = destinationAddress;
-            this._amazonInternalSettings = amazonInternalSettings;
-            this._amazonSqsQueueContext = amazonSqsQueueContext;
+            _destinationAddress = destinationAddress;
+            _amazonInternalSettings = amazonInternalSettings;
+            _amazonSqsQueueContext = amazonSqsQueueContext;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -35,7 +34,7 @@
             {
                 var sendMessageBatchRequestEntries = new ConcurrentQueue<AmazonOutgoingMessage>();
 
-                context.OnCommitted(() => SendOutgoingMessages(sendMessageBatchRequestEntries, context));
+                context.OnCommitted(c => SendOutgoingMessages(sendMessageBatchRequestEntries, c));
 
                 return sendMessageBatchRequestEntries;
             });
@@ -109,7 +108,7 @@
 
             var deferUntilDateTimeOffset = deferUntilTime.ToDateTimeOffset();
 
-            var delay = (int)Math.Ceiling((deferUntilDateTimeOffset - RebusTime.Now).TotalSeconds);
+            var delay = (int) Math.Ceiling((deferUntilDateTimeOffset - DateTimeOffset.Now).TotalSeconds);
 
             // SQS will only accept delays between 0 and 900 seconds.
             // In the event that the value for deferreduntil is before the current date, the message should be processed immediately. i.e. with a delay of 0 seconds.

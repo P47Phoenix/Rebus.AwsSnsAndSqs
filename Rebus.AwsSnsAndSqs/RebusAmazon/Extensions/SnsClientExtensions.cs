@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Amazon.SimpleNotificationService;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
+    using System.Net;
+    using System.Threading.Tasks;
+    using Amazon.SimpleNotificationService;
+
     internal static class SnsClientExtensions
     {
         public static async Task<string> GetTopicArn(this IAmazonSimpleNotificationService snsClient, IAmazonInternalSettings m_AmazonInternalSettings, string topic)

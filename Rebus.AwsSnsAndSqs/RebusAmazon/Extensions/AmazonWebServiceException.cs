@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
+    using System;
+
     [Serializable]
     public class AmazonWebServiceException : Exception
     {

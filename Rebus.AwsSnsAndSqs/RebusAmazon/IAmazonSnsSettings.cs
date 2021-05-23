@@ -1,7 +1,7 @@
-﻿using Amazon.SimpleNotificationService;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Amazon.SimpleNotificationService;
+
     public interface IAmazonSnsSettings : IAmazonSettings
     {
         AmazonSimpleNotificationServiceConfig AmazonSimpleNotificationServiceConfig { get; }

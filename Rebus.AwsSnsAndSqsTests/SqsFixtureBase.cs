@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Rebus.Messages;
-using Rebus.Tests.Contracts;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqsTests
+﻿namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Messages;
+    using Tests.Contracts;
+    using Transport;
+
     public abstract class SqsFixtureBase : FixtureBase
     {
         private readonly Encoding _defaultEncoding = Encoding.UTF8;

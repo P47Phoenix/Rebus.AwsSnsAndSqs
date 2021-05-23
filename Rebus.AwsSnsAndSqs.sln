@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.AwsSnsAndSqs", "Rebus
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.AwsSnsAndSqsTests", "Rebus.AwsSnsAndSqsTests\Rebus.AwsSnsAndSqsTests.csproj", "{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.AwsSnsAndSqsPerformanceTest", "Rebus.AwsSnsAndSqsPerformanceTest\Rebus.AwsSnsAndSqsPerformanceTest.csproj", "{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.NewRelicApi", "Rebus.NewRelic\Rebus.NewRelicApi.csproj", "{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76392FF5-E952-403F-9431-7990FA239106}"
@@ -39,11 +37,6 @@ Global
 		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.RelaseBuildLoadTest|Any CPU.ActiveCfg = RelaseBuildLoadTest|Any CPU
 		{5AFBEC35-938C-40D5-A5BA-2842D842CB5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.RelaseBuildLoadTest|Any CPU.ActiveCfg = RelaseBuildLoadTest|Any CPU
-		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.RelaseBuildLoadTest|Any CPU.Build.0 = RelaseBuildLoadTest|Any CPU
-		{2FE52BD5-0966-4D9E-8DFE-06020B2DBEF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{192F634E-EFF4-41CE-9DF5-F7CB8D5BADBB}.RelaseBuildLoadTest|Any CPU.ActiveCfg = Release|Any CPU

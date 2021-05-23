@@ -1,19 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Amazon.SQS.Model;
-using NUnit.Framework;
-using Rebus.Activation;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Config;
-using Rebus.Logging;
-using Rebus.Tests.Contracts;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqsTests.Bugs
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Activation;
+    using Amazon.Runtime;
+    using Amazon.SQS;
+    using Amazon.SQS.Model;
+    using AwsSnsAndSqs;
+    using AwsSnsAndSqs.Config;
+    using Config;
+    using Logging;
+    using NUnit.Framework;
+    using Tests.Contracts;
+
     [TestFixture]
     public class CannotSendTooBigMessages : SqsFixtureBase
     {
@@ -86,9 +89,19 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
 
             Using(activator);
 
-            var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
-
-            var bus = Configure.With(activator).Logging(l => l.Console(LogLevel.Info)).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: _queueName)).Start();
+            var bus = Configure
+                .With(activator)
+                .Logging(l => l.Console(LogLevel.Info))
+                .Transport(t => t
+                    .UseAmazonSnsAndSqs(
+                        workerQueueAddress: _queueName, 
+                        amazonCredentialsFactory: new TestCredentialsFactory(),
+                        amazonSqsConfig: new 
+                            AmazonSQSConfig
+                            {
+                                ServiceURL = "http://localhost:9911"
+                            }))
+                .Start();
 
             var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () => { await bus.SendLocal(string.Concat(Enumerable.Repeat("DET HER ER BARE EN NORMAL STRENG", 10000))); });
 
@@ -109,6 +122,14 @@ namespace Rebus.AwsSnsAndSqsTests.Bugs
             var exception = Assert.ThrowsAsync<BatchRequestTooLongException>(async () => { await bus.SendLocal(new SomeKindOfRequest {SomeKindOfRequestModel = new SomeKindOfRequestModel {HereWeHaveItems = Enumerable.Range(0, 100).Select(n => new SomeKindOfRequestModelBase.SomeKindOfItemModel {SubItems = Enumerable.Range(0, 3).Select(i => new SomeKindOfRequestModelBase.SubItemModel {SubSubItems = Enumerable.Range(0, 5).Select(l => new SomeKindOfRequestModelBase.SubSubItemModel {Number = l, Name = $"bucket-{n}-{i}-{l}"}).ToList(), Name = $"buckerino-{n}-{i}", Text = $"THIS IS TITLE {i}"}).ToList()}).ToList()}, SomeKindOfListOfStrings = Enumerable.Range(0, 20).Select(n => $"THIS NO {n}").ToList()}); });
 
             Console.WriteLine(exception);
+        }
+    }
+
+    public class TestCredentialsFactory : IAmazonCredentialsFactory
+    {
+        public AWSCredentials Create()
+        {
+            return new BasicAWSCredentials("SomeKey", "SomeSecret");
         }
     }
 }

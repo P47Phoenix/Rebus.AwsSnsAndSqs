@@ -6,7 +6,7 @@
 
     public class SnsAttributeMapperBuilder
     {
-        private List<ISnsAttributeMapper> _snsAttributeMappers = new List<ISnsAttributeMapper>();
+        private readonly List<ISnsAttributeMapper> _snsAttributeMappers = new List<ISnsAttributeMapper>();
 
         public void AddMap<T>(Func<T, IDictionary<string, string>, IDictionary<string, MessageAttributeValue>> func)
         {
@@ -14,6 +14,9 @@
             _snsAttributeMappers.Add(new SnsAttributeMapper<T>(func));
         }
 
-        internal List<ISnsAttributeMapper> GetSnsAttributeMaping() => _snsAttributeMappers;
+        internal List<ISnsAttributeMapper> GetSnsAttributeMaping()
+        {
+            return _snsAttributeMappers;
+        }
     }
 }

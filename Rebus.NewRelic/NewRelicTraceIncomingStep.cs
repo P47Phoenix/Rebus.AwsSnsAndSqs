@@ -3,10 +3,8 @@
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Config;
     using NewRelic.Api.Agent;
     using Pipeline;
-    using Pipeline.Receive;
 
     public class NewRelicTraceIncomingStep : IIncomingStep
     {
@@ -20,12 +18,10 @@
             const string transactionName = nameof(transactionName);
             NewRelic.SetTransactionName(transactionName, $"{messagesTypeName}");
 
-            foreach (var messageContextHeader in messageContext.Headers)
-            {
-                NewRelic.AddCustomParameter(messageContextHeader.Key, messageContextHeader.Value);
-            }
+            foreach (var messageContextHeader in messageContext.Headers) NewRelic.AddCustomParameter(messageContextHeader.Key, messageContextHeader.Value);
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            var stopwatch = Stopwatch.StartNew();
+
             try
             {
                 await next();
@@ -38,8 +34,7 @@
             finally
             {
                 stopwatch.Stop();
-                NewRelic.RecordResponseTimeMetric($"{messagesTypeName}",
-                    stopwatch.ElapsedMilliseconds);
+                NewRelic.RecordResponseTimeMetric($"{messagesTypeName}", stopwatch.ElapsedMilliseconds);
             }
         }
     }

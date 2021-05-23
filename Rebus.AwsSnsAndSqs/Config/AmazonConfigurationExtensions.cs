@@ -1,21 +1,22 @@
-﻿using System;
-using Amazon;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-using Rebus.Config;
-using Rebus.Pipeline;
-using Rebus.Pipeline.Receive;
-using Rebus.Subscriptions;
-using Rebus.Timeouts;
-using Rebus.Transport;
+﻿
 
 // ReSharper disable ArgumentsStyleNamedExpression
 
 namespace Rebus.AwsSnsAndSqs.Config
 {
+    using System;
+    using Amazon;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
+    using Pipeline;
+    using Pipeline.Receive;
     using Pipeline.Send;
+    using Rebus.Config;
+    using RebusAmazon;
     using RebusAmazon.Send;
+    using Subscriptions;
+    using Timeouts;
+    using Transport;
 
     /// <summary>
     ///     Configuration extensions for the Amazon Simple Queue Service transport
@@ -31,10 +32,10 @@ namespace Rebus.AwsSnsAndSqs.Config
 
             topicFormatter = topicFormatter ?? new ConventionBasedTopicFormatter();
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
-            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.USWest2 };
+            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig {RegionEndpoint = RegionEndpoint.USWest2};
             amazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? new AmazonSnsAndSqsTransportOptions();
             snsAttributeMapperBuilder = snsAttributeMapperBuilder ?? new SnsAttributeMapperBuilder();
-            amazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.USWest2 };
+            amazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? new AmazonSimpleNotificationServiceConfig {RegionEndpoint = RegionEndpoint.USWest2};
             Configure(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, workerQueueAddress, amazonSnsAndSqsTransportOptions, topicFormatter, snsAttributeMapperBuilder);
         }
 
@@ -44,7 +45,16 @@ namespace Rebus.AwsSnsAndSqs.Config
             configurer.OtherService<IAmazonCredentialsFactory>().Register(c => amazonCredentialsFactory);
 
             configurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>()));
-            configurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings { ResolutionContext = c, AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)), InputQueueAddress = inputQueueAddress ?? throw new ArgumentNullException(nameof(inputQueueAddress)), AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)), AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)), MessageSerializer = new AmazonTransportMessageSerializer(), TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter)) });
+            configurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings
+            {
+                ResolutionContext = c,
+                AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
+                InputQueueAddress = inputQueueAddress ?? throw new ArgumentNullException(nameof(inputQueueAddress)),
+                AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
+                AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
+                MessageSerializer = new AmazonTransportMessageSerializer(),
+                TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter))
+            });
 
             configurer.Register(c => c.Get<IAmazonSQSTransportFactory>().Create());
 
@@ -63,6 +73,7 @@ namespace Rebus.AwsSnsAndSqs.Config
                     return new PipelineStepInjector(pipeline).OnSend(new SnsAttributeMapperOutBoundStep(p), PipelineRelativePosition.Before, typeof(SerializeOutgoingMessageStep));
                 });
             }
+
             if (amazonSnsAndSqsTransportOptions.UseNativeDeferredMessages)
             {
                 configurer.OtherService<IPipeline>().Decorate(p =>

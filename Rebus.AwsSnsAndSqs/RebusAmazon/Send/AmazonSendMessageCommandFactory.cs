@@ -11,8 +11,8 @@
 
         public AmazonSendMessageCommandFactory(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSqsQueueContext)
         {
-            this._amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
-            this._amazonSqsQueueContext = amazonSqsQueueContext ?? throw new ArgumentNullException(nameof(amazonSqsQueueContext));
+            _amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
+            _amazonSqsQueueContext = amazonSqsQueueContext ?? throw new ArgumentNullException(nameof(amazonSqsQueueContext));
         }
 
         public IAmazonSendMessageProcessor Create(string destinationAddress)

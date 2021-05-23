@@ -1,7 +1,7 @@
-﻿using Rebus.Bus;
-
-namespace Rebus.AwsSnsAndSqs.Config
+﻿namespace Rebus.AwsSnsAndSqs.Config
 {
+    using Bus;
+
     /// <summary>
     ///     Holds all of the exposed options which can be applied when using the SQS transport.
     /// </summary>

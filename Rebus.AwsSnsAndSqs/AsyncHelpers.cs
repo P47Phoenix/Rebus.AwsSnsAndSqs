@@ -1,10 +1,10 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-
-namespace Rebus.AwsSnsAndSqs
+﻿namespace Rebus.AwsSnsAndSqs
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using RebusAmazon;
+
     internal static class AsyncHelpers
     {
         /// <summary>

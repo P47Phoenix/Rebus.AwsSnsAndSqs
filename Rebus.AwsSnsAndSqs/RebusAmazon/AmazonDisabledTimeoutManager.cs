@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Rebus.Extensions;
-using Rebus.Messages;
-using Rebus.Timeouts;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Messages;
+    using Rebus.Extensions;
+    using Timeouts;
+
     internal class AmazonDisabledTimeoutManager : ITimeoutManager
     {
         public Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)

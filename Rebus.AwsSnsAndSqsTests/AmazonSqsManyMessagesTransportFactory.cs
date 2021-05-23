@@ -1,18 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Amazon.SQS;
-using Rebus.Activation;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-using Rebus.Bus;
-using Rebus.Config;
-using Rebus.Logging;
-using Rebus.Tests.Contracts.Transports;
-using Rebus.Threading.TaskParallelLibrary;
-
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Activation;
+    using Amazon.SQS;
+    using AwsSnsAndSqs.Config;
+    using AwsSnsAndSqs.RebusAmazon;
+    using Bus;
+    using Config;
+    using Logging;
+    using Tests.Contracts.Transports;
+    using Threading.TaskParallelLibrary;
+
     public class AmazonSqsManyMessagesTransportFactory : IBusFactory
     {
         private readonly List<IDisposable> _stuffToDispose = new List<IDisposable>();
@@ -54,11 +54,26 @@ namespace Rebus.AwsSnsAndSqsTests
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
 
             var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
-            var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
+            var amazonSqsConfig = new AmazonSQSConfig
+            {
+                ServiceURL = SnsHttpLocalhost,
+                RegionEndpoint = connectionInfo.RegionEndpoint
+            };
 
-            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory)) {InputQueueAddress = queueName, AmazonSqsConfig = amazonSqsConfig});
+            var transport = new AmazonSqsTransport(
+                new AmazonInternalSettings(
+                    consoleLoggerFactory, 
+                    new TplAsyncTaskFactory(consoleLoggerFactory))
+                {
+                    InputQueueAddress = queueName, 
+                    AmazonSqsConfig = amazonSqsConfig
+                });
             transport.Initialize();
             transport.Purge();
         }
+
+        public const string 
+            SnsHttpLocalhost = "http://localhost:9324",
+            SqsHttpLocalHost = "http://localhost:9911";
     }
 }

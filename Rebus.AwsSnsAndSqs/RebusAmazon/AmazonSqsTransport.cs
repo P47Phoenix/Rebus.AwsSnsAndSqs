@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using Amazon.Auth.AccessControlPolicy;
-using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.RebusAmazon.Extensions;
-using Rebus.Logging;
-using Rebus.Messages;
-using Rebus.Transport;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    using Amazon.SimpleNotificationService.Model;
+    using System;
+    using System.Linq;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Amazon.SQS;
+    using Extensions;
+    using Logging;
+    using Messages;
     using Receive;
     using Send;
+    using Transport;
 
     /// <summary>
     ///     Implementation of <see cref="ITransport" /> that uses Amazon Simple Queue Service to move messages around
@@ -29,11 +23,11 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         private const string c_removingSqsSubscriptionMessage = "Removing sqs subscriber {0} to sns topic {1}";
         private readonly AmazonCreateSQSQueue m_amazonCreateSqsQueue;
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
-        private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
-        private readonly AmazonSendMessageCommandFactory m_AmazonSendMessageCommandFactory;
-        private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
         private readonly IAmazonMessageProcessorFactory m_AmazonMessageProcessorFactory;
         private readonly AmazonRecieveMessage m_AmazonRecieveMessage;
+        private readonly AmazonSendMessageCommandFactory m_AmazonSendMessageCommandFactory;
+        private readonly AmazonSQSQueueContext m_amazonSQSQueueContext;
+        private readonly AmazonSQSQueuePurgeUtility m_amazonSqsQueuePurgeUtility;
         private readonly ILog m_log;
 
         /// <summary>
@@ -124,12 +118,13 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         {
             var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic);
             m_log.Debug("using sns topic {0} for topic contract {1}", topicArn, topic);
-            return new[] { topicArn };
+            return new[] {topicArn};
         }
 
         public async Task RegisterSubscriber(string topic, string subscriberAddress)
         {
             m_log.Debug("Adding sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
+
             using (var rebusTransactionScope = new RebusTransactionScope())
             {
                 var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic, rebusTransactionScope);
@@ -164,12 +159,14 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     await snsClient.SetSubscriptionAttributesAsync(subscription.SubscriptionArn, "RawMessageDelivery", bool.TrueString);
                 }
             }
+
             m_log.Debug("Added sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }
 
         public async Task UnregisterSubscriber(string topic, string subscriberAddress)
         {
             m_log.Debug(c_removingSqsSubscriptionMessage, subscriberAddress, topic);
+
             using (var rebusTransactionScope = new RebusTransactionScope())
             {
                 var topicArn = await m_AmazonInternalSettings.GetTopicArn(topic, rebusTransactionScope);
@@ -199,6 +196,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     }
                 }
             }
+
             m_log.Debug("Removed sqs subscriber {0} to sns topic {1}", subscriberAddress, topic);
         }
 

@@ -1,32 +1,24 @@
-﻿using System;
-using System.Threading.Tasks;
-using Amazon;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-using Rebus.Config;
-using Rebus.Pipeline;
-using Rebus.Pipeline.Receive;
-using Rebus.Subscriptions;
-using Rebus.Timeouts;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqs.Config
+﻿namespace Rebus.AwsSnsAndSqs.Config
 {
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq;
-    using Amazon.SimpleNotificationService.Model;
-    using Injection;
+    using System;
+    using Amazon;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
+    using Pipeline;
+    using Pipeline.Receive;
     using Pipeline.Send;
-    using Rebus.Messages;
+    using Rebus.Config;
+    using RebusAmazon;
     using RebusAmazon.Send;
     using Retry;
+    using Subscriptions;
+    using Timeouts;
+    using Transport;
 
     public static class AmazonOneWayConfigExtension
     {
         /// <summary>
-        /// Configures Rebus to use Amazon Simple Queue Service as the message transport
+        ///     Configures Rebus to use Amazon Simple Queue Service as the message transport
         /// </summary>
         /// <param name="configurer">The configurer.</param>
         /// <param name="amazonCredentialsFactory">The amazon credentials factory.</param>
@@ -39,10 +31,10 @@ namespace Rebus.AwsSnsAndSqs.Config
         {
             topicFormatter = topicFormatter ?? new ConventionBasedTopicFormatter();
             amazonCredentialsFactory = amazonCredentialsFactory ?? new FailbackAmazonCredentialsFactory();
-            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.USWest2 };
+            amazonSqsConfig = amazonSqsConfig ?? new AmazonSQSConfig {RegionEndpoint = RegionEndpoint.USWest2};
             options = options ?? new AmazonSnsAndSqsTransportOptions();
             snsAttributeMapperBuilder = snsAttributeMapperBuilder ?? new SnsAttributeMapperBuilder();
-            amazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.USWest2 };
+            amazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? new AmazonSimpleNotificationServiceConfig {RegionEndpoint = RegionEndpoint.USWest2};
             ConfigureOneWayClient(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, options, topicFormatter, snsAttributeMapperBuilder);
         }
 
@@ -53,7 +45,16 @@ namespace Rebus.AwsSnsAndSqs.Config
             standardConfigurer.OtherService<IAmazonCredentialsFactory>().Register(c => amazonCredentialsFactory);
 
             standardConfigurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>()));
-            standardConfigurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings { ResolutionContext = c, AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)), InputQueueAddress = null, AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)), AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)), MessageSerializer = new AmazonTransportMessageSerializer(), TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter)) });
+            standardConfigurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings
+            {
+                ResolutionContext = c,
+                AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
+                InputQueueAddress = null,
+                AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
+                AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
+                MessageSerializer = new AmazonTransportMessageSerializer(),
+                TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter))
+            });
 
             standardConfigurer.Register(c => c.Get<IAmazonSQSTransportFactory>().Create());
 

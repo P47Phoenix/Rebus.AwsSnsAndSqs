@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
-    using System;
+    using Newtonsoft.Json;
 
     public class AmazonTransportMessageSerializer
     {

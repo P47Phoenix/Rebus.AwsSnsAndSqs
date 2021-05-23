@@ -1,18 +1,18 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Amazon.SQS;
-using NUnit.Framework;
-using Rebus.Activation;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Config;
-using Rebus.Tests.Contracts;
-using Rebus.Tests.Contracts.Extensions;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Activation;
+    using Amazon.SQS;
+    using AwsSnsAndSqs.Config;
+    using Config;
+    using NUnit.Framework;
+    using Tests.Contracts;
+    using Tests.Contracts.Extensions;
+
     [TestFixture]
     [Category(Category.AmazonSqs)]
     public class DeferMessageTest : SqsFixtureBase

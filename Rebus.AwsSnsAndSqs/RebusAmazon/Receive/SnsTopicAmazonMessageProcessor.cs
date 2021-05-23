@@ -11,7 +11,7 @@
         private readonly IAmazonInternalSettings _amazonInternalSettings;
         private readonly JObject _message;
 
-        /// <summary>Initializes a new instance of the <see cref="SnsTopicAmazonMessageProcessor"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="SnsTopicAmazonMessageProcessor" /> class.</summary>
         /// <param name="message">The message.</param>
         /// <param name="amazonInternalSettings">The amazon internal settings.</param>
         public SnsTopicAmazonMessageProcessor(JObject message, IAmazonInternalSettings amazonInternalSettings)
@@ -32,7 +32,7 @@
 
             var sqsMessage = _amazonInternalSettings.MessageSerializer.Deserialize(msg);
 
-            return new TransportMessage(sqsMessage.Headers, body: sqsMessage.Body.GetBodyBytes());
+            return new TransportMessage(sqsMessage.Headers, sqsMessage.Body.GetBodyBytes());
         }
     }
 }

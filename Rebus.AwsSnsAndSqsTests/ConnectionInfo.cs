@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
-using Amazon;
-using Rebus.Extensions;
-
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Linq;
+    using Amazon;
+    using Rebus.Extensions;
+
     public class ConnectionInfo
     {
         internal ConnectionInfo(string accessKeyId, string secretAccessKey, string regionEndpointName)
@@ -32,7 +32,7 @@ namespace Rebus.AwsSnsAndSqsTests
             }
             catch (Exception exception)
             {
-                throw new FormatException($"Could not extract access key ID, secret access key, and region endpoint from the given string - expected the form 'AccessKeyId=blabla; SecretAccessKey=blablalba; RegionEndpoint=something'", exception);
+                throw new FormatException("Could not extract access key ID, secret access key, and region endpoint from the given string - expected the form 'AccessKeyId=blabla; SecretAccessKey=blablalba; RegionEndpoint=something'", exception);
             }
         }
 

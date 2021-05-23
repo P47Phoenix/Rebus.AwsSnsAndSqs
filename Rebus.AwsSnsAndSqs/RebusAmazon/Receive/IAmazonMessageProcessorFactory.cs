@@ -1,6 +1,6 @@
 ﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Receive
 {
-    using Message = Amazon.SQS.Model.Message;
+    using Amazon.SQS.Model;
 
     /// <summary></summary>
     public interface IAmazonMessageProcessorFactory

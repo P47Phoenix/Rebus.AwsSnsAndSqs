@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Net;
-using Amazon.SQS;
-using Amazon.SQS.Model;
-using Rebus.Logging;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Net;
+    using Amazon.SQS;
+    using Amazon.SQS.Model;
+    using Logging;
+
     internal class AmazonCreateSQSQueue
     {
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;
@@ -28,7 +28,6 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
 
             var amazonSqsConfig = m_AmazonInternalSettings.AmazonSqsConfig;
             var awsCredentials = m_AmazonInternalSettings.AmazonCredentialsFactory.Create();
-
             using (var client = new AmazonSQSClient(awsCredentials, amazonSqsConfig))
             {
                 var queueName = GetQueueNameFromAddress(address);

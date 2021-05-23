@@ -1,21 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using Amazon;
-using Amazon.Runtime;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Rebus.AwsSnsAndSqs;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.AwsSnsAndSqs.RebusAmazon;
-using Rebus.Exceptions;
-using Rebus.Extensions;
-using Rebus.Logging;
-using Rebus.Tests.Contracts.Transports;
-using Rebus.Threading.TaskParallelLibrary;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqsTests
+﻿namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Collections.Generic;
+    using Amazon;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
+    using AwsSnsAndSqs;
+    using AwsSnsAndSqs.Config;
+    using AwsSnsAndSqs.RebusAmazon;
+    using Bugs;
+    using Exceptions;
+    using Logging;
+    using Rebus.Extensions;
+    using Tests.Contracts.Transports;
+    using Threading.TaskParallelLibrary;
+    using Transport;
+
     internal class AmazonSqsTransportFactory : ITransportFactory
     {
         private static ConnectionInfo _connectionInfo;
@@ -41,17 +41,38 @@ namespace Rebus.AwsSnsAndSqsTests
 
         public ITransport Create(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
         {
-            return inputQueueAddress == null ? CreateTransport(null, peeklockDuration, options) : _queuesToDelete.GetOrAdd(inputQueueAddress, () => CreateTransport(inputQueueAddress, peeklockDuration, options));
+            return inputQueueAddress == null ? CreateTransport(
+                null, 
+                peeklockDuration, 
+                options) : _queuesToDelete.GetOrAdd(
+                inputQueueAddress, () => CreateTransport(
+                    inputQueueAddress, 
+                    peeklockDuration, 
+                    options));
         }
 
         public static AmazonSqsTransport CreateTransport(string inputQueueAddress, TimeSpan peeklockDuration, AmazonSnsAndSqsTransportOptions options = null)
         {
             var connectionInfo = ConnectionInfo;
-            var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
-
+            var amazonSqsConfig = new AmazonSQSConfig
+            {
+                ServiceURL = "http://localhost:9324",
+                RegionEndpoint = connectionInfo.RegionEndpoint
+            };
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
 
-            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory()) {InputQueueAddress = inputQueueAddress, AmazonSqsConfig = amazonSqsConfig, AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(), AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(), MessageSerializer = new AmazonTransportMessageSerializer()});
+            var tplAsyncTaskFactory = new TplAsyncTaskFactory(consoleLoggerFactory);
+            var failbackAmazonCredentialsFactory = new FailbackAmazonCredentialsFactory();
+            var amazonInternalSettings = new AmazonInternalSettings(consoleLoggerFactory, tplAsyncTaskFactory, failbackAmazonCredentialsFactory)
+            {
+                InputQueueAddress = inputQueueAddress,
+                AmazonSqsConfig = amazonSqsConfig,
+                AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(),
+                AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(),
+                MessageSerializer = new AmazonTransportMessageSerializer()
+            };
+            
+            var transport = new AmazonSqsTransport(amazonInternalSettings);
 
             transport.Initialize(peeklockDuration);
 
@@ -90,10 +111,9 @@ namespace Rebus.AwsSnsAndSqsTests
 
         private static ConnectionInfo ConnectionInfoFromFileOrNull()
         {
-            var awsCredentials = FallbackCredentialsFactory.GetCredentials();
-
-            var immutableCredentials = awsCredentials.GetCredentials();
-
+            IAmazonCredentialsFactory factory = new TestCredentialsFactory();
+            var cred = factory.Create();
+            var immutableCredentials = cred.GetCredentials();
             return new ConnectionInfo(immutableCredentials.AccessKey, immutableCredentials.SecretKey, RegionEndpoint.USWest2.SystemName);
         }
 

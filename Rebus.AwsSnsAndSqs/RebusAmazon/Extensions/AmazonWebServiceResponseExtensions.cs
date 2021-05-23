@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
-using Amazon.Runtime;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
+    using System;
+    using System.Linq;
+    using Amazon.Runtime;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+
     internal static class AmazonWebServiceResponseExtensions
     {
         public static AmazonWebServiceException CreateAmazonExceptionFromResponse(this AmazonWebServiceResponse amazonWebServiceResponse, Exception exception = null)

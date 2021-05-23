@@ -1,11 +1,11 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.Tests.Contracts;
-
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using NUnit.Framework;
+    using Tests.Contracts;
+
     [TestFixture]
     [Category(Category.AmazonSqs)]
     public class AmazonSqsVisibiltyTimeout : SqsFixtureBase

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using Amazon.SQS;
-using Amazon.SQS.Model;
-using Rebus.Exceptions;
-using Rebus.Logging;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Net;
+    using Amazon.SQS;
+    using Amazon.SQS.Model;
+    using Exceptions;
+    using Logging;
+
     internal class AmazonSQSQueuePurgeUtility
     {
         private readonly IAmazonInternalSettings m_AmazonInternalSettings;

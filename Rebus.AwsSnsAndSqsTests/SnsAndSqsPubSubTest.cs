@@ -1,18 +1,18 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.Activation;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Config;
-using Rebus.Routing.TypeBased;
-using Rebus.Tests.Contracts;
-using Rebus.Tests.Contracts.Extensions;
-
-#pragma warning disable 1998
+﻿#pragma warning disable 1998
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Activation;
+    using AwsSnsAndSqs.Config;
+    using Config;
+    using NUnit.Framework;
+    using Routing.TypeBased;
+    using Tests.Contracts;
+    using Tests.Contracts.Extensions;
+
     [TestFixture]
     [Category("snsAndSqsPubSub")]
     public class SnsAndSqsPubSubTest : FixtureBase
@@ -24,7 +24,6 @@ namespace Rebus.AwsSnsAndSqsTests
 
         protected override void SetUp()
         {
-
             _publisher = GetBus(_publisherQueueName);
         }
 
@@ -38,7 +37,7 @@ namespace Rebus.AwsSnsAndSqsTests
             }
 
             Configure.With(activator).Transport(t => { t.UseAmazonSnsAndSqs(workerQueueAddress: queueName); }).Routing(r => r.TypeBased().Map<string>(queueName)).Start();
-            
+
             return activator;
         }
 
@@ -63,7 +62,7 @@ namespace Rebus.AwsSnsAndSqsTests
                     sub2GotEvent.Set();
                 }
             });
-            
+
             await sub1.Bus.Unsubscribe<string>();
             await sub2.Bus.Unsubscribe<string>();
 

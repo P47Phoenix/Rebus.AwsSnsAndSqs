@@ -1,15 +1,14 @@
-﻿using Amazon;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Rebus.AwsSnsAndSqs.Config;
-using Rebus.Injection;
-using Rebus.Logging;
-using Rebus.Threading;
-using Rebus.Threading.TaskParallelLibrary;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon
 {
+    using Amazon;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
+    using Config;
+    using Injection;
+    using Logging;
     using Receive;
+    using Threading;
+    using Threading.TaskParallelLibrary;
 
     internal class AmazonInternalSettings : IAmazonInternalSettings
     {

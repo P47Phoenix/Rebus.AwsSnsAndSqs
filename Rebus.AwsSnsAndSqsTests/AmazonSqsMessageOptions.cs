@@ -1,12 +1,12 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.Messages;
-using Rebus.Tests.Contracts;
-
-namespace Rebus.AwsSnsAndSqsTests
+﻿namespace Rebus.AwsSnsAndSqsTests
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Messages;
+    using NUnit.Framework;
+    using Tests.Contracts;
+
     [TestFixture]
     [Category(Category.AmazonSqs)]
     public class AmazonSqsMessageOptions : SqsFixtureBase

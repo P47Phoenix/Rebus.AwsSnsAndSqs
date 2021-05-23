@@ -15,12 +15,13 @@
             _amazonInternalSettings = amazonInternalSettings;
             _message = message;
         }
+
         /// <summary>Processes the message.</summary>
         /// <returns></returns>
         public TransportMessage ProcessMessage()
         {
             var sqsMessage = _amazonInternalSettings.MessageSerializer.Deserialize(_message.Body);
-            return new TransportMessage(sqsMessage.Headers, body: sqsMessage.Body.GetBodyBytes());
+            return new TransportMessage(sqsMessage.Headers, sqsMessage.Body.GetBodyBytes());
         }
     }
 }

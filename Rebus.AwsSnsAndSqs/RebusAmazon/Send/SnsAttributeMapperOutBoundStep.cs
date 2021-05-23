@@ -1,11 +1,11 @@
-﻿using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
+﻿namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
 {
     using System;
     using System.Threading.Tasks;
     using Injection;
+    using Messages;
     using Pipeline;
+    using Transport;
 
     public class SnsAttributeMapperOutBoundStep : IOutgoingStep
     {
@@ -24,7 +24,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
         }
 
         /// <summary>
-        /// Carries out whichever logic it takes to do something good for the outgoing message :)
+        ///     Carries out whichever logic it takes to do something good for the outgoing message :)
         /// </summary>
         /// <param name="context"></param>
         /// <param name="next"></param>
@@ -34,7 +34,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Send
             next = next ?? throw new ArgumentNullException(nameof(next));
             context = context ?? throw new ArgumentNullException(nameof(context));
 
-            var message = context.Load<Messages.Message>();
+            var message = context.Load<Message>();
 
             var body = message.Body;
 

@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Rebus.Bus;
-using Rebus.Messages;
-using Rebus.Transport;
-
-namespace Rebus.AwsSnsAndSqsTests.Extensions
+﻿namespace Rebus.AwsSnsAndSqsTests.Extensions
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Bus;
+    using Messages;
+    using Transport;
+
     public static class TransportExtensions
     {
         public static async Task<List<TransportMessage>> ReceiveAll(this ITransport transport, int quietTimeSeconds = 2)

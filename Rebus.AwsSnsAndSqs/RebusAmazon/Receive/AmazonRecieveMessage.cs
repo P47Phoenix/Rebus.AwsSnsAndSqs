@@ -16,8 +16,8 @@
 
     internal class AmazonRecieveMessage
     {
-        private readonly IAmazonInternalSettings m_amazonInternalSettings;
         private readonly IAmazonMessageProcessorFactory _amazonMessageProcessorFactory;
+        private readonly IAmazonInternalSettings m_amazonInternalSettings;
         private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
         private readonly ILog m_log;
 
@@ -51,13 +51,7 @@
 
             var client = m_amazonInternalSettings.CreateSqsClient(context);
 
-            var request = new ReceiveMessageRequest(queueUrl)
-            {
-                MaxNumberOfMessages = 1,
-                WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds,
-                AttributeNames = new List<string>(new[] { "All" }),
-                MessageAttributeNames = new List<string>(new[] { "All" })
-            };
+            var request = new ReceiveMessageRequest(queueUrl) {MaxNumberOfMessages = 1, WaitTimeSeconds = m_amazonInternalSettings.AmazonSnsAndSqsTransportOptions.ReceiveWaitTimeSeconds, AttributeNames = new List<string>(new[] {"All"}), MessageAttributeNames = new List<string>(new[] {"All"})};
 
             var response = await client.ReceiveMessageAsync(request, cancellationToken);
 
@@ -70,7 +64,7 @@
 
             var renewalTask = CreateRenewalTaskForMessage(sqsMessage, queueUrl, client);
 
-            context.OnCompleted(async () =>
+            context.OnCompleted(async c =>
             {
                 renewalTask.Dispose();
                 // if we get this far, we don't want to pass on the cancellation token
@@ -78,13 +72,13 @@
                 await client.DeleteMessageAsync(new DeleteMessageRequest(queueUrl, sqsMessage.ReceiptHandle));
             });
 
-            context.OnAborted(() =>
+            context.OnAborted(c =>
             {
                 renewalTask.Dispose();
                 Task.Run(() => client.ChangeMessageVisibilityAsync(queueUrl, sqsMessage.ReceiptHandle, 0, cancellationToken), cancellationToken).Wait(cancellationToken);
             });
 
-            IAmazonMessageProcessor amazonMessageProcessor = _amazonMessageProcessorFactory.Create(sqsMessage);
+            var amazonMessageProcessor = _amazonMessageProcessorFactory.Create(sqsMessage);
 
             var transportMessage = amazonMessageProcessor.ProcessMessage();
 
@@ -106,10 +100,10 @@
             {
                 m_log.Info("Renewing peek lock for message with ID {messageId}", message.MessageId);
 
-                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
+                var request = new ChangeMessageVisibilityRequest(queueUrl, message.ReceiptHandle, (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds);
 
                 await client.ChangeMessageVisibilityAsync(request);
-            }, intervalSeconds: (int)m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
+            }, intervalSeconds: (int) m_amazonInternalSettings.AmazonPeekLockDuration.PeekLockRenewalInterval.TotalSeconds, prettyInsignificant: true);
         }
     }
 }

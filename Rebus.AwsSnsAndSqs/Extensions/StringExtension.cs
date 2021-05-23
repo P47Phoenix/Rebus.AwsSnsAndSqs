@@ -9,5 +9,4 @@
             return Convert.FromBase64String(bodyText);
         }
     }
-
 }

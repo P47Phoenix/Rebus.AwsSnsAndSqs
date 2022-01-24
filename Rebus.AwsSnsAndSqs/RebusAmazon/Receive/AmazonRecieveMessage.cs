@@ -10,6 +10,7 @@
     using Extensions;
     using Logging;
     using Messages;
+    using Rebus.Time;
     using Threading;
     using Transport;
     using Message = Amazon.SQS.Model.Message;
@@ -20,13 +21,15 @@
         private readonly IAmazonMessageProcessorFactory _amazonMessageProcessorFactory;
         private readonly AmazonSQSQueueContext m_amazonSqsQueueContext;
         private readonly ILog m_log;
+        private readonly IRebusTime _rebusTime;
 
-        public AmazonRecieveMessage(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext, IAmazonMessageProcessorFactory amazonMessageProcessorFactory)
+        public AmazonRecieveMessage(IAmazonInternalSettings amazonInternalSettings, AmazonSQSQueueContext amazonSQSQueueContext, IAmazonMessageProcessorFactory amazonMessageProcessorFactory, IRebusTime rebusTime)
         {
             _amazonMessageProcessorFactory = amazonMessageProcessorFactory;
             m_amazonInternalSettings = amazonInternalSettings ?? throw new ArgumentNullException(nameof(amazonInternalSettings));
             m_amazonSqsQueueContext = amazonSQSQueueContext ?? throw new ArgumentNullException(nameof(amazonSQSQueueContext));
             m_log = m_amazonInternalSettings.RebusLoggerFactory.GetLogger<AmazonRecieveMessage>();
+            _rebusTime = rebusTime;
         }
 
         /// <inheritdoc />
@@ -70,15 +73,15 @@
 
             var renewalTask = CreateRenewalTaskForMessage(sqsMessage, queueUrl, client);
 
-            context.OnCompleted(async () =>
+            context.OnCompleted((ITransactionContext ctx) =>
             {
                 renewalTask.Dispose();
                 // if we get this far, we don't want to pass on the cancellation token
                 // ReSharper disable once MethodSupportsCancellation
-                await client.DeleteMessageAsync(new DeleteMessageRequest(queueUrl, sqsMessage.ReceiptHandle));
+                return client.DeleteMessageAsync(new DeleteMessageRequest(queueUrl, sqsMessage.ReceiptHandle));
             });
 
-            context.OnAborted(() =>
+            context.OnAborted((ITransactionContext ctx) =>
             {
                 renewalTask.Dispose();
                 Task.Run(() => client.ChangeMessageVisibilityAsync(queueUrl, sqsMessage.ReceiptHandle, 0, cancellationToken), cancellationToken).Wait(cancellationToken);
@@ -88,7 +91,7 @@
 
             var transportMessage = amazonMessageProcessor.ProcessMessage();
 
-            if (transportMessage.MessageIsExpired(sqsMessage))
+            if (transportMessage.MessageIsExpired(_rebusTime, sqsMessage))
             {
                 // if the message is expired , we don't want to pass on the cancellation token
                 // ReSharper disable once MethodSupportsCancellation

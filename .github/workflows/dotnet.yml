@@ -17,7 +17,7 @@ jobs:
       with:
         script-path: build.cake
       env:
-        CI_COMMIT_BRANCH: ${{ github.head_ref }}
+        CI_COMMIT_BRANCH: ${{ github.ref_name }}
         CI_COMMIT_REF_PROTECTED: ${{ github.ref_protected }}
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         CI_PIPELINE_IID: ${{ github.run_number }}

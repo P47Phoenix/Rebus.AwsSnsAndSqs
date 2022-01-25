@@ -21,3 +21,8 @@ jobs:
         CI_COMMIT_REF_PROTECTED: ${{ github.ref_protected }}
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         CI_PIPELINE_IID: ${{ github.run_number }}
+    - name: Upload package artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: nupkgs

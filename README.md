@@ -1,5 +1,5 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/p47phoenix/rebus.awssnsandsqs/badge)](https://www.codefactor.io/repository/github/p47phoenix/rebus.awssnsandsqs)
-[![pipeline status](https://gitlab.com/P47Phoenix/Rebus-AwsSnsAndSqs/badges/master/pipeline.svg)](https://gitlab.com/P47Phoenix/Rebus-AwsSnsAndSqs/commits/master)
+[![.NET](https://github.com/P47Phoenix/Rebus.AwsSnsAndSqs/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/P47Phoenix/Rebus.AwsSnsAndSqs/actions/workflows/dotnet.yml)
 
 # Rebus.AwsSnsAndSqs
 Implement aws [sns](https://aws.amazon.com/sns/) and [sqs](https://aws.amazon.com/sqs/) provider for [Rebus](https://github.com/rebus-org/Rebus)

@@ -13,6 +13,8 @@ using Rebus.Threading.TaskParallelLibrary;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using Time;
+
     public class AmazonSqsManyMessagesTransportFactory : IBusFactory
     {
         private readonly List<IDisposable> _stuffToDispose = new List<IDisposable>();
@@ -56,7 +58,7 @@ namespace Rebus.AwsSnsAndSqsTests
             var connectionInfo = AmazonSqsTransportFactory.ConnectionInfo;
             var amazonSqsConfig = new AmazonSQSConfig {RegionEndpoint = connectionInfo.RegionEndpoint};
 
-            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory)) {InputQueueAddress = queueName, AmazonSqsConfig = amazonSqsConfig});
+            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory)) {InputQueueAddress = queueName, AmazonSqsConfig = amazonSqsConfig}, new DefaultRebusTime());
             transport.Initialize();
             transport.Purge();
         }

@@ -5,10 +5,12 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Rebus.AwsSnsAndSqsTests</RootNamespace>
     <AssemblyName>Rebus.AwsSnsAndSqsTests</AssemblyName>
-    <TargetFrameworks>net452</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>Debug;Release;RelaseBuildLoadTest</Configurations>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>default</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,19 +49,20 @@
     <DefineConstants>NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.3.104.18" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.114" />
-    <PackageReference Include="AWSSDK.SQS" Version="3.3.102.57" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit.Console" Version="3.10.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
+    <PackageReference Include="AWSSDK.Core" Version="3.7.105.15" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.101.22" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.100.86" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit.Console" Version="3.16.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenCover" Version="4.7.922" />
+    <PackageReference Include="OpenCover" Version="4.7.1221" />
     <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.3.4" />
-    <PackageReference Include="Rebus" Version="6.5.5" />
-    <PackageReference Include="Rebus.Tests.Contracts" Version="5.2.0" />
+    <PackageReference Include="Rebus" Version="7.0.0" />
+    <PackageReference Include="Rebus.Tests.Contracts" Version="7.0.0" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rebus.AwsSnsAndSqs\Rebus.AwsSnsAndSqs.csproj" />

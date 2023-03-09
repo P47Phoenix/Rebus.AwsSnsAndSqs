@@ -16,6 +16,8 @@ using Rebus.Transport;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using Time;
+
     internal class AmazonSqsTransportFactory : ITransportFactory
     {
         private static ConnectionInfo _connectionInfo;
@@ -51,7 +53,7 @@ namespace Rebus.AwsSnsAndSqsTests
 
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
 
-            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory()) {InputQueueAddress = inputQueueAddress, AmazonSqsConfig = amazonSqsConfig, AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(), AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(), MessageSerializer = new AmazonTransportMessageSerializer()});
+            var transport = new AmazonSqsTransport(new AmazonInternalSettings(consoleLoggerFactory, new TplAsyncTaskFactory(consoleLoggerFactory), new FailbackAmazonCredentialsFactory()) {InputQueueAddress = inputQueueAddress, AmazonSqsConfig = amazonSqsConfig, AmazonSnsAndSqsTransportOptions = options ?? new AmazonSnsAndSqsTransportOptions(), AmazonSimpleNotificationServiceConfig = new AmazonSimpleNotificationServiceConfig(), MessageSerializer = new AmazonTransportMessageSerializer()}, new DefaultRebusTime());
 
             transport.Initialize(peeklockDuration);
 

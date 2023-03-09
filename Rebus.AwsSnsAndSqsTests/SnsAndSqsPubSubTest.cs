@@ -25,17 +25,14 @@ namespace Rebus.AwsSnsAndSqsTests
         protected override void SetUp()
         {
 
-            _publisher = GetBus(_publisherQueueName);
+            _publisher = GetBus(_publisherQueueName, s => Task.CompletedTask);
         }
 
-        private BuiltinHandlerActivator GetBus(string queueName, Func<string, Task> handlerMethod = null)
+        private BuiltinHandlerActivator GetBus(string queueName, Func<string, Task> handlerMethod)
         {
             var activator = Using(new BuiltinHandlerActivator());
 
-            if (handlerMethod != null)
-            {
-                activator.Handle(handlerMethod);
-            }
+            activator.Handle(handlerMethod);
 
             Configure.With(activator).Transport(t => { t.UseAmazonSnsAndSqs(workerQueueAddress: queueName); }).Routing(r => r.TypeBased().Map<string>(queueName)).Start();
             

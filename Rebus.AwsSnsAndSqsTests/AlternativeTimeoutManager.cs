@@ -14,6 +14,8 @@ using Rebus.Timeouts;
 
 namespace Rebus.AwsSnsAndSqsTests
 {
+    using Time;
+
     [TestFixture]
     public class AlternativeTimeoutManager : FixtureBase
     {
@@ -42,7 +44,14 @@ namespace Rebus.AwsSnsAndSqsTests
                 gotTheString.Set();
             });
 
-            var bus = Configure.With(_activator).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: QueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false})).Timeouts(t => t.Register(c => new InMemoryTimeoutManager())).Start();
+            var bus = Configure
+                .With(_activator)
+                .Transport(t => 
+                    t.UseAmazonSnsAndSqs(
+                        workerQueueAddress: QueueName, 
+                        amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false}))
+                .Timeouts(t => 
+                    t.Register(c => new InMemoryTimeoutManager(new DefaultRebusTime()))).Start();
 
             await bus.DeferLocal(TimeSpan.FromSeconds(5), "hej med dig min ven!!!!!");
 
@@ -53,7 +62,7 @@ namespace Rebus.AwsSnsAndSqsTests
         public async Task CanUseDedicatedAlternativeTimeoutManager()
         {
             // start the timeout manager
-            Configure.With(Using(new BuiltinHandlerActivator())).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: TimeoutManagerQueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false})).Timeouts(t => t.Register(c => new InMemoryTimeoutManager())).Start();
+            Configure.With(Using(new BuiltinHandlerActivator())).Transport(t => t.UseAmazonSnsAndSqs(workerQueueAddress: TimeoutManagerQueueName, amazonSnsAndSqsTransportOptions: new AmazonSnsAndSqsTransportOptions {UseNativeDeferredMessages = false})).Timeouts(t => t.Register(c => new InMemoryTimeoutManager(new DefaultRebusTime()))).Start();
 
             var gotTheString = new ManualResetEvent(false);
 

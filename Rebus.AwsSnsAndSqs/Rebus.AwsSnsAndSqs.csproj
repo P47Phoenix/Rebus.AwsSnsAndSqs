@@ -5,7 +5,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Rebus.AwsSnsAndSqs</RootNamespace>
     <AssemblyName>Rebus.AwsSnsAndSqs</AssemblyName>
-    <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <license>https://ghe.coxautoinc.com/CoxAuto/Rebus.AwsSnsAndSqs/blob/master/LICENSE.md</license>
     <PackageProjectUrl>https://github.com/P47Phoenix/Rebus.AwsSnsAndSqs</PackageProjectUrl>
@@ -14,11 +13,15 @@
     <PackageTags>Rebus sns sqs messaging pubsub innersource</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Configurations>Debug;Release;RelaseBuildLoadTest</Configurations>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects><Version>5.0.0.0</Version>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Version>5.0.0.0</Version>
     <AssemblyVersion>5.0.*</AssemblyVersion>    
     <Deterministic>False</Deterministic>    
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>    
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>    
+    <TargetFramework>netstandard2.0</TargetFramework>    
+    <LangVersion>default</LangVersion>    
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -66,14 +69,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.3.104.18" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.101.114" />
-    <PackageReference Include="AWSSDK.SQS" Version="3.3.102.57" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+    <PackageReference Include="AWSSDK.Core" Version="3.7.105.15" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.101.22" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.100.86" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Rebus" Version="6.5.5" />
+    <PackageReference Include="Rebus" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyInfoFiles Remove="Properties\AssemblyInfo.cs" />

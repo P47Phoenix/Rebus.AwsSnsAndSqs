@@ -71,25 +71,27 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 
                     var formatedTopicName = amazonInternalSettings.TopicFormatter.FormatTopic(topic);
 
-                var findTopicAsync = snsClient.FindTopicAsync(formatedTopicName);
+                    var findTopicAsync = snsClient.FindTopicAsync(formatedTopicName);
 
-                AsyncHelpers.RunSync(() => findTopicAsync);
+                    AsyncHelpers.RunSync(() => findTopicAsync);
 
-                var findTopicResult = findTopicAsync.Result;
+                    var findTopicResult = findTopicAsync.Result;
 
-                string topicArn = findTopicResult?.TopicArn;
+                    string topicArn = findTopicResult?.TopicArn;
 
-                if (findTopicResult == null)
-                {
+                    if (findTopicResult == null)
+                    {
                         logger.Debug($"Did not find sns topic {0}", formatedTopicName);
-                    var task = snsClient.CreateTopicAsync(new CreateTopicRequest(formatedTopicName));
-                    AsyncHelpers.RunSync(() => task);
-                    topicArn = task.Result?.TopicArn;
+                        var createTopicRequest = new CreateTopicRequest(formatedTopicName);
+                        amazonInternalSettings.PrepareCreateTopicRequest?.Invoke(createTopicRequest);
+                        var task = snsClient.CreateTopicAsync(createTopicRequest);
+                        AsyncHelpers.RunSync(() => task);
+                        topicArn = task.Result?.TopicArn;
                         logger.Debug($"Created sns topic {0} => {1}", formatedTopicName, topicArn);
-                }
+                    }
 
                     logger.Debug($"Using sns topic {0} => {1}", formatedTopicName, topicArn);
-                return topicArn;
+                    return topicArn;
                 }
                 finally
                 {

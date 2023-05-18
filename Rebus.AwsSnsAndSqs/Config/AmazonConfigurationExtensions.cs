@@ -1,7 +1,9 @@
 ﻿using System;
 using Amazon;
 using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
+using Amazon.SQS.Model;
 using Rebus.AwsSnsAndSqs.RebusAmazon;
 using Rebus.Config;
 using Rebus.Pipeline;
@@ -26,7 +28,7 @@ namespace Rebus.AwsSnsAndSqs.Config
         /// <summary>
         ///     Configures Rebus to use Amazon Simple Queue Service as the message transport
         /// </summary>
-        public static void UseAmazonSnsAndSqs(this StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory = null, AmazonSQSConfig amazonSqsConfig = null, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null, string workerQueueAddress = "input_queue_address", AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions = null, ITopicFormatter topicFormatter = null, SnsAttributeMapperBuilder snsAttributeMapperBuilder = null)
+        public static void UseAmazonSnsAndSqs(this StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory = null, AmazonSQSConfig amazonSqsConfig = null, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig = null, string workerQueueAddress = "input_queue_address", AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions = null, ITopicFormatter topicFormatter = null, SnsAttributeMapperBuilder snsAttributeMapperBuilder = null, Action<CreateQueueRequest> prepareCreateQueueRequest = null, Action<CreateTopicRequest> prepareCreateTopicRequest = null)
         {
             configurer = configurer ?? throw new ArgumentNullException(nameof(configurer));
 
@@ -36,16 +38,27 @@ namespace Rebus.AwsSnsAndSqs.Config
             amazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? new AmazonSnsAndSqsTransportOptions();
             snsAttributeMapperBuilder = snsAttributeMapperBuilder ?? new SnsAttributeMapperBuilder();
             amazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.USWest2 };
-            Configure(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, workerQueueAddress, amazonSnsAndSqsTransportOptions, topicFormatter, snsAttributeMapperBuilder);
+            Configure(configurer, amazonCredentialsFactory, amazonSqsConfig, amazonSimpleNotificationServiceConfig, workerQueueAddress, amazonSnsAndSqsTransportOptions, topicFormatter, snsAttributeMapperBuilder, prepareCreateQueueRequest, prepareCreateTopicRequest);
         }
 
-        private static void Configure(StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory, AmazonSQSConfig amazonSqsConfig, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig, string inputQueueAddress, AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions, ITopicFormatter topicFormatter, SnsAttributeMapperBuilder snsAttributeMapperBuilder)
+        private static void Configure(StandardConfigurer<ITransport> configurer, IAmazonCredentialsFactory amazonCredentialsFactory, AmazonSQSConfig amazonSqsConfig, AmazonSimpleNotificationServiceConfig amazonSimpleNotificationServiceConfig, string inputQueueAddress, AmazonSnsAndSqsTransportOptions amazonSnsAndSqsTransportOptions, ITopicFormatter topicFormatter, SnsAttributeMapperBuilder snsAttributeMapperBuilder, Action<CreateQueueRequest> prepareCreateQueueRequest, Action<CreateTopicRequest> prepareCreateTopicRequest)
         {
             amazonCredentialsFactory = amazonCredentialsFactory ?? throw new ArgumentNullException(nameof(amazonCredentialsFactory));
             configurer.OtherService<IAmazonCredentialsFactory>().Register(c => amazonCredentialsFactory);
 
             configurer.OtherService<IAmazonSQSTransportFactory>().Register(c => new AmazonSQSTransportFactory(c.Get<IAmazonInternalSettings>(), c.Get<IRebusTime>()));
-            configurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings { ResolutionContext = c, AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)), InputQueueAddress = inputQueueAddress ?? throw new ArgumentNullException(nameof(inputQueueAddress)), AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)), AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)), MessageSerializer = new AmazonTransportMessageSerializer(), TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter)) });
+            configurer.OtherService<IAmazonInternalSettings>().Register(c => new AmazonInternalSettings
+            {
+                ResolutionContext = c,
+                AmazonSimpleNotificationServiceConfig = amazonSimpleNotificationServiceConfig ?? throw new ArgumentNullException(nameof(amazonSimpleNotificationServiceConfig)),
+                InputQueueAddress = inputQueueAddress ?? throw new ArgumentNullException(nameof(inputQueueAddress)),
+                AmazonSqsConfig = amazonSqsConfig ?? throw new ArgumentNullException(nameof(amazonSqsConfig)),
+                AmazonSnsAndSqsTransportOptions = amazonSnsAndSqsTransportOptions ?? throw new ArgumentNullException(nameof(amazonSnsAndSqsTransportOptions)),
+                MessageSerializer = new AmazonTransportMessageSerializer(),
+                TopicFormatter = topicFormatter ?? throw new ArgumentNullException(nameof(topicFormatter)),
+                PrepareCreateQueueRequest = prepareCreateQueueRequest,
+                PrepareCreateTopicRequest =prepareCreateTopicRequest
+            });
 
             configurer.Register(c => c.Get<IAmazonSQSTransportFactory>().Create());
 

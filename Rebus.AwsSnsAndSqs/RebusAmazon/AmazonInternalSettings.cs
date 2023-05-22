@@ -1,6 +1,9 @@
-﻿using Amazon;
+﻿using System;
+using Amazon;
 using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
+using Amazon.SQS.Model;
 using Rebus.AwsSnsAndSqs.Config;
 using Rebus.Injection;
 using Rebus.Logging;
@@ -51,5 +54,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
         public IAsyncTaskFactory AsyncTaskFactory => m_AsyncTaskFactory = m_AsyncTaskFactory ?? (ResolutionContext.Get<IAsyncTaskFactory>() ?? new TplAsyncTaskFactory(RebusLoggerFactory));
 
         public ITopicFormatter TopicFormatter { get; internal set; }
+        public Action<CreateQueueRequest> PrepareCreateQueueRequest { get; internal set; }
+        public Action<CreateTopicRequest> PrepareCreateTopicRequest { get; internal set; }
     }
 }

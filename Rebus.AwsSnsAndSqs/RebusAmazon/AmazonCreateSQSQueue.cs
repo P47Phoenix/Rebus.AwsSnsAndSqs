@@ -50,7 +50,8 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                     var visibilityTimeout = ((int) m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture);
 
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSSetQueueAttributesRequest.html for options
-                    var setAttributesTask = client.SetQueueAttributesAsync(getQueueUrlResponse.QueueUrl, new Dictionary<string, string> {["VisibilityTimeout"] = visibilityTimeout});
+                    var setQueueattributesRequest = new Dictionary<string, string> { ["VisibilityTimeout"] = visibilityTimeout };
+                    var setAttributesTask = client.SetQueueAttributesAsync(getQueueUrlResponse.QueueUrl, setQueueattributesRequest);
                     AsyncHelpers.RunSync(() => setAttributesTask);
                     var setAttributesResponse = setAttributesTask.Result;
 
@@ -63,6 +64,7 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon
                 {
                     // See http://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/SQS/TSQSCreateQueueRequest.html for options
                     var createQueueRequest = new CreateQueueRequest(queueName) {Attributes = {["VisibilityTimeout"] = ((int) m_AmazonInternalSettings.AmazonPeekLockDuration.PeekLockDuration.TotalSeconds).ToString(CultureInfo.InvariantCulture)}};
+                    m_AmazonInternalSettings.PrepareCreateQueueRequest?.Invoke(createQueueRequest);
                     var task = client.CreateQueueAsync(createQueueRequest);
                     AsyncHelpers.RunSync(() => task);
                     var response = task.Result;

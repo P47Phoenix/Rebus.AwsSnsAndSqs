@@ -8,7 +8,9 @@ namespace Rebus.AwsSnsAndSqs.RebusAmazon.Extensions
 {
     internal static class AmazonWebServiceResponseExtensions
     {
-        public static AmazonWebServiceException CreateAmazonExceptionFromResponse(this AmazonWebServiceResponse amazonWebServiceResponse, Exception exception = null)
+        public static AmazonWebServiceException CreateAmazonExceptionFromResponse(
+            this AmazonWebServiceResponse amazonWebServiceResponse,
+            Exception? exception = null)
         {
             var jArray = JArray.FromObject(amazonWebServiceResponse.ResponseMetadata.Metadata.ToList());
 

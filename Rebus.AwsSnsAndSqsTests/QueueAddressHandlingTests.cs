@@ -26,7 +26,7 @@ namespace Rebus.AwsSnsAndSqsTests
             {
                 var received = await destinationTransport.Receive(context, new CancellationTokenSource().Token);
 
-                Assert.AreEqual("hallo", GetStringBody(received));
+                Assert.That("hallo", Is.EqualTo(GetStringBody(received)), "Expected to receive a message, but got null");
             });
         }
 

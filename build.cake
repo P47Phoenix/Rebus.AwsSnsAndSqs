@@ -39,12 +39,12 @@ Task("Setup")
 
         if(branch.Equals("master", StringComparison.InvariantCultureIgnoreCase))
         {
-            packageVersion  = $"6.0.{buildNumber}";
+            packageVersion  = $"7.0.{buildNumber}";
         }
         else
         {
             var cleanBranchName = branch.Replace(" ", "-");
-            packageVersion  = $"6.0.{buildNumber}-{cleanBranchName}";
+            packageVersion  = $"7.0.{buildNumber}-{cleanBranchName}";
         }
     });
 

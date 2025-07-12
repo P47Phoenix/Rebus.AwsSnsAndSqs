@@ -22,7 +22,10 @@
 
             foreach (var messageContextHeader in messageContext.Headers)
             {
-                NewRelic.AddCustomParameter(messageContextHeader.Key, messageContextHeader.Value);
+                NewRelic
+                    .GetAgent()?
+                    .CurrentTransaction?
+                    .AddCustomAttribute(messageContextHeader.Key, messageContextHeader.Value);
             }
 
             Stopwatch stopwatch = Stopwatch.StartNew();
